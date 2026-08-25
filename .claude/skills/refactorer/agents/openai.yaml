@@ -1,0 +1,4 @@
+interface:
+  display_name: "Refactorer"
+  short_description: "Simplify code without behavior changes"
+  default_prompt: "Use $refactorer to simplify this code while preserving behavior."

@@ -1,0 +1,101 @@
+	uid_likes_life_expected	uid_likes_life	uid	timestamp	item_id	is_organic	event_type	day	artist_id	album_id
+0		0	3	2747	110	True	dislike	1970-01-01	Artist_4	
+1		0	3	3890	101	False	dislike	1970-01-01	Artist_0	Album_0
+2		0	2	11534	103	False	listen	1970-01-01	Artist_2	Album_2
+3		0	2	31551	104	False	like	1970-01-01		Album_3
+4		0	2	37065	109	False	dislike	1970-01-01	Artist_3	Album_0
+5		0	1	40397	104	True	dislike	1970-01-01		Album_3
+6		0	3	41090	101	False	like	1970-01-01	Artist_0	Album_0
+7		0	3	41606	109	True	like	1970-01-01	Artist_3	Album_0
+8		0	3	48555	101	False	dislike	1970-01-01	Artist_0	Album_0
+9		0	1	54886	105	True	like	1970-01-01	Artist_4	
+10		0	2	55591	101	False	listen	1970-01-01	Artist_0	Album_0
+11		0	3	64820	110	False	like	1970-01-01	Artist_4	
+12		0	1	65725	107	False	dislike	1970-01-01	Artist_1	Album_6
+13		0	3	67435	106	False	like	1970-01-01	Artist_0	Album_5
+14		0	1	68148	104	False	like	1970-01-01		Album_3
+15		0	3	80077	110	True	dislike	1970-01-01	Artist_4	
+16		0	1	84654	107	True	listen	1970-01-01	Artist_1	Album_6
+17		2	1	87498	110	True	dislike	1970-01-02	Artist_4	
+18		2	1	99299	103	True	like	1970-01-02	Artist_2	Album_2
+19		4	3	103355	108	True	listen	1970-01-02		Album_7
+20		4	3	106530	107	True	dislike	1970-01-02	Artist_1	Album_6
+21		2	1	110268	108	False	like	1970-01-02		Album_7
+22		1	2	119879	106	True	dislike	1970-01-02	Artist_0	Album_5
+23		2	1	121958	109	False	listen	1970-01-02	Artist_3	Album_0
+24		4	3	123855	106	False	like	1970-01-02	Artist_0	Album_5
+25		2	1	124243	101	False	like	1970-01-02	Artist_0	Album_0
+26		4	3	129981	104	False	like	1970-01-02		Album_3
+27		1	2	130523	105	False	listen	1970-01-02	Artist_4	
+28		1	2	131932	109	False	dislike	1970-01-02	Artist_3	Album_0
+29		2	1	137337	101	True	like	1970-01-02	Artist_0	Album_0
+30		4	3	141699	104	False	like	1970-01-02		Album_3
+31		2	1	146867	104	True	like	1970-01-02		Album_3
+32		4	3	149503	102	False	listen	1970-01-02	Artist_1	Album_1
+33		2	1	154555	102	False	like	1970-01-02	Artist_1	Album_1
+34		4	3	156730	101	True	like	1970-01-02	Artist_0	Album_0
+35		1	2	171829	101	False	listen	1970-01-02	Artist_0	Album_0
+36		8	3	174073	103	True	like	1970-01-03	Artist_2	Album_2
+37		8	3	175203	108	False	dislike	1970-01-03		Album_7
+38		8	3	184779	102	True	dislike	1970-01-03	Artist_1	Album_1
+39		8	1	191335	109	False	listen	1970-01-03	Artist_3	Album_0
+40		8	3	194027	102	True	listen	1970-01-03	Artist_1	Album_1
+41		8	3	196769	107	True	dislike	1970-01-03	Artist_1	Album_6
+42		8	1	199041	105	False	like	1970-01-03	Artist_4	
+43		1	2	200551	107	False	dislike	1970-01-03	Artist_1	Album_6
+44		1	2	202283	105	True	dislike	1970-01-03	Artist_4	
+45		8	3	205041	103	False	dislike	1970-01-03	Artist_2	Album_2
+46		8	3	207624	104	True	listen	1970-01-03		Album_3
+47		8	1	207892	109	False	listen	1970-01-03	Artist_3	Album_0
+48		8	1	208261	109	False	listen	1970-01-03	Artist_3	Album_0
+49		8	1	214176	101	False	listen	1970-01-03	Artist_0	Album_0
+50		8	3	223165	109	True	like	1970-01-03	Artist_3	Album_0
+51		1	2	235796	101	True	dislike	1970-01-03	Artist_0	Album_0
+52		8	1	239629	110	False	like	1970-01-03	Artist_4	
+53		1	2	239931	103	False	like	1970-01-03	Artist_2	Album_2
+54		1	2	240181	104	True	dislike	1970-01-03		Album_3
+55		8	3	251995	108	True	like	1970-01-03		Album_7
+56		8	3	252709	101	False	like	1970-01-03	Artist_0	Album_0
+57		1	2	252801	109	False	listen	1970-01-03	Artist_3	Album_0
+58		8	1	256508	109	True	like	1970-01-03	Artist_3	Album_0
+59		8	1	256840	106	True	dislike	1970-01-03	Artist_0	Album_5
+60		8	1	257750	108	True	listen	1970-01-03		Album_7
+61		8	1	258795	107	True	dislike	1970-01-03	Artist_1	Album_6
+62		8	1	259178	107	False	listen	1970-01-03	Artist_1	Album_6
+63		11	1	262913	104	True	dislike	1970-01-04		Album_3
+64		12	3	263160	108	False	dislike	1970-01-04		Album_7
+65		2	2	267455	101	False	listen	1970-01-04	Artist_0	Album_0
+66		2	2	270936	104	True	like	1970-01-04		Album_3
+67		2	2	271836	105	True	listen	1970-01-04	Artist_4	
+68		12	3	273538	106	False	dislike	1970-01-04	Artist_0	Album_5
+69		11	1	278167	104	False	like	1970-01-04		Album_3
+70		11	1	279303	109	True	dislike	1970-01-04	Artist_3	Album_0
+71		2	2	281601	110	True	dislike	1970-01-04	Artist_4	
+72		2	2	298064	103	False	listen	1970-01-04	Artist_2	Album_2
+73		11	1	315139	102	True	dislike	1970-01-04	Artist_1	Album_1
+74		11	1	319030	108	True	listen	1970-01-04		Album_7
+75		12	3	321879	107	True	like	1970-01-04	Artist_1	Album_6
+76		11	1	327069	103	False	listen	1970-01-04	Artist_2	Album_2
+77		11	1	328947	105	True	listen	1970-01-04	Artist_4	
+78		12	3	329365	101	False	like	1970-01-04	Artist_0	Album_0
+79		2	2	331236	106	False	like	1970-01-04	Artist_0	Album_5
+80		11	1	341097	101	False	listen	1970-01-04	Artist_0	Album_0
+81	4.0	4	2	346622	101	False	listen	1970-01-05	Artist_0	Album_0
+82	12.0	12	1	347449	102	True	dislike	1970-01-05	Artist_1	Album_1
+83	14.0	14	3	349457	103	False	listen	1970-01-05	Artist_2	Album_2
+84	12.0	12	1	353531	106	False	like	1970-01-05	Artist_0	Album_5
+85	14.0	14	3	365838	103	True	dislike	1970-01-05	Artist_2	Album_2
+86	14.0	14	3	372654	102	False	listen	1970-01-05	Artist_1	Album_1
+87	12.0	12	1	374871	108	False	dislike	1970-01-05		Album_7
+88	14.0	14	3	378360	102	True	like	1970-01-05	Artist_1	Album_1
+89	4.0	4	2	381490	101	True	like	1970-01-05	Artist_0	Album_0
+90	14.0	14	3	382318	107	False	listen	1970-01-05	Artist_1	Album_6
+91	12.0	12	1	384681	103	False	dislike	1970-01-05	Artist_2	Album_2
+92	14.0	14	3	386502	108	False	listen	1970-01-05		Album_7
+93	12.0	12	1	388468	106	True	dislike	1970-01-05	Artist_0	Album_5
+94	14.0	14	3	392752	105	False	dislike	1970-01-05	Artist_4	
+95	12.0	12	1	417113	107	True	listen	1970-01-05	Artist_1	Album_6
+96	4.0	4	2	421909	106	False	dislike	1970-01-05	Artist_0	Album_5
+97	14.0	14	3	425822	103	False	like	1970-01-05	Artist_2	Album_2
+98	14.0	14	3	428989	108	False	like	1970-01-05		Album_7
+99	14.0	14	3	430410	103	False	dislike	1970-01-05	Artist_2	Album_2

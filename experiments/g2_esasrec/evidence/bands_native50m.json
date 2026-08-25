@@ -1,0 +1,90 @@
+{
+  "dataset_size": "native-50m",
+  "description": "Sample standard deviations from ten unchanged control seeds; not confidence intervals.",
+  "metrics": {
+    "capped_recall@10": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0018442930065246021
+    },
+    "capped_recall@100": {
+      "reader_threshold": 0.003,
+      "sample_standard_deviation": 0.0027145159895193994
+    },
+    "capped_recall@50": {
+      "reader_threshold": 0.003,
+      "sample_standard_deviation": 0.0027824447528456216
+    },
+    "coverage@10": {
+      "reader_threshold": 0.03,
+      "sample_standard_deviation": 0.02973179929585621
+    },
+    "coverage@100": {
+      "reader_threshold": 0.06,
+      "sample_standard_deviation": 0.05402092605919655
+    },
+    "coverage@50": {
+      "reader_threshold": 0.06,
+      "sample_standard_deviation": 0.053637161961290335
+    },
+    "mrr@10": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0016613763596424079
+    },
+    "mrr@100": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0016414300308192496
+    },
+    "mrr@50": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0016976426728936814
+    },
+    "ndcg@10": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0010448371838914774
+    },
+    "ndcg@100": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0010630992162659113
+    },
+    "ndcg@50": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.0011840122049279643
+    },
+    "recall@10": {
+      "reader_threshold": 0.002,
+      "sample_standard_deviation": 0.001763653747820625
+    },
+    "recall@100": {
+      "reader_threshold": 0.003,
+      "sample_standard_deviation": 0.002713697807308104
+    },
+    "recall@50": {
+      "reader_threshold": 0.003,
+      "sample_standard_deviation": 0.0027786124314935602
+    }
+  },
+  "run_names": [
+    "g2_control_trial_01_native50m",
+    "g2_control_seed_43_native50m",
+    "g2_control_seed_44_native50m",
+    "g2_control_seed_45_native50m",
+    "g2_control_seed_46_native50m",
+    "g2_control_seed_47_native50m",
+    "g2_control_seed_48_native50m",
+    "g2_control_seed_49_native50m",
+    "g2_control_seed_50_native50m",
+    "g2_control_seed_51_native50m"
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ]
+}

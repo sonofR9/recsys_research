@@ -1,0 +1,12 @@
+version: 1
+id: g1-rq6-warmup
+title: Revalidate G1 RQ6 warmup
+description: >-
+  Retune the warmup families under the native-dataset early-stopping protocol,
+  reuse exact final matches only, and independently review the regenerated
+  warmup conclusion.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq1-mup-transfer
+ideas_tags:
+  - g1-rq6

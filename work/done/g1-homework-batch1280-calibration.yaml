@@ -1,0 +1,9 @@
+version: 1
+id: g1-homework-batch1280-calibration
+title: Calibrate homework baseline at batch 1280
+description: >-
+  The native 500M batch-1280 confirmation selected learning rates 0.001/0.002
+  on native 50M, stopped at epoch 23, restored best epoch 20, and reached
+  recall@100 0.12736188. It passes the 0.1235 to 0.13 calibration gate.
+blocked_by: []
+ideas_tags: []

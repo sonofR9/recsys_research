@@ -1,0 +1,10 @@
+version: 1
+id: g1-proxy-embedding-rate
+title: Re-center the 50M proxy embedding learning rate
+description: >-
+  The 50M embedding-LR optimum is 0.128 while the control and every tuning grid
+  sit at 0.032 or below, so the proxy has ranked every treatment 4x below its
+  own optimum. Decide whether the proxy's embedding rate moves and which
+  settled comparisons have to be re-read on the corrected surface.
+blocked_by: []
+ideas_tags: []

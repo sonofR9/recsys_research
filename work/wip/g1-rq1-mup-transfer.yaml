@@ -1,0 +1,13 @@
+version: 1
+id: g1-rq1-mup-transfer
+title: Review G1 RQ1 hyperparameter transfer
+description: >-
+  The horizon-complete 50M surface settles width transfer, but the native-500M
+  confirmations stopped short of their annealing horizon and test the rates the
+  superseded proxy selected. Rerun them horizon-complete against the corrected
+  local rates, and decide whether a non-μP width sweep is needed as a negative
+  control.
+blocked_by:
+  - g1-training-protocol-reset
+ideas_tags:
+  - g1-rq1

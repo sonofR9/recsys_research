@@ -1,0 +1,1514 @@
+{
+  "dataset_size": "native-50m",
+  "jobs": [
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_00",
+      "method": "control",
+      "run_name": "g2_control_trial_00_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_01",
+      "method": "control",
+      "run_name": "g2_control_trial_01_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_02",
+      "method": "control",
+      "run_name": "g2_control_trial_02_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_03",
+      "method": "control",
+      "run_name": "g2_control_trial_03_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_04",
+      "method": "control",
+      "run_name": "g2_control_trial_04_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_05",
+      "method": "control",
+      "run_name": "g2_control_trial_05_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_06",
+      "method": "control",
+      "run_name": "g2_control_trial_06_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_07",
+      "method": "control",
+      "run_name": "g2_control_trial_07_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_08",
+      "method": "control",
+      "run_name": "g2_control_trial_08_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_09",
+      "method": "control",
+      "run_name": "g2_control_trial_09_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_10",
+      "method": "control",
+      "run_name": "g2_control_trial_10_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_11",
+      "method": "control",
+      "run_name": "g2_control_trial_11_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_12",
+      "method": "control",
+      "run_name": "g2_control_trial_12_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 12
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_13",
+      "method": "control",
+      "run_name": "g2_control_trial_13_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 13
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_14",
+      "method": "control",
+      "run_name": "g2_control_trial_14_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 14
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_15",
+      "method": "control",
+      "run_name": "g2_control_trial_15_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 15
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_16",
+      "method": "control",
+      "run_name": "g2_control_trial_16_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 16
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_17",
+      "method": "control",
+      "run_name": "g2_control_trial_17_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 17
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_18",
+      "method": "control",
+      "run_name": "g2_control_trial_18_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 18
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "control_tuning:control_trial_19",
+      "method": "control",
+      "run_name": "g2_control_trial_19_native50m",
+      "seed": 42,
+      "stage": "control_tuning",
+      "trial": 19
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_42",
+      "method": "control",
+      "run_name": "g2_control_seed_42_native50m",
+      "seed": 42,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_43",
+      "method": "control",
+      "run_name": "g2_control_seed_43_native50m",
+      "seed": 43,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_44",
+      "method": "control",
+      "run_name": "g2_control_seed_44_native50m",
+      "seed": 44,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_45",
+      "method": "control",
+      "run_name": "g2_control_seed_45_native50m",
+      "seed": 45,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_46",
+      "method": "control",
+      "run_name": "g2_control_seed_46_native50m",
+      "seed": 46,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_47",
+      "method": "control",
+      "run_name": "g2_control_seed_47_native50m",
+      "seed": 47,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_48",
+      "method": "control",
+      "run_name": "g2_control_seed_48_native50m",
+      "seed": 48,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_49",
+      "method": "control",
+      "run_name": "g2_control_seed_49_native50m",
+      "seed": 49,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_50",
+      "method": "control",
+      "run_name": "g2_control_seed_50_native50m",
+      "seed": 50,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "selected_control": true
+      },
+      "id": "control_repeats:control_seed_51",
+      "method": "control",
+      "run_name": "g2_control_seed_51_native50m",
+      "seed": 51,
+      "stage": "control_repeats",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001
+      },
+      "id": "component_tuning:standard_sampled_softmax_trial_00",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_01",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_02",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_03",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_04",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_05",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_06",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_07",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_08",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_09",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_10",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_sampled_softmax_trial_11",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_standard_sampled_softmax_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75
+      },
+      "id": "component_tuning:standard_gbce_trial_00",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_01",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_02",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_03",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_04",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_05",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_06",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_07",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_08",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_09",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_10",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:standard_gbce_trial_11",
+      "method": "standard_gbce",
+      "run_name": "g2_standard_gbce_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001
+      },
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_00",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_01",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_02",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_03",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_04",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_05",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_06",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_07",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_08",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_09",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_10",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_11",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75
+      },
+      "id": "component_tuning:matched_standard_gbce_trial_00",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_01",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_02",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_03",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_04",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_05",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_06",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_07",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_08",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_09",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_10",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:matched_standard_gbce_trial_11",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_matched_standard_gbce_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "ligr_multiplier": 4
+      },
+      "id": "component_tuning:ligr_sampled_softmax_trial_00",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_01",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_02",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_03",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_04",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_05",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_06",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_07",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_08",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_09",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_10",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_sampled_softmax_trial_11",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_ligr_sampled_softmax_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75
+      },
+      "id": "component_tuning:ligr_gbce_trial_00",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_00_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_01",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_01_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_02",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_02_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_03",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_03_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_04",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_04_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_05",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_05_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_06",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_06_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_07",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_07_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_08",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_08_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_09",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_09_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_10",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_10_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "component_tuning:ligr_gbce_trial_11",
+      "method": "ligr_gbce",
+      "run_name": "g2_ligr_gbce_trial_11_native50m",
+      "seed": 42,
+      "stage": "component_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "logq_correction": "none",
+        "uniform_fraction": 0.6
+      },
+      "id": "mixed_tuning:mixed_trial_00",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_00_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 0
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "logq_correction": "yi2019",
+        "uniform_fraction": 0.6
+      },
+      "id": "mixed_tuning:mixed_trial_01",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_01_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 1
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_02",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_02_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 2
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_03",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_03_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 3
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_04",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_04_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 4
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_05",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_05_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 5
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_06",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_06_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 6
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_07",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_07_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 7
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_08",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_08_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 8
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_09",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_09_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 9
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_10",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_10_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 10
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {},
+      "id": "mixed_tuning:mixed_trial_11",
+      "method": "mixed_sampler",
+      "run_name": "g2_mixed_trial_11_native50m",
+      "seed": 42,
+      "stage": "mixed_tuning",
+      "trial": 11
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "id": "official:official_esasrec_s42",
+      "method": "official_rectools",
+      "run_name": "g2_official_esasrec_s42_native50m",
+      "seed": 42,
+      "stage": "official",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "id": "official:official_esasrec_s43",
+      "method": "official_rectools",
+      "run_name": "g2_official_esasrec_s43_native50m",
+      "seed": 43,
+      "stage": "official",
+      "trial": null
+    },
+    {
+      "conditional": false,
+      "forced_parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "id": "official:official_esasrec_s44",
+      "method": "official_rectools",
+      "run_name": "g2_official_esasrec_s44_native50m",
+      "seed": 44,
+      "stage": "official",
+      "trial": null
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_control_0",
+      "method": "control",
+      "run_name": "g2_boundary_control_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_control_1",
+      "method": "control",
+      "run_name": "g2_boundary_control_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_standard_sampled_softmax_0",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_boundary_standard_sampled_softmax_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_standard_sampled_softmax_1",
+      "method": "standard_sampled_softmax",
+      "run_name": "g2_boundary_standard_sampled_softmax_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_standard_gbce_0",
+      "method": "standard_gbce",
+      "run_name": "g2_boundary_standard_gbce_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_standard_gbce_1",
+      "method": "standard_gbce",
+      "run_name": "g2_boundary_standard_gbce_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_matched_standard_sampled_softmax_0",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_boundary_matched_standard_sampled_softmax_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_matched_standard_sampled_softmax_1",
+      "method": "matched_standard_sampled_softmax",
+      "run_name": "g2_boundary_matched_standard_sampled_softmax_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_matched_standard_gbce_0",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_boundary_matched_standard_gbce_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_matched_standard_gbce_1",
+      "method": "matched_standard_gbce",
+      "run_name": "g2_boundary_matched_standard_gbce_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_ligr_sampled_softmax_0",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_boundary_ligr_sampled_softmax_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_ligr_sampled_softmax_1",
+      "method": "ligr_sampled_softmax",
+      "run_name": "g2_boundary_ligr_sampled_softmax_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 0
+      },
+      "id": "lr_boundary:boundary_ligr_gbce_0",
+      "method": "ligr_gbce",
+      "run_name": "g2_boundary_ligr_gbce_0_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "boundary_slot": 1
+      },
+      "id": "lr_boundary:boundary_ligr_gbce_1",
+      "method": "ligr_gbce",
+      "run_name": "g2_boundary_ligr_gbce_1_native50m",
+      "seed": 42,
+      "stage": "lr_boundary",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "configuration_slot": 0
+      },
+      "id": "reversal_confirmation:confirmation_0_s43",
+      "method": "implicated_configuration",
+      "run_name": "g2_confirmation_0_s43_native50m",
+      "seed": 43,
+      "stage": "reversal_confirmation",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "configuration_slot": 0
+      },
+      "id": "reversal_confirmation:confirmation_0_s44",
+      "method": "implicated_configuration",
+      "run_name": "g2_confirmation_0_s44_native50m",
+      "seed": 44,
+      "stage": "reversal_confirmation",
+      "trial": 0
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "configuration_slot": 1
+      },
+      "id": "reversal_confirmation:confirmation_1_s43",
+      "method": "implicated_configuration",
+      "run_name": "g2_confirmation_1_s43_native50m",
+      "seed": 43,
+      "stage": "reversal_confirmation",
+      "trial": 1
+    },
+    {
+      "conditional": true,
+      "forced_parameters": {
+        "configuration_slot": 1
+      },
+      "id": "reversal_confirmation:confirmation_1_s44",
+      "method": "implicated_configuration",
+      "run_name": "g2_confirmation_1_s44_native50m",
+      "seed": 44,
+      "stage": "reversal_confirmation",
+      "trial": 1
+    }
+  ],
+  "maximum_runs": 135,
+  "search_spaces": {
+    "component": {
+      "deep_learning_rate": [
+        0.0001,
+        0.128,
+        "log_uniform"
+      ],
+      "embedding_learning_rate": [
+        0.0001,
+        0.256,
+        "log_uniform"
+      ],
+      "gbce_t": [
+        0.25,
+        1.0,
+        "continuous"
+      ],
+      "ligr_multiplier": [
+        2,
+        4,
+        6
+      ]
+    },
+    "control": {
+      "batch_size": [
+        128,
+        256,
+        512,
+        1024,
+        1280
+      ],
+      "deep_learning_rate": [
+        0.0001,
+        0.128,
+        "log_uniform"
+      ],
+      "embedding_learning_rate": [
+        0.0001,
+        0.256,
+        "log_uniform"
+      ]
+    },
+    "lr_boundary": {
+      "outside_multiplier": 3.0,
+      "slots_per_method": 2,
+      "trigger_distance_fraction": 0.05
+    },
+    "mixed": {
+      "logq_correction": [
+        "none",
+        "yi2019"
+      ],
+      "uniform_fraction": [
+        0.2,
+        0.8,
+        "continuous"
+      ]
+    },
+    "reversal_confirmation": {
+      "configuration_slots": 2,
+      "seeds": [
+        43,
+        44
+      ]
+    }
+  },
+  "sha256": "48ed205cd44e7016c596410cbb0a62b3c4457465fe465f2dbff5ff815875033f",
+  "version": 1
+}

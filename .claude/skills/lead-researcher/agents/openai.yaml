@@ -1,0 +1,4 @@
+interface:
+  display_name: "Lead Researcher"
+  short_description: "Plan, orchestrate, and challenge experiments"
+  default_prompt: "Use $lead-researcher to design and orchestrate this research program."

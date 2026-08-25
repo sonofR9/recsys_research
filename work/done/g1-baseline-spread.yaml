@@ -1,0 +1,11 @@
+version: 1
+id: g1-baseline-spread
+title: Regenerate the native 500M baseline spread
+description: >-
+  Ten independent seeds of the unchanged accepted native-500M control at batch
+  1280 and learning rates 0.001/0.002 all early-stopped below cap 40. The mean
+  recall@100 is 0.12762411 with sample standard deviation 0.00215019 (1.685%);
+  mean ndcg@100 is 0.04837984 with standard deviation 0.00095122 (1.966%). The
+  complete shared empirical metric-resolution bands are regenerated for reports.
+blocked_by: []
+ideas_tags: []

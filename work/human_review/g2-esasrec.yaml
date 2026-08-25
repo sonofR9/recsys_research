@@ -1,0 +1,12 @@
+version: 1
+id: g2-esasrec
+title: Evaluate eSASRec and its components
+description: >-
+  Implement parity-verified local eSASRec components, reproduce official
+  RecTools eSASRec, tune the approved six-method and mixed-sampler treatments
+  on native Yambda-50M, establish the control uncertainty band, and report
+  component effects under the exact approved G2 plan in
+  experiments/g2_esasrec/protocol/experiment_plan.md.
+blocked_by: []
+ideas_tags:
+  - g2-esasrec

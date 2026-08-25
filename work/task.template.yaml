@@ -1,0 +1,7 @@
+version: 1
+id: meaningful-kebab-case-name
+title: Short task title
+description: >-
+  One or two sentences describing the required outcome.
+blocked_by: []
+ideas_tags: []

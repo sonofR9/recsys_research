@@ -1,0 +1,4 @@
+interface:
+  display_name: "Optimizer"
+  short_description: "Improve runtime, memory, and utilization"
+  default_prompt: "Use $optimizer to profile and optimize this workload without changing its results."

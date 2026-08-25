@@ -1,0 +1,11 @@
+version: 1
+id: g1-rq11-negatives
+title: Revalidate G1 RQ11 negatives
+description: >-
+  Implement and run the approved native-Yambda-500M comparison of uniform
+  catalog negatives, streaming in-batch global-q negatives,
+  popularity-random global-q, and their fully corrected aggregate mixture.
+  Replace the invalid reader table after native selection and review.
+blocked_by: []
+ideas_tags:
+  - g1-rq11

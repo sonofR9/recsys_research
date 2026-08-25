@@ -1,0 +1,19 @@
+version: 1
+id: g1-report-reconciliation
+title: Reconcile G1 reports
+description: >-
+  Regenerate reader and scratchpad tables from current artifacts, remove stale
+  claims, apply the shared noise bands, and reconcile the revision checklist.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq2-max-quality
+  - g1-rq3-balanced
+  - g1-rq4-swiglu
+  - g1-rq5-scheduler
+  - g1-rq6-warmup
+  - g1-rq7-position-encoding
+  - g1-rq8-architecture
+  - g1-rq9-time-features
+  - g1-rq10-layer-embeddings
+  - g1-rq11-negatives
+ideas_tags: []

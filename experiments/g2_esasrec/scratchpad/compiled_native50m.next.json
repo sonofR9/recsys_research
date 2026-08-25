@@ -1,0 +1,26 @@
+{
+  "jobs": [
+    {
+      "id": "official:official_esasrec_s42",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s42_native50m"
+    },
+    {
+      "id": "official:official_esasrec_s43",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s43_native50m"
+    },
+    {
+      "id": "official:official_esasrec_s44",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s44_native50m"
+    }
+  ],
+  "manifest_sha256": "48ed205cd44e7016c596410cbb0a62b3c4457465fe465f2dbff5ff815875033f"
+}

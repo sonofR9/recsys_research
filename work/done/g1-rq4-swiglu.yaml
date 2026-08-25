@@ -1,0 +1,14 @@
+version: 1
+id: g1-rq4-swiglu
+title: Close G1 RQ4 SwiGLU
+description: >-
+  Resolved. The families were compared at parameter-matched widths - GELU 171
+  against SwiGLU 114, since SwiGLU carries three dim x width matrices to GELU's
+  two - with the embedding rate fixed at 0.064 and the deep rate swept over
+  0.006/0.012/0.024 on native 500M. Both peak at 0.012 and land at recall@100
+  0.134417 and 0.134447, one result on every metric. The earlier selected-width
+  comparison measured a capacity mismatch. Awaiting the research lead's sign-off.
+blocked_by:
+  - g1-training-protocol-reset
+ideas_tags:
+  - g1-rq4

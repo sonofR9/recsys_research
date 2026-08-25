@@ -1,0 +1,19 @@
+version: 1
+id: g1-training-protocol-reset
+title: Replace invalid matched-target training protocol
+description: >-
+  Remove target-count matching and fixed-final-epoch selection from G1 code,
+  launchers, selectors, reports, and instructions. Invalidate affected 50M and
+  500M evidence, make 50M and 500M use the same baseline-style recipe on their
+  native datasets, and always select the best recall@100 validation epoch with
+  a 20-epoch initial cap, patience three, and early stopping. Any run that
+  reaches its cap before the stopping rule triggers must extend and rerun
+  before any research question resumes. All native-50M cap continuations are
+  now validation-resolved. The native-500M cap-40 continuation stopped at
+  epoch 23, restored best epoch 20, and passed the calibration gate at
+  recall@100 0.12736. RQ1 reporting is regenerated with full selector and
+  artifact digests. Safety-cap extensions now retain a fixed 20-epoch LR
+  schedule horizon, including every μP cosine variant. Independent protocol,
+  report, provenance, and baseline-spread reviews have no remaining findings.
+blocked_by: []
+ideas_tags: []

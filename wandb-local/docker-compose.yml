@@ -1,0 +1,29 @@
+# wandb license is from son.of.phisica account
+
+# Self-hosted Weights & Biases server (free local install). Managed via ./manage.sh.
+services:
+  wandb:
+    # Pinned (not :latest) for reproducibility. Bump this tag to upgrade; don't
+    # downgrade once the volume holds data (schema migrations aren't reversible).
+    image: wandb/local:0.81.3
+    container_name: wandb-local
+    ports:
+      # Uncommon host port; reach it at http://wandb-local.localhost:8421
+      # (*.localhost auto-resolves to 127.0.0.1 — no /etc/hosts edit needed).
+      - "8421:8080"
+    environment:
+      # LICENSE applies the 1-user license directly — no system-admin panel.
+      # WANDB_LICENSE is exported by manage.sh from ~/.keys/wandb_local_license,
+      # so the token never lives in the repo. Empty -> unlicensed (4-user cap).
+      - LICENSE=${WANDB_LICENSE:-}
+      # HOST = the externally-reachable base URL, so generated links/redirects
+      # (incl. the admin pages) match how you actually open it.
+      - HOST=http://wandb-local.localhost:8421
+    volumes:
+      - wandb-data:/vol        # all runs/metadata persist here across restarts
+    # on-failure (not unless-stopped) so a crash recovers, but boot autostart is
+    # owned solely by the systemd unit (./manage.sh enable-boot) — the on/off switch.
+    restart: on-failure
+
+volumes:
+  wandb-data:

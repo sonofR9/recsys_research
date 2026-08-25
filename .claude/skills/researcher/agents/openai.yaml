@@ -1,0 +1,4 @@
+interface:
+  display_name: "Researcher"
+  short_description: "Implement and debug research variants"
+  default_prompt: "Use $researcher to implement and debug this research treatment."

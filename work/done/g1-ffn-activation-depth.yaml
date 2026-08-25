@@ -1,0 +1,10 @@
+version: 1
+id: g1-ffn-activation-depth
+title: Test FFN activations, gating, and depth under μP
+description: >-
+  Run the user-approved native-500M ReLU/GELU/SiLU and
+  ReGLU/GEGLU/SwiGLU comparison with equal FFN matrix capacity and dropout,
+  then test GELU against SwiGLU at depths four and eight. Tune three deep rates
+  per family-depth and extend any boundary winner geometrically.
+blocked_by: []
+ideas_tags: []

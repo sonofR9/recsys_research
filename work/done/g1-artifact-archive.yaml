@@ -1,0 +1,10 @@
+version: 1
+id: g1-artifact-archive
+title: Archive invalidated G1 artifacts
+description: >-
+  G1 launchers now move interrupted and incompatible canonical runs into
+  collision-safe generated/logs/old storage under each run lock before
+  scheduling a replacement. The initial migration preserved 677 obsolete
+  artifacts there, including every invalid matched-target run.
+blocked_by: []
+ideas_tags: []

@@ -1,0 +1,1313 @@
+{
+  "jobs": [
+    {
+      "id": "control_tuning:control_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.009573345952138395,
+        "embedding_learning_rate": 0.048698164949403634
+      },
+      "run_name": "g2_control_trial_00_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284
+      },
+      "run_name": "g2_control_trial_01_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_02",
+      "parameters": {
+        "batch_size": 512,
+        "deep_learning_rate": 0.000957838341945416,
+        "embedding_learning_rate": 0.0010931044672811549
+      },
+      "run_name": "g2_control_trial_02_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_03",
+      "parameters": {
+        "batch_size": 1024,
+        "deep_learning_rate": 0.07475251028776078,
+        "embedding_learning_rate": 0.049720051304407
+      },
+      "run_name": "g2_control_trial_03_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0012556509923186956,
+        "embedding_learning_rate": 0.0018022103141485995
+      },
+      "run_name": "g2_control_trial_04_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_05",
+      "parameters": {
+        "batch_size": 1280,
+        "deep_learning_rate": 0.09345157976684007,
+        "embedding_learning_rate": 0.0009410589386841604
+      },
+      "run_name": "g2_control_trial_05_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_06",
+      "parameters": {
+        "batch_size": 512,
+        "deep_learning_rate": 0.00017126864220619924,
+        "embedding_learning_rate": 0.002562748613628705
+      },
+      "run_name": "g2_control_trial_06_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00035918248023455405,
+        "embedding_learning_rate": 0.139308110237695
+      },
+      "run_name": "g2_control_trial_07_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_08",
+      "parameters": {
+        "batch_size": 512,
+        "deep_learning_rate": 0.002086558856467853,
+        "embedding_learning_rate": 0.0004698719298167295
+      },
+      "run_name": "g2_control_trial_08_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_09",
+      "parameters": {
+        "batch_size": 512,
+        "deep_learning_rate": 0.020540961800150897,
+        "embedding_learning_rate": 0.08884189384969508
+      },
+      "run_name": "g2_control_trial_09_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_10",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.012159177862163395,
+        "embedding_learning_rate": 0.00011211302471010396
+      },
+      "run_name": "g2_control_trial_10_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.009554158489672594,
+        "embedding_learning_rate": 0.016999337391572333
+      },
+      "run_name": "g2_control_trial_11_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_12",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.032300461680953324,
+        "embedding_learning_rate": 0.0153920078503897
+      },
+      "run_name": "g2_control_trial_12_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_13",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.010356963962588159,
+        "embedding_learning_rate": 0.025986591060184208
+      },
+      "run_name": "g2_control_trial_13_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_14",
+      "parameters": {
+        "batch_size": 1024,
+        "deep_learning_rate": 0.004556091311731663,
+        "embedding_learning_rate": 0.012008278874772092
+      },
+      "run_name": "g2_control_trial_14_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_15",
+      "parameters": {
+        "batch_size": 1280,
+        "deep_learning_rate": 0.03842788778798333,
+        "embedding_learning_rate": 0.030566658553313447
+      },
+      "run_name": "g2_control_trial_15_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_16",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.00415380104404919,
+        "embedding_learning_rate": 0.22110817482774253
+      },
+      "run_name": "g2_control_trial_16_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_17",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.04393005482563397,
+        "embedding_learning_rate": 0.007355408810353412
+      },
+      "run_name": "g2_control_trial_17_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_18",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.01593798217917709,
+        "embedding_learning_rate": 0.08248079032775757
+      },
+      "run_name": "g2_control_trial_18_native50m"
+    },
+    {
+      "id": "control_tuning:control_trial_19",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.12442948875310496,
+        "embedding_learning_rate": 0.23936949993408818
+      },
+      "run_name": "g2_control_trial_19_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_43",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_43_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_44",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_44_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_45",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_45_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_46",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_46_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_47",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_47_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_48",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_48_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_49",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_49_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_50",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_50_native50m"
+    },
+    {
+      "id": "control_repeats:control_seed_51",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02879154157702692,
+        "embedding_learning_rate": 0.16590060219780284,
+        "selected_control": true,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_control_seed_51_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0022755531878797847,
+        "embedding_learning_rate": 0.05890968211489105,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0003950282570815132,
+        "embedding_learning_rate": 0.009596150767678481,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00010206424926044546,
+        "embedding_learning_rate": 0.018958990110641463,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.07954365442782194,
+        "embedding_learning_rate": 0.12615125895912793,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0012291844680047384,
+        "embedding_learning_rate": 0.00023258231415486134,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.06236182421011122,
+        "embedding_learning_rate": 0.00019160059584109459,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.004017181465274913,
+        "embedding_learning_rate": 0.00316005583551251,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0001794553649497766,
+        "embedding_learning_rate": 0.002349320541946105,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.004715668162746114,
+        "embedding_learning_rate": 0.008447199099786359,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.019895365552193862,
+        "embedding_learning_rate": 0.00010215860912579088,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:standard_sampled_softmax_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0010164510892833253,
+        "embedding_learning_rate": 0.0006059456057115263,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_sampled_softmax_trial_11_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0137868720499827,
+        "embedding_learning_rate": 0.00012160645328579781,
+        "gbce_t": 0.7542453776824882,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0012160230953853729,
+        "embedding_learning_rate": 0.00012228819207251828,
+        "gbce_t": 0.3416156980929716,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.03790274882077641,
+        "embedding_learning_rate": 0.021078233737515627,
+        "gbce_t": 0.26721992157344115,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.03641829300592093,
+        "embedding_learning_rate": 0.0030286270787038766,
+        "gbce_t": 0.8115909886948366,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0006353035772448947,
+        "embedding_learning_rate": 0.06806986460941995,
+        "gbce_t": 0.7112590397425149,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.014102745556713722,
+        "embedding_learning_rate": 0.23730431472958463,
+        "gbce_t": 0.5509146149696056,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00012007097747730683,
+        "embedding_learning_rate": 0.011678195605195547,
+        "gbce_t": 0.3120513656139326,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0005869156130964042,
+        "embedding_learning_rate": 0.03613054257796216,
+        "gbce_t": 0.4358642583433693,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00030505544408720504,
+        "embedding_learning_rate": 0.029917917147995875,
+        "gbce_t": 0.6493098508307126,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.002349787752109847,
+        "embedding_learning_rate": 0.00012747104781846058,
+        "gbce_t": 0.9968366234417306,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:standard_gbce_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00010296581409379601,
+        "embedding_learning_rate": 0.0007736419989828904,
+        "gbce_t": 0.520563208078495,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_standard_gbce_trial_11_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0010011826280838798,
+        "embedding_learning_rate": 0.007874204000415658,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.024183174128460123,
+        "embedding_learning_rate": 0.00017448551237037355,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.018040525024643192,
+        "embedding_learning_rate": 0.0007902044643244067,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02338887106698781,
+        "embedding_learning_rate": 0.0001006951343950785,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0001461076091578976,
+        "embedding_learning_rate": 0.01644086902396368,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.005317402832900963,
+        "embedding_learning_rate": 0.02509186868808509,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.008061336559727737,
+        "embedding_learning_rate": 0.08747650787925654,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0023337526106130702,
+        "embedding_learning_rate": 0.08735737714624996,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0761752540426849,
+        "embedding_learning_rate": 0.00538174575597226,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00031639499976637446,
+        "embedding_learning_rate": 0.0010969182159809084,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_sampled_softmax_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00035605467594493773,
+        "embedding_learning_rate": 0.0010202905633952951,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_sampled_softmax_trial_11_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.049813880705980224,
+        "embedding_learning_rate": 0.13607430039262056,
+        "gbce_t": 0.5841748116931058,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00013225674032585975,
+        "embedding_learning_rate": 0.0007382297947461923,
+        "gbce_t": 0.4904836112080468,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.034575871305258576,
+        "embedding_learning_rate": 0.0016586341030031414,
+        "gbce_t": 0.7204510688627646,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.043415810558014856,
+        "embedding_learning_rate": 0.1517787035744607,
+        "gbce_t": 0.46489328840179794,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00041838008808510734,
+        "embedding_learning_rate": 0.07308624157173914,
+        "gbce_t": 0.9496879298992851,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.04775118308816805,
+        "embedding_learning_rate": 0.015165719955340197,
+        "gbce_t": 0.8524406221737033,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0016120618388738254,
+        "embedding_learning_rate": 0.00010744097758948826,
+        "gbce_t": 0.6634035159022803,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0003846731454121238,
+        "embedding_learning_rate": 0.0013827255984844944,
+        "gbce_t": 0.7346039606015425,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.045509054086649584,
+        "embedding_learning_rate": 0.0011529168520887,
+        "gbce_t": 0.8191974962132448,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.006232251726569054,
+        "embedding_learning_rate": 0.00011202024864610542,
+        "gbce_t": 0.271970991108922,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:matched_standard_gbce_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001899708611387921,
+        "embedding_learning_rate": 0.0001346225981961248,
+        "gbce_t": 0.6017801332679868,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_matched_standard_gbce_trial_11_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.021533688413592864,
+        "embedding_learning_rate": 0.00010724834653787935,
+        "ligr_multiplier": 2,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0006139164475292471,
+        "embedding_learning_rate": 0.007168658569366372,
+        "ligr_multiplier": 6,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0014111114675026389,
+        "embedding_learning_rate": 0.00043775034987623046,
+        "ligr_multiplier": 6,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.020374085967156525,
+        "embedding_learning_rate": 0.002760669576983092,
+        "ligr_multiplier": 6,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0014404732598585848,
+        "embedding_learning_rate": 0.05164933061798567,
+        "ligr_multiplier": 2,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00010923929038402683,
+        "embedding_learning_rate": 0.0004414352774469068,
+        "ligr_multiplier": 2,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00010558529107719142,
+        "embedding_learning_rate": 0.0001338694233943606,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00010410495502672688,
+        "embedding_learning_rate": 0.03963192748390831,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.09908858280803644,
+        "embedding_learning_rate": 0.21477404348614967,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_sampled_softmax_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.006881421799116242,
+        "embedding_learning_rate": 0.0038146989284986855,
+        "ligr_multiplier": 6,
+        "selected_control_job_id": "control_tuning:control_trial_01"
+      },
+      "run_name": "g2_ligr_sampled_softmax_trial_11_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001,
+        "embedding_learning_rate": 0.001,
+        "gbce_t": 0.75,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_00_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00652425133442244,
+        "embedding_learning_rate": 0.09575871794973675,
+        "gbce_t": 0.8883698580504586,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_01_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.00019313183953719102,
+        "embedding_learning_rate": 0.019944579132553663,
+        "gbce_t": 0.37665929631732353,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_02_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.05949278616793262,
+        "embedding_learning_rate": 0.00048295638444993347,
+        "gbce_t": 0.85464158085214,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_03_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0003960944677327115,
+        "embedding_learning_rate": 0.011424435359750226,
+        "gbce_t": 0.46368290098339116,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_04_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.012571729779239642,
+        "embedding_learning_rate": 0.20558677184875168,
+        "gbce_t": 0.5356228107647839,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_05_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.06410551366270298,
+        "embedding_learning_rate": 0.15846492373117801,
+        "gbce_t": 0.8215964509518998,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_06_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.02229740661101092,
+        "embedding_learning_rate": 0.0015308937882000247,
+        "gbce_t": 0.9485728577806297,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_07_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0002537948831117902,
+        "embedding_learning_rate": 0.05351592365108696,
+        "gbce_t": 0.3107481169449168,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_08_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.054746072095206044,
+        "embedding_learning_rate": 0.2208502140789212,
+        "gbce_t": 0.5164592693270895,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_09_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.001439951280588155,
+        "embedding_learning_rate": 0.006754700108596608,
+        "gbce_t": 0.6467668778022155,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_10_native50m"
+    },
+    {
+      "id": "component_tuning:ligr_gbce_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0001031075213538938,
+        "embedding_learning_rate": 0.019476999494332556,
+        "gbce_t": 0.2560139376863384,
+        "ligr_multiplier": 4,
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08"
+      },
+      "run_name": "g2_ligr_gbce_trial_11_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_00",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "none",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.6
+      },
+      "run_name": "g2_mixed_trial_00_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_01",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.6
+      },
+      "run_name": "g2_mixed_trial_01_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_02",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "none",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.21160005634624207
+      },
+      "run_name": "g2_mixed_trial_02_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_03",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.30640016825770755
+      },
+      "run_name": "g2_mixed_trial_03_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_04",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.6296818386021488
+      },
+      "run_name": "g2_mixed_trial_04_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_05",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "none",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.2838446779042319
+      },
+      "run_name": "g2_mixed_trial_05_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_06",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.6913049298398488
+      },
+      "run_name": "g2_mixed_trial_06_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_07",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.26643698930592424
+      },
+      "run_name": "g2_mixed_trial_07_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_08",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "none",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.7170871749036594
+      },
+      "run_name": "g2_mixed_trial_08_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_09",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.3694228662549607
+      },
+      "run_name": "g2_mixed_trial_09_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_10",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.4360874991648083
+      },
+      "run_name": "g2_mixed_trial_10_native50m"
+    },
+    {
+      "id": "mixed_tuning:mixed_trial_11",
+      "parameters": {
+        "batch_size": 128,
+        "deep_learning_rate": 0.0036275227304099437,
+        "embedding_learning_rate": 0.0026140490848854474,
+        "ligr_multiplier": 4,
+        "logq_correction": "yi2019",
+        "selected_control_job_id": "control_tuning:control_trial_01",
+        "source_job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+        "uniform_fraction": 0.42909880679342277
+      },
+      "run_name": "g2_mixed_trial_11_native50m"
+    },
+    {
+      "id": "official:official_esasrec_s42",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s42_native50m"
+    },
+    {
+      "id": "official:official_esasrec_s43",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s43_native50m"
+    },
+    {
+      "id": "official:official_esasrec_s44",
+      "parameters": {
+        "rectools_version": "0.19.0"
+      },
+      "run_name": "g2_official_esasrec_s44_native50m"
+    }
+  ],
+  "manifest_sha256": "48ed205cd44e7016c596410cbb0a62b3c4457465fe465f2dbff5ff815875033f"
+}

@@ -1,0 +1,12 @@
+version: 1
+id: g1-rq9-time-features
+title: Revalidate G1 RQ9 time features
+description: >-
+  All fifteen approved time-feature treatments have resolved exact 500M
+  confirmations. Generated tables, reader analysis, and the 50M-to-500M
+  ranking inversion were reconciled and independently reviewed.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq1-mup-transfer
+ideas_tags:
+  - g1-rq9

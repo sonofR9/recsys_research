@@ -1,0 +1,24 @@
+[project]
+name = "comp"
+version = "0.1.0"
+description = ""
+authors = []
+requires-python = ">=3.11"
+dependencies = [
+    "torch",
+    "polars-u64-idx", # https://github.com/pola-rs/polars/issues/22741
+    "click",
+    "scipy",
+    "numpy",
+    "optuna",
+    "tqdm",
+    "matplotlib",
+    "PyYAML",
+    "wandb",
+    "mup @ git+https://github.com/microsoft/mup.git@19814971934ef91dd546f88e913fc963e096d11c",
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

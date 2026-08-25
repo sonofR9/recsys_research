@@ -1,0 +1,11 @@
+version: 1
+id: g1-rq5-scheduler
+title: Close G1 RQ5 scheduler
+description: >-
+  Replace every invalid scheduler row with exact native-regime evidence,
+  repair horizon and promotion provenance, and specifically test whether
+  inverse-square-root and warmup-cosine remain close to constant learning rate
+  when schedules apply to both optimizer groups or only to the deep group.
+blocked_by: []
+ideas_tags:
+  - g1-rq5

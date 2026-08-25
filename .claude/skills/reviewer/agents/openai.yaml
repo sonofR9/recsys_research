@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reviewer"
+  short_description: "Validate code and research conclusions"
+  default_prompt: "Use $reviewer to independently review this change and its evidence."

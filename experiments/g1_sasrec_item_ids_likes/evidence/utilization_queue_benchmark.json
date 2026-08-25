@@ -1,0 +1,20 @@
+{
+  "commands": {
+    "compatible": "python3 utils/training_queue/queue_depth.py --history-root generated/logs --history-index $EMPTY_TEMP_DIR/timing-history.json --service-state generated/training-queue-service --script experiments/g1_sasrec_item_ids_likes/configs/rq_tuning_variant.py --data-group g1-rq-architecture-50m-seq128",
+    "legacy": "python3 utils/training_queue/queue_depth.py generated/logs/*/sweep.log",
+    "timer": "/usr/bin/time -f %e"
+  },
+  "environment": {
+    "completed_service_jobs": 3903,
+    "cwd": "/home/sashanovak/tmp_a100/ysda_recsys/competition",
+    "host": "a100-1.vla.yp-c.yandex.net",
+    "python": "3.12.13"
+  },
+  "measurements_seconds": {
+    "compatible_cold": [1.06],
+    "compatible_warm": [0.12, 0.12, 0.13],
+    "legacy_all_logs": [1.31, 1.28, 1.27]
+  },
+  "recorded_at": "2026-08-16T01:22:44+03:00",
+  "version": 2
+}

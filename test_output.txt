@@ -1,0 +1,303 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.7, pytest-7.4.4, pluggy-1.6.0
+rootdir: /home/sashanovak/tmp/ysda_recsys/competition
+configfile: pytest.ini
+plugins: anyio-4.2.0, cov-7.1.0
+collected 2 items
+
+dcn/tests/test_main_e2e.py .F                                            [100%]
+
+=================================== FAILURES ===================================
+________________________ test_main_e2e_with_transformer ________________________
+
+tmp_path = PosixPath('/tmp/pytest-of-sashanovak/pytest-32/test_main_e2e_with_transformer0')
+
+    def test_main_e2e_with_transformer(tmp_path: Path) -> None:
+        config = _create_base_config(tmp_path)
+    
+        # Add transformer to shared_network
+        config["model"]["shared_network"] = {
+            "type": "transformer",
+            "dim": 8,
+            "nhead": 2,
+            "num_kv_heads": 2,
+            "num_layers": 1,
+            "dropout": 0.0,
+            "max_seq_len": 100,
+        }
+    
+        config_path = tmp_path / "config.yaml"
+        with open(config_path, "w") as f:
+            yaml.dump(config, f)
+    
+        with patch.object(sys, "argv", ["main.py", "-c", str(config_path)]):
+>           main()
+
+dcn/tests/test_main_e2e.py:253: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dcn/main.py:642: in main
+    runner.train()
+dcn/training/trainer.py:158: in train
+    self._run_online_phase(online_start_day)
+dcn/training/trainer.py:153: in _run_online_phase
+    self._train_day(day, day)
+dcn/training/trainer.py:105: in _train_day
+    self.train_epoch(epoch_id, train_loader)
+neuralrec/run/train.py:61: in train_epoch
+    out = self._model_forward(batch)
+neuralrec/run/train.py:39: in _model_forward
+    out = self.model(batch)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1739: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1750: in _call_impl
+    return forward_call(*args, **kwargs)
+dcn/nn/losses/loss_wrapper.py:44: in forward
+    predictions = self.model(categorical_features, counters)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1739: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1750: in _call_impl
+    return forward_call(*args, **kwargs)
+dcn/nn/multi_head_network.py:62: in forward
+    shared_out = self.shared_network(shared_in, cumulative_lens=cumulative_lens, max_length=1)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1739: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1750: in _call_impl
+    return forward_call(*args, **kwargs)
+dcn/nn/transformer.py:288: in forward
+    x = layer(x, cumulative_lens, max_length)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1739: in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+../../../anaconda3/lib/python3.12/site-packages/torch/nn/modules/module.py:1750: in _call_impl
+    return forward_call(*args, **kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = TransformerBlock(
+  (ln_1): RMSNorm((12,), eps=None, elementwise_affine=True)
+  (q_proj): Linear(in_features=12, out_f...bias=True)
+    (w3): Linear(in_features=48, out_features=12, bias=True)
+  )
+  (dropout): Dropout(p=0.0, inplace=True)
+)
+x = tensor([[-0.7543,  1.6636,  1.3297,  0.7560, -0.7543,  1.6636,  1.3297,  0.7560,
+          0.0000,  0.8046,  0.0000,  ...15, -0.1756, -0.3407,  1.5713, -1.7715, -0.1756,
+          0.0000,  0.0000,  0.7011,  0.0000]], grad_fn=<MulBackward0>)
+cumulative_lens = tensor([0, 1, 2]), max_length = 1
+
+    def forward(self, x: torch.Tensor, cumulative_lens: torch.Tensor, max_length: int) -> torch.Tensor:
+        residual = x
+        x = self.ln_1(x)
+    
+        q = self.q_proj(x).view(-1, self.nhead, self.head_dim)
+        k = self.k_proj(x).view(-1, self.num_kv_heads, self.head_dim)
+        v = self.v_proj(x).view(-1, self.num_kv_heads, self.head_dim)
+    
+        if config.cpu_attention:
+            attention_out = _cpu_varlen_attention(q, k, v, cumulative_lens)
+        else:
+>           from flash_attn import flash_attn_varlen_func
+E           ModuleNotFoundError: No module named 'flash_attn'
+
+dcn/nn/transformer.py:149: ModuleNotFoundError
+----------------------------- Captured stdout call -----------------------------
+2026-05-12 00:37:26,428 - INFO - Configured tasks: ['rating']
+2026-05-12 00:37:26,430 - INFO - Initializing dataset manager...
+2026-05-12 00:37:26,443 - INFO - 00:37:26 [MEM 1.17 GB] Connecting to duckdb
+Processed: 1, Skipped: 0
+2026-05-12 00:37:26,448 - INFO - Split parquet into 1 days
+2026-05-12 00:37:26,449 - INFO - Dataset preparation completed
+2026-05-12 00:37:26,450 - INFO - Available days: 1 (from 0 to 0)
+2026-05-12 00:37:26,450 - INFO - Training on 1 days (from 0 to 0)
+2026-05-12 00:37:26,450 - INFO - Creating model...
+2026-05-12 00:37:26,451 - INFO - Loaded precomputed embeddings for 'movie_id': dim=4, num_known_ids=4
+2026-05-12 00:37:26,452 - INFO - Model architecture:
+2026-05-12 00:37:26,456 - INFO - MultiHeadNetwork(
+  (multi_task_embedding): MultiTaskEmbeddingLayer(
+    (unified_embedding): EmbeddingBag(64, 8, mode='sum')
+  )
+  (shared_network): TransformerEncoder(
+    (layers): ModuleList(
+      (0): TransformerBlock(
+        (ln_1): RMSNorm((12,), eps=None, elementwise_affine=True)
+        (q_proj): Linear(in_features=12, out_features=12, bias=True)
+        (k_proj): Linear(in_features=12, out_features=12, bias=True)
+        (v_proj): Linear(in_features=12, out_features=12, bias=True)
+        (out_proj): Linear(in_features=12, out_features=12, bias=True)
+        (ln_2): RMSNorm((12,), eps=None, elementwise_affine=True)
+        (ffn): SwiGLU(
+          (w1): Linear(in_features=12, out_features=48, bias=True)
+          (w2): Linear(in_features=12, out_features=48, bias=True)
+          (w3): Linear(in_features=48, out_features=12, bias=True)
+        )
+        (dropout): Dropout(p=0.0, inplace=True)
+      )
+    )
+    (final_norm): Identity()
+  )
+  (task_networks): ModuleDict(
+    (rating): DcnV2(
+      (cross): CrossNetwork(
+        (_layers): ModuleList(
+          (0): MultiHeadLayer(
+            (compress): Sequential(
+              (0): Linear(in_features=20, out_features=8, bias=True)
+              (1): Identity()
+            )
+            (c_heads): ModuleList(
+              (0): ReLU()
+            )
+            (decompress): Sequential(
+              (0): Linear(in_features=8, out_features=20, bias=True)
+              (1): Identity()
+            )
+            (d_heads): ModuleList(
+              (0): Identity()
+            )
+          )
+        )
+      )
+      (deep_parallel): ResNet1D(
+        (network): Sequential(
+          (0): FlexibleResBlock(
+            (shortcut): Linear(in_features=20, out_features=8, bias=True)
+            (main): Sequential(
+              (0): LayerNorm((20,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=20, out_features=8, bias=True)
+              (2): ReLU()
+              (3): Dropout(p=0.0, inplace=False)
+            )
+            (post_block_op): Identity()
+          )
+        )
+      )
+      (final_layer): Linear(in_features=28, out_features=1, bias=True)
+    )
+  )
+  (precomputed_embeddings): ModuleDict(
+    (movie_id): PrecomputedEmbeddingLookup(
+      (embedding): Embedding(4, 4)
+    )
+  )
+)
+2026-05-12 00:37:26,456 - INFO - Total parameters: 3,765
+2026-05-12 00:37:26,456 - INFO - Creating optimizers...
+2026-05-12 00:37:26,456 - INFO - Building task metrics...
+2026-05-12 00:37:26,456 - INFO - Task 'rating' metrics: ['rmse']
+2026-05-12 00:37:26,456 - INFO - Building task criterions...
+2026-05-12 00:37:26,456 - INFO - Task 'rating' criterion: MultiCriterion(
+  (criterions): ModuleDict(
+    (mse): MSELoss()
+  )
+)
+2026-05-12 00:37:26,456 - INFO - Wrapping model with LossWrapper...
+2026-05-12 00:37:26,457 - INFO - Setting up callbacks...
+2026-05-12 00:37:26,457 - INFO - Initializing DayByDayTrainer...
+2026-05-12 00:37:26,457 - INFO - Skipping checkpoint loading (load_checkpoint=False)
+2026-05-12 00:37:26,458 - INFO - Starting training...
+Loaded 4 samples from 1 parquet file(s)
+----------------------------- Captured stderr call -----------------------------
+Splitting by day:   0%|          | 0/1 [00:00<?, ?it/s]Splitting by day: 100%|██████████| 1/1 [00:00<00:00, 1090.56it/s]
+------------------------------ Captured log call -------------------------------
+INFO     dcn.main:main.py:564 Configured tasks: ['rating']
+INFO     dcn.main:main.py:407 Initializing dataset manager...
+INFO     root:utils.py:15 00:37:26 [MEM 1.17 GB] Connecting to duckdb
+INFO     dcn.data.dataset_manager:dataset_manager.py:63 Split parquet into 1 days
+INFO     dcn.data.dataset_manager:dataset_manager.py:53 Dataset preparation completed
+INFO     dcn.main:main.py:425 Available days: 1 (from 0 to 0)
+INFO     dcn.main:main.py:438 Training on 1 days (from 0 to 0)
+INFO     dcn.main:main.py:452 Creating model...
+INFO     dcn.main:main.py:257 Loaded precomputed embeddings for 'movie_id': dim=4, num_known_ids=4
+INFO     dcn.main:main.py:461 Model architecture:
+INFO     dcn.main:main.py:462 MultiHeadNetwork(
+  (multi_task_embedding): MultiTaskEmbeddingLayer(
+    (unified_embedding): EmbeddingBag(64, 8, mode='sum')
+  )
+  (shared_network): TransformerEncoder(
+    (layers): ModuleList(
+      (0): TransformerBlock(
+        (ln_1): RMSNorm((12,), eps=None, elementwise_affine=True)
+        (q_proj): Linear(in_features=12, out_features=12, bias=True)
+        (k_proj): Linear(in_features=12, out_features=12, bias=True)
+        (v_proj): Linear(in_features=12, out_features=12, bias=True)
+        (out_proj): Linear(in_features=12, out_features=12, bias=True)
+        (ln_2): RMSNorm((12,), eps=None, elementwise_affine=True)
+        (ffn): SwiGLU(
+          (w1): Linear(in_features=12, out_features=48, bias=True)
+          (w2): Linear(in_features=12, out_features=48, bias=True)
+          (w3): Linear(in_features=48, out_features=12, bias=True)
+        )
+        (dropout): Dropout(p=0.0, inplace=True)
+      )
+    )
+    (final_norm): Identity()
+  )
+  (task_networks): ModuleDict(
+    (rating): DcnV2(
+      (cross): CrossNetwork(
+        (_layers): ModuleList(
+          (0): MultiHeadLayer(
+            (compress): Sequential(
+              (0): Linear(in_features=20, out_features=8, bias=True)
+              (1): Identity()
+            )
+            (c_heads): ModuleList(
+              (0): ReLU()
+            )
+            (decompress): Sequential(
+              (0): Linear(in_features=8, out_features=20, bias=True)
+              (1): Identity()
+            )
+            (d_heads): ModuleList(
+              (0): Identity()
+            )
+          )
+        )
+      )
+      (deep_parallel): ResNet1D(
+        (network): Sequential(
+          (0): FlexibleResBlock(
+            (shortcut): Linear(in_features=20, out_features=8, bias=True)
+            (main): Sequential(
+              (0): LayerNorm((20,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=20, out_features=8, bias=True)
+              (2): ReLU()
+              (3): Dropout(p=0.0, inplace=False)
+            )
+            (post_block_op): Identity()
+          )
+        )
+      )
+      (final_layer): Linear(in_features=28, out_features=1, bias=True)
+    )
+  )
+  (precomputed_embeddings): ModuleDict(
+    (movie_id): PrecomputedEmbeddingLookup(
+      (embedding): Embedding(4, 4)
+    )
+  )
+)
+INFO     dcn.main:main.py:463 Total parameters: 3,765
+INFO     dcn.main:main.py:580 Creating optimizers...
+INFO     dcn.main:main.py:584 Building task metrics...
+INFO     dcn.main:main.py:364 Task 'rating' metrics: ['rmse']
+INFO     dcn.main:main.py:587 Building task criterions...
+INFO     dcn.main:main.py:374 Task 'rating' criterion: MultiCriterion(
+  (criterions): ModuleDict(
+    (mse): MSELoss()
+  )
+)
+INFO     dcn.main:main.py:590 Wrapping model with LossWrapper...
+INFO     dcn.main:main.py:474 Setting up callbacks...
+INFO     dcn.main:main.py:617 Initializing DayByDayTrainer...
+INFO     dcn.main:main.py:639 Skipping checkpoint loading (load_checkpoint=False)
+INFO     dcn.main:main.py:641 Starting training...
+=============================== warnings summary ===============================
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.ScalarMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+<frozen importlib._bootstrap>:488
+  <frozen importlib._bootstrap>:488: DeprecationWarning: Type google.protobuf.pyext._message.MessageMapContainer uses PyType_Spec with a metaclass that has custom tp_new. This is deprecated and will no longer be allowed in Python 3.14.
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED dcn/tests/test_main_e2e.py::test_main_e2e_with_transformer - ModuleNot...
+=================== 1 failed, 1 passed, 2 warnings in 4.68s ====================

@@ -1,0 +1,3 @@
+# The license token lives in ~/.keys (outside the repo). Never commit secrets here.
+.env
+*.local

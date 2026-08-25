@@ -1,0 +1,16 @@
+version: 1
+id: g1-native50-control-tuning
+title: Select the shared native-50M control learning rates
+description: >-
+  Run the exact 3x3 embedding/deep learning-rate grid for the unchanged
+  batch-1280 control on native 50M. Select the best validation epoch, extend
+  any cap-bound run, expand a learning-rate boundary winner, and publish the
+  selected control once for reuse by all remaining G1 treatment families.
+  Queue batch 31321e400e5d463fa0b22e2512d2b9f1 contains exactly these nine runs.
+blocked_by: []
+status: >-
+  Selected embedding/deep LR 0.032/0.012 at effective batch 1280. The initial
+  cap-20 winner was resolved by its cap-40 continuation at best/stopped epoch
+  19/22; upper axial neighbors 0.064/0.012 and 0.032/0.024 were worse, so the
+  LR surface is closed. Independent artifact review remains.
+ideas_tags: []

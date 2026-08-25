@@ -1,0 +1,1780 @@
+diff --git a/competition/experiments/g1_sasrec_item_ids_likes/README.md b/competition/experiments/g1_sasrec_item_ids_likes/README.md
+index de9a0e5..f88a1a1 100644
+--- a/competition/experiments/g1_sasrec_item_ids_likes/README.md
++++ b/competition/experiments/g1_sasrec_item_ids_likes/README.md
+@@ -149,61 +149,48 @@ Conclusion: Schedule only the deep group with one-cycle cosine and 5% warmup. It
+ 
+ ## RQ6 — Does learning-rate warmup help?
+ 
+-| schedule | no-warmup LR | warmup LR | no-warmup recall@100 | warmup=5% recall@100 | no-warmup ndcg@100 | warmup=5% ndcg@100 |
+-| --- | --- | --- | --- | --- | --- | --- |
+-| **constant** | **0.016/0.006** | **0.008/0.012** | **0.139** | **0% (0.139)** | **0.054** | **+1% (0.054)** |
+-| cosine | 0.032/0.012 | 0.032/0.006 | 0.134 | <span style="color: red">-13% (0.117)</span> | 0.051 | <span style="color: red">-15% (0.044)</span> |
+-| inverse sqrt | 0.032/0.006 | 0.008/0.012 | 0.130 | <span style="color: green">+4% (0.134)</span> | 0.049 | <span style="color: green">+5% (0.052)</span> |
+-
+-Treatment descriptions:
+-
+-- Constant warmup linearly ramps for 5% of training and then holds the selected rate fixed.
+-- Cosine warmup adds the same 5% ramp before one cosine decay cycle.
+-- Inverse-square-root warmup adds the ramp before inverse-square-root decay.
++Obsolete: done in rq5
+ 
+ Implementation: [controlled variants](configs/variant.py), [warmup and timescale derivation](../../neuralrec/run/callbacks/lr_schedule.py#L73-L110), and [ramp implementation](../../neuralrec/run/callbacks/lr_schedule.py#L159-L190).
+ 
+-Analysis: Every warmup arm is compared with the same schedule family after each arm receives independent LR tuning. The effect is therefore schedule-specific rather than a single shared warmup coefficient. RQ5 now selects deep-only one-cycle cosine with 5% warmup, but this historical RQ6 table uses a different tuning and scope protocol and is not a direct decomposition of the remediated RQ5 winner.
++## RQ7 — Which position encoding works best: RoPE, ALiBi, learned positions, or combinations?
++
++<!-- rq7-reinvestigation-generated:start -->
++### Learned-position fusion comparisons
+ 
+-Conclusion: Warmup is unresolved for constant LR, materially harms cosine, and materially helps inverse-square-root decay. Even after that improvement, inverse square root remains below the leading schedules. There is no general warmup benefit in this experiment.
++| learned-position treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| forward additive | 0.134 | 0.051 | 0.028 | 0.022 | 0.647 | selected seed 42 |
++| forward concat r3 | 0% (0.134) | +1% (0.052) | +2% (0.029) | +3% (0.023) | +3% (0.668) | selected seed 42 |
++| forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward additive | 0.136 | 0.052 | 0.028 | 0.022 | 0.662 | selected seed 42 |
++| **ALiBi + forward concat r3** | +1% (0.138) | <span style="color: green">+3% (0.053)</span> | +7% (0.030) | <span style="color: green">+8% (0.024)</span> | +3% (0.684) | selected seed 42 |
++| ALiBi + forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
+ 
+-## RQ7 — Which position encoding works best: RoPE, ALiBi, learned positions, or combinations?
++### RoPE / ALiBi comparison
+ 
+-| encoding | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+-| --- | --- | --- | --- | --- | --- |
+-| position none | 0.124 | 0.047 | 0.025 | 0.020 | 0.650 |
+-| **position alibi** | <span style="color: green">+10% (0.135)</span> | <span style="color: green">+10% (0.052)</span> | <span style="color: green">+13% (0.029)</span> | <span style="color: green">+12% (0.023)</span> | -5% (0.620) |
+-| position all | <span style="color: green">+6% (0.131)</span> | <span style="color: green">+7% (0.050)</span> | +8% (0.027) | <span style="color: green">+8% (0.022)</span> | -13% (0.567) |
+-| position learned alibi | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+10% (0.052)</span> | +10% (0.028) | <span style="color: green">+11% (0.023)</span> | -4% (0.621) |
+-| position learned forward | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+9% (0.052)</span> | +10% (0.028) | <span style="color: green">+11% (0.023)</span> | -11% (0.577) |
+-| position learned forward reverse | <span style="color: red">-3% (0.120)</span> | <span style="color: red">-5% (0.045)</span> | -10% (0.023) | <span style="color: red">-10% (0.018)</span> | +4% (0.678) |
+-| position learned reverse | <span style="color: green">+5% (0.130)</span> | <span style="color: green">+4% (0.049)</span> | 0% (0.025) | +1% (0.020) | +3% (0.670) |
+-| position learned reverse alibi | +1% (0.125) | +1% (0.048) | -3% (0.025) | -1% (0.020) | <span style="color: red">-27% (0.475)</span> |
+-| position reverse all | <span style="color: red">-4% (0.119)</span> | <span style="color: red">-5% (0.045)</span> | -9% (0.023) | <span style="color: red">-8% (0.019)</span> | <span style="color: red">-31% (0.446)</span> |
+-| position rope | +1% (0.125) | +1% (0.048) | 0% (0.025) | +1% (0.020) | -4% (0.625) |
+-| position rope alibi | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+10% (0.022)</span> | +1% (0.659) |
+-| position rope learned | <span style="color: green">+8% (0.134)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+11% (0.023)</span> | -3% (0.631) |
+-| position rope learned reverse | <span style="color: red">-4% (0.118)</span> | <span style="color: red">-5% (0.045)</span> | -9% (0.023) | <span style="color: red">-6% (0.019)</span> | <span style="color: red">-41% (0.385)</span> |
+-| position rope learned reverse alibi | <span style="color: red">-5% (0.117)</span> | <span style="color: red">-6% (0.044)</span> | -12% (0.022) | <span style="color: red">-8% (0.019)</span> | <span style="color: red">-49% (0.332)</span> |
+-| position rope reverse | +1% (0.125) | +1% (0.048) | 0% (0.025) | +1% (0.021) | -4% (0.625) |
+-| position rope reverse alibi | <span style="color: green">+8% (0.133)</span> | <span style="color: green">+8% (0.051)</span> | +10% (0.028) | <span style="color: green">+9% (0.022)</span> | -9% (0.591) |
+-| position rope reverse learned | <span style="color: green">+9% (0.134)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+11% (0.023)</span> | -3% (0.628) |
+-| position rope reverse learned alibi | <span style="color: green">+7% (0.132)</span> | <span style="color: green">+7% (0.050)</span> | +8% (0.028) | <span style="color: green">+8% (0.022)</span> | -13% (0.567) |
+-| position rope reverse learned reverse | <span style="color: green">+6% (0.131)</span> | <span style="color: green">+6% (0.050)</span> | +7% (0.027) | <span style="color: green">+6% (0.021)</span> | -4% (0.623) |
++| RoPE / ALiBi treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| no position encoding | -2% (0.133) | <span style="color: red">-3% (0.050)</span> | -5% (0.027) | <span style="color: red">-6% (0.022)</span> | +8% (0.671) | selected seed 42 |
++| **ALiBi** | 0.135 | 0.052 | 0.029 | 0.023 | 0.624 | 3-seed mean |
++| plain forward RoPE (base 10000) | -1% (0.135) | -1% (0.051) | -2% (0.028) | -3% (0.022) | +5% (0.653) | 3-seed mean |
++| forward RoPE + ALiBi | 0% (0.135) | -1% (0.052) | -2% (0.028) | -3% (0.022) | +5% (0.657) | 3-seed mean |
++<!-- rq7-reinvestigation-generated:end -->
+ 
+-Treatment descriptions:
++Treatment semantics:
+ 
+-- No position encoding is the control and gives the transformer only causal order.
+-- ALiBi adds head-specific linear attention biases without learned position tables.
+-- Learned-position treatments add forward, reverse, or both learned index embeddings.
+-- RoPE treatments rotate queries and keys with forward or reverse sequence indices.
+-- Combination treatments compose the named learned, rotary, and ALiBi mechanisms without changing the rest of the selected recipe.
++- Additive forward learned position is added to the item representation. In combined r4 additive treatments, the transformer input is exactly `item + forward_normal + reverse_zero`: the reverse table starts at zero, so initialization matches the forward-only control and the reverse table receives a first-step gradient.
++- Concat fusion revision 3 preserves the item residual and adds `gate_zero * variance_preserved(DenseNet([item; learned position(s)]))`. Combined r4 concat keeps those fusion semantics but zero-initializes the reverse table under a separate metadata revision; the gate moves before gradients can enter the DenseNet and position branch.
++- Reverse learned absolute positions anchor the last valid token at index zero. A constant sequence offset cancels from RoPE's relative phases, so reverse RoPE is instead a sign-reversed pairwise phase parameterization, not an absolute end anchor.
++- ALiBi applies the same head-specific monotone attention bias in every named ALiBi treatment.
+ 
+-Implementation: [treatment grid](configs/variant.py), [position and RoPE modules](../../dcn/nn/transformer.py#L130-L227), [transformer wiring](../../dcn/config/networks.py#L181-L242), and [ALiBi](https://arxiv.org/abs/2108.12409)/[RoPE](https://arxiv.org/abs/2104.09864) papers. On GPU, ALiBi uses FlashAttention's built-in bias path by passing `alibi_slopes` directly to [`flash_attn_varlen_func`](../../dcn/nn/transformer.py#L394-L411); the CPU integration fallback does not reproduce its numerical bias.
++Implementation and evidence: [current treatment identities](analysis/rq7_reinvestigation_candidates.py), [generated report code](analysis/rq7_reinvestigation_report.py), [approved protocol](protocol/rq7_reinvestigation_plan.md), [eligible native-500M tuning ledger](scratchpad/rq7_reinvestigation_tuning_500m.md), and [machine-readable evidence](evidence/rq7_reinvestigation_results.json).
+ 
+-Analysis: Every percentage is relative to no position encoding after independent LR tuning. Several leading treatments are mutually unresolved on ranking quality; coverage reveals material trade-offs that recall alone hides.
++Analysis: Selection uses best-epoch validation recall@100, then same-epoch NDCG@100, after each native-500M LR boundary is resolved; the table reports restored-checkpoint full-user metrics. The RoPE comparison is complete and uses the selected seed-42 run plus seed-43/44 confirmations. Plain base-10,000 RoPE trails ALiBi by 0.000847 recall@100 and 0.000703 NDCG@100 on the three-seed means, both inside the approved comparability bands. Forward-only learned rows are resolved, but every forward+reverse row is pending the r4 native-500M surface; superseded combined r1/r3 native artifacts and concat r1/r2 diagnostics are excluded.
+ 
+-Conclusion: ALiBi has the highest displayed ranking metrics, but forward learned and several ALiBi/RoPE combinations are within the declared thresholds. Plain forward or reverse RoPE is unresolved against no encoding, while several mismatched learned/rotary combinations regress materially. Position information helps when encoded compatibly, but the evidence does not isolate a unique ranking-quality winner among the leading treatments.
++Conclusion: Plain forward RoPE is comparable to ALiBi under repeated native-500M evidence; adding ALiBi to RoPE is also inside the same ranking bands. No forward+reverse learned treatment is accepted or rejected from this generated report until the r4 LR surfaces finish.
+ 
+ ## RQ8 — How do scaling and architecture choices affect metrics?
+ 
+diff --git a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/hyperparameter_tuning_50m.md b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/hyperparameter_tuning_50m.md
+index e7942b9..3536c93 100644
+--- a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/hyperparameter_tuning_50m.md
++++ b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/hyperparameter_tuning_50m.md
+@@ -584,376 +584,7 @@ Generated from usable completed run directories and available metadata. The high
+ 
+ ## RQ7 — Which position encoding works best: RoPE, ALiBi, learned positions, or combinations?
+ 
+-### position alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.012** | **—** | **—** | **yes** | **0.074** | **<span style="color: green">+6%</span>** | **0.027** | **<span style="color: green">+10%</span>** | **0.013** | **+14%** | **0.011** | **<span style="color: green">+20%</span>** | **0.211** | **-1%** |
+-| 0.128 | 0.012 | — | — | yes | 0.071 | +3% | 0.026 | <span style="color: green">+6%</span> | 0.016 | <span style="color: green">+37%</span> | 0.012 | <span style="color: green">+23%</span> | 0.741 | <span style="color: green">+248%</span> |
+-| 0.064 | 0.006 | — | — | yes | 0.069 | 0% | 0.025 | +2% | 0.013 | +15% | 0.010 | <span style="color: green">+11%</span> | 0.293 | +37% |
+-| 0.064 | 0.024 | — | — | yes | 0.047 | <span style="color: red">-32%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | <span style="color: red">-26%</span> | 0.006 | <span style="color: red">-31%</span> | 0.024 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.012 | — | — | yes | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-39%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | — | — | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | — | — | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-36%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.016 | 0.006 | — | — | yes | 0.045 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | — | — | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.012 | — | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-43%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | — | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-39%</span> | 0.007 | <span style="color: red">-38%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | — | — | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | — | yes | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-31%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | — | — | yes | 0.035 | <span style="color: red">-49%</span> | 0.014 | <span style="color: red">-43%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-92%</span> |
+-
+-### position all
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.016 | 0.012 | forward | forward | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | forward | forward | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | forward | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | forward | forward | yes | 0.045 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | forward | forward | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-40%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | forward | forward | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.024 | forward | forward | yes | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-44%</span> | 0.005 | <span style="color: red">-55%</span> | 0.005 | <span style="color: red">-43%</span> | 0.005 | <span style="color: red">-98%</span> |
+-| 0.008 | 0.006 | forward | forward | yes | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-44%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-94%</span> |
+-| 0.016 | 0.003 | forward | forward | yes | 0.037 | <span style="color: red">-47%</span> | 0.013 | <span style="color: red">-47%</span> | 0.008 | <span style="color: red">-35%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | forward | forward | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-42%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position learned alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.016 | 0.024 | forward | — | yes | 0.061 | <span style="color: red">-13%</span> | 0.022 | <span style="color: red">-12%</span> | 0.011 | -6% | 0.008 | <span style="color: red">-12%</span> | 0.063 | <span style="color: red">-71%</span> |
+-| 0.016 | 0.048 | forward | — | yes | 0.060 | <span style="color: red">-14%</span> | 0.021 | <span style="color: red">-13%</span> | 0.010 | -14% | 0.008 | <span style="color: red">-12%</span> | 0.067 | <span style="color: red">-69%</span> |
+-| 0.016 | 0.012 | forward | — | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-31%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | — | yes | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-35%</span> | 0.007 | <span style="color: red">-40%</span> | 0.006 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | forward | — | yes | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | forward | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | forward | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.024 | forward | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-36%</span> | 0.009 | <span style="color: red">-28%</span> | 0.006 | <span style="color: red">-31%</span> | 0.018 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.012 | forward | — | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-40%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | forward | — | yes | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | forward | — | yes | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-44%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | forward | — | yes | 0.037 | <span style="color: red">-47%</span> | 0.013 | <span style="color: red">-47%</span> | 0.008 | <span style="color: red">-35%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | forward | — | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-42%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position learned forward
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.032 | 0.012 | forward | — | no | 0.068 | -3% | 0.024 | -1% | 0.012 | +4% | 0.010 | +2% | 0.186 | -13% |
+-| 0.008 | 0.012 | forward | — | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | forward | — | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | — | no | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.064 | 0.012 | forward | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-36%</span> | 0.018 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.006 | forward | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | forward | — | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-37%</span> | 0.009 | -24% | 0.007 | <span style="color: red">-29%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.003 | forward | — | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-31%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | forward | — | no | 0.038 | <span style="color: red">-46%</span> | 0.013 | <span style="color: red">-46%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | forward | — | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.014 | <span style="color: red">-94%</span> |
+-| 0.008 | 0.003 | forward | — | no | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.014 | <span style="color: red">-94%</span> |
+-
+-### position learned forward reverse
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.012** | **['forward', 'reverse']** | **—** | **no** | **0.077** | **<span style="color: green">+10%</span>** | **0.028** | **<span style="color: green">+12%</span>** | **0.014** | **+21%** | **0.011** | **<span style="color: green">+18%</span>** | **0.331** | **<span style="color: green">+55%</span>** |
+-| 0.064 | 0.048 | ['forward', 'reverse'] | — | no | 0.076 | <span style="color: green">+10%</span> | 0.028 | <span style="color: green">+15%</span> | 0.017 | <span style="color: green">+43%</span> | 0.012 | <span style="color: green">+30%</span> | 0.584 | <span style="color: green">+174%</span> |
+-| 0.064 | 0.024 | ['forward', 'reverse'] | — | no | 0.076 | <span style="color: green">+9%</span> | 0.029 | <span style="color: green">+18%</span> | 0.018 | <span style="color: green">+50%</span> | 0.014 | <span style="color: green">+45%</span> | 0.397 | <span style="color: green">+86%</span> |
+-| 0.064 | 0.006 | ['forward', 'reverse'] | — | no | 0.074 | <span style="color: green">+7%</span> | 0.026 | <span style="color: green">+8%</span> | 0.013 | +12% | 0.010 | +10% | 0.274 | +29% |
+-| 0.128 | 0.012 | ['forward', 'reverse'] | — | no | 0.070 | +1% | 0.026 | <span style="color: green">+7%</span> | 0.016 | <span style="color: green">+32%</span> | 0.012 | <span style="color: green">+25%</span> | 0.610 | <span style="color: green">+186%</span> |
+-| 0.032 | 0.024 | ['forward', 'reverse'] | — | no | 0.069 | -1% | 0.025 | +4% | 0.014 | +15% | 0.010 | <span style="color: green">+11%</span> | 0.293 | +38% |
+-| 0.128 | 0.024 | ['forward', 'reverse'] | — | no | 0.067 | -4% | 0.024 | -4% | 0.013 | +7% | 0.009 | -2% | 0.766 | <span style="color: green">+259%</span> |
+-| 0.016 | 0.024 | ['forward', 'reverse'] | — | no | 0.060 | <span style="color: red">-13%</span> | 0.021 | <span style="color: red">-14%</span> | 0.009 | -21% | 0.008 | <span style="color: red">-18%</span> | 0.088 | <span style="color: red">-59%</span> |
+-| 0.032 | 0.048 | ['forward', 'reverse'] | — | no | 0.053 | <span style="color: red">-23%</span> | 0.018 | <span style="color: red">-26%</span> | 0.008 | <span style="color: red">-28%</span> | 0.006 | <span style="color: red">-31%</span> | 0.070 | <span style="color: red">-67%</span> |
+-| 0.016 | 0.012 | ['forward', 'reverse'] | — | no | 0.045 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-41%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | ['forward', 'reverse'] | — | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-30%</span> | 0.007 | <span style="color: red">-30%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | ['forward', 'reverse'] | — | no | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-39%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | ['forward', 'reverse'] | — | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.048 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-37%</span> | 0.012 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-29%</span> | 0.006 | <span style="color: red">-32%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | ['forward', 'reverse'] | — | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-31%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.006 | ['forward', 'reverse'] | — | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-
+-### position learned reverse
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.024** | **reverse** | **—** | **no** | **0.081** | **<span style="color: green">+16%</span>** | **0.030** | **<span style="color: green">+23%</span>** | **0.017** | **<span style="color: green">+44%</span>** | **0.013** | **<span style="color: green">+40%</span>** | **0.403** | **<span style="color: green">+89%</span>** |
+-| 0.128 | 0.024 | reverse | — | no | 0.078 | <span style="color: green">+12%</span> | 0.028 | <span style="color: green">+16%</span> | 0.016 | <span style="color: green">+33%</span> | 0.012 | <span style="color: green">+30%</span> | 0.875 | <span style="color: green">+311%</span> |
+-| 0.064 | 0.048 | reverse | — | no | 0.077 | <span style="color: green">+11%</span> | 0.028 | <span style="color: green">+16%</span> | 0.015 | <span style="color: green">+31%</span> | 0.012 | <span style="color: green">+25%</span> | 0.381 | <span style="color: green">+79%</span> |
+-| 0.032 | 0.024 | reverse | — | no | 0.069 | -1% | 0.024 | -1% | 0.011 | -4% | 0.009 | -3% | 0.138 | -35% |
+-| 0.016 | 0.024 | reverse | — | no | 0.062 | <span style="color: red">-11%</span> | 0.022 | <span style="color: red">-10%</span> | 0.011 | -8% | 0.009 | -9% | 0.065 | <span style="color: red">-70%</span> |
+-| 0.016 | 0.012 | reverse | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.064 | 0.012 | reverse | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | <span style="color: red">-27%</span> | 0.006 | <span style="color: red">-35%</span> | 0.020 | <span style="color: red">-91%</span> |
+-| 0.032 | 0.048 | reverse | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-40%</span> | 0.007 | <span style="color: red">-37%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | reverse | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | reverse | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | — | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | reverse | — | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-34%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | reverse | — | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.009 | <span style="color: red">-27%</span> | 0.006 | <span style="color: red">-35%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.048 | reverse | — | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-33%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | reverse | — | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -25% | 0.006 | <span style="color: red">-31%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | reverse | — | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | reverse | — | no | 0.037 | <span style="color: red">-47%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | reverse | — | no | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-40%</span> | 0.006 | <span style="color: red">-41%</span> | 0.015 | <span style="color: red">-93%</span> |
+-
+-### position learned reverse alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.008 | 0.012 | reverse | — | yes | 0.045 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | reverse | — | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | reverse | — | yes | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-40%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.004 | 0.012 | reverse | — | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | — | yes | 0.043 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.024 | reverse | — | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-39%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | reverse | — | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-33%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | reverse | — | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-36%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.003 | reverse | — | yes | 0.043 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-33%</span> | 0.022 | <span style="color: red">-90%</span> |
+-| 0.032 | 0.012 | reverse | — | yes | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.009 | -24% | 0.006 | <span style="color: red">-32%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.003 | reverse | — | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.005 | <span style="color: red">-42%</span> | 0.014 | <span style="color: red">-93%</span> |
+-
+-### position none
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.064 | 0.006 | — | — | no | 0.069 | -1% | 0.025 | +3% | 0.013 | +7% | 0.010 | <span style="color: green">+12%</span> | 0.266 | +25% |
+-| 0.128 | 0.003 | — | — | no | 0.067 | -4% | 0.024 | 0% | 0.013 | +9% | 0.010 | <span style="color: green">+11%</span> | 0.354 | <span style="color: green">+66%</span> |
+-| 0.032 | 0.003 | — | — | no | 0.058 | <span style="color: red">-16%</span> | 0.020 | <span style="color: red">-18%</span> | 0.010 | -18% | 0.007 | <span style="color: red">-23%</span> | 0.099 | <span style="color: red">-54%</span> |
+-| 0.064 | 0.0015 | — | — | no | 0.047 | <span style="color: red">-32%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | <span style="color: red">-27%</span> | 0.007 | <span style="color: red">-28%</span> | 0.024 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.012 | — | — | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-39%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | — | — | no | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-31%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | — | — | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | — | — | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.0015 | — | — | no | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-34%</span> | 0.008 | <span style="color: red">-32%</span> | 0.007 | <span style="color: red">-29%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.012 | — | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | — | — | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | — | — | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | — | no | 0.036 | <span style="color: red">-49%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position reverse all
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.008 | 0.012 | reverse | reverse | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | reverse | reverse | yes | 0.045 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | reverse | yes | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | reverse | reverse | yes | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.004 | 0.012 | reverse | reverse | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | reverse | reverse | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-29%</span> | 0.006 | <span style="color: red">-36%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | reverse | reverse | yes | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-32%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.006 | reverse | reverse | yes | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-35%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.003 | reverse | reverse | yes | 0.043 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-32%</span> | 0.007 | <span style="color: red">-29%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | reverse | reverse | yes | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -24% | 0.007 | <span style="color: red">-31%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.003 | reverse | reverse | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.005 | <span style="color: red">-42%</span> | 0.014 | <span style="color: red">-93%</span> |
+-
+-### position rope
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.003** | **—** | **forward** | **no** | **0.072** | **+3%** | **0.025** | **+3%** | **0.013** | **+14%** | **0.010** | **+6%** | **0.210** | **-1%** |
+-| 0.064 | 0.006 | — | forward | no | 0.070 | +1% | 0.026 | +4% | 0.014 | +17% | 0.011 | <span style="color: green">+13%</span> | 0.290 | +36% |
+-| 0.128 | 0.003 | — | forward | no | 0.067 | -4% | 0.024 | 0% | 0.013 | +11% | 0.010 | +10% | 0.358 | <span style="color: green">+68%</span> |
+-| 0.032 | 0.003 | — | forward | no | 0.062 | <span style="color: red">-11%</span> | 0.021 | <span style="color: red">-13%</span> | 0.010 | -15% | 0.007 | <span style="color: red">-21%</span> | 0.102 | <span style="color: red">-52%</span> |
+-| 0.064 | 0.0015 | — | forward | no | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | <span style="color: red">-27%</span> | 0.007 | <span style="color: red">-28%</span> | 0.024 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.012 | — | forward | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-35%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-39%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | — | forward | no | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | — | forward | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | — | forward | no | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.0015 | — | forward | no | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-29%</span> | 0.006 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | — | forward | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | — | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-33%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | — | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-31%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | forward | no | 0.036 | <span style="color: red">-49%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position rope alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.012** | **—** | **forward** | **yes** | **0.075** | **<span style="color: green">+7%</span>** | **0.027** | **<span style="color: green">+8%</span>** | **0.012** | **+1%** | **0.010** | **<span style="color: green">+11%</span>** | **0.155** | **-27%** |
+-| 0.128 | 0.012 | — | forward | yes | 0.072 | +3% | 0.026 | <span style="color: green">+5%</span> | 0.015 | +24% | 0.011 | <span style="color: green">+15%</span> | 0.678 | <span style="color: green">+218%</span> |
+-| 0.064 | 0.006 | — | forward | yes | 0.070 | +1% | 0.025 | +3% | 0.012 | +6% | 0.010 | +6% | 0.272 | +27% |
+-| 0.032 | 0.012 | — | forward | yes | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.064 | 0.024 | — | forward | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | -25% | 0.007 | <span style="color: red">-31%</span> | 0.023 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.006 | — | forward | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | — | forward | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.016 | 0.006 | — | forward | yes | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | — | forward | yes | 0.045 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-41%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | — | forward | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | — | forward | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-40%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | — | forward | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-40%</span> | 0.007 | <span style="color: red">-37%</span> | 0.005 | <span style="color: red">-42%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | forward | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.003 | — | forward | yes | 0.035 | <span style="color: red">-49%</span> | 0.014 | <span style="color: red">-43%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-92%</span> |
+-
+-### position rope learned
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.032 | 0.012 | forward | forward | no | 0.067 | -4% | 0.025 | 0% | 0.015 | <span style="color: green">+27%</span> | 0.011 | <span style="color: green">+14%</span> | 0.174 | -18% |
+-| 0.008 | 0.012 | forward | forward | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | forward | forward | no | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-41%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | forward | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | forward | forward | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | forward | forward | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.009 | -25% | 0.006 | <span style="color: red">-32%</span> | 0.018 | <span style="color: red">-92%</span> |
+-| 0.064 | 0.012 | forward | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-33%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.003 | forward | forward | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-31%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | forward | forward | no | 0.037 | <span style="color: red">-46%</span> | 0.013 | <span style="color: red">-46%</span> | 0.008 | <span style="color: red">-34%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | forward | forward | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | forward | forward | no | 0.037 | <span style="color: red">-48%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.012 | <span style="color: red">-94%</span> |
+-
+-### position rope learned reverse
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.004 | 0.012 | reverse | forward | no | 0.045 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.012 | reverse | forward | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | reverse | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | reverse | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | <span style="color: red">-26%</span> | 0.006 | <span style="color: red">-32%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | reverse | forward | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | forward | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | reverse | forward | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | reverse | forward | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -25% | 0.007 | <span style="color: red">-30%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | reverse | forward | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-39%</span> | 0.009 | -24% | 0.007 | <span style="color: red">-30%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | reverse | forward | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | reverse | forward | no | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-40%</span> | 0.006 | <span style="color: red">-41%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.004 | 0.006 | reverse | forward | no | 0.035 | <span style="color: red">-49%</span> | 0.013 | <span style="color: red">-45%</span> | 0.006 | <span style="color: red">-45%</span> | 0.006 | <span style="color: red">-39%</span> | 0.012 | <span style="color: red">-95%</span> |
+-| 0.004 | 0.024 | reverse | forward | no | 0.035 | <span style="color: red">-50%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-42%</span> | 0.006 | <span style="color: red">-35%</span> | 0.003 | <span style="color: red">-98%</span> |
+-| 0.002 | 0.012 | reverse | forward | no | 0.034 | <span style="color: red">-51%</span> | 0.013 | <span style="color: red">-46%</span> | 0.006 | <span style="color: red">-45%</span> | 0.006 | <span style="color: red">-38%</span> | 0.003 | <span style="color: red">-99%</span> |
+-
+-### position rope learned reverse alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.008 | 0.012 | reverse | forward | yes | 0.046 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-29%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | reverse | forward | yes | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | forward | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.004 | 0.012 | reverse | forward | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | reverse | forward | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.024 | reverse | forward | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-38%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | reverse | forward | yes | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-32%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.003 | reverse | forward | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-32%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | reverse | forward | yes | 0.043 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-35%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.012 | reverse | forward | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -24% | 0.006 | <span style="color: red">-31%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | reverse | forward | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.005 | <span style="color: red">-42%</span> | 0.014 | <span style="color: red">-94%</span> |
+-
+-### position rope reverse
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.003** | **—** | **reverse** | **no** | **0.072** | **+3%** | **0.025** | **+3%** | **0.013** | **+10%** | **0.010** | **+5%** | **0.211** | **-1%** |
+-| 0.064 | 0.006 | — | reverse | no | 0.070 | +1% | 0.025 | +2% | 0.014 | +17% | 0.010 | <span style="color: green">+11%</span> | 0.242 | +14% |
+-| 0.128 | 0.003 | — | reverse | no | 0.067 | -4% | 0.024 | 0% | 0.013 | +11% | 0.010 | +10% | 0.358 | <span style="color: green">+68%</span> |
+-| 0.032 | 0.003 | — | reverse | no | 0.062 | <span style="color: red">-11%</span> | 0.021 | <span style="color: red">-13%</span> | 0.010 | -14% | 0.007 | <span style="color: red">-21%</span> | 0.103 | <span style="color: red">-52%</span> |
+-| 0.064 | 0.0015 | — | reverse | no | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | <span style="color: red">-27%</span> | 0.007 | <span style="color: red">-28%</span> | 0.024 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.012 | — | reverse | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-35%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-39%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | — | reverse | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | — | reverse | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.0015 | — | reverse | no | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-28%</span> | 0.006 | <span style="color: red">-32%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | — | reverse | no | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | — | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | — | reverse | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | — | reverse | no | 0.043 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-34%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | reverse | no | 0.036 | <span style="color: red">-49%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position rope reverse alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.012** | **—** | **reverse** | **yes** | **0.074** | **<span style="color: green">+6%</span>** | **0.027** | **<span style="color: green">+8%</span>** | **0.012** | **+3%** | **0.010** | **<span style="color: green">+12%</span>** | **0.156** | **-27%** |
+-| 0.128 | 0.012 | — | reverse | yes | 0.072 | +3% | 0.026 | <span style="color: green">+5%</span> | 0.015 | +25% | 0.011 | <span style="color: green">+16%</span> | 0.739 | <span style="color: green">+247%</span> |
+-| 0.064 | 0.006 | — | reverse | yes | 0.070 | +1% | 0.025 | +2% | 0.013 | +10% | 0.010 | +6% | 0.321 | <span style="color: green">+50%</span> |
+-| 0.064 | 0.024 | — | reverse | yes | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-33%</span> | 0.009 | <span style="color: red">-26%</span> | 0.006 | <span style="color: red">-32%</span> | 0.024 | <span style="color: red">-89%</span> |
+-| 0.032 | 0.012 | — | reverse | yes | 0.047 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-38%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.032 | 0.006 | — | reverse | yes | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-41%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | — | reverse | yes | 0.046 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-35%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-37%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.016 | 0.012 | — | reverse | yes | 0.045 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-38%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | — | reverse | yes | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | — | reverse | yes | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.008 | 0.006 | — | reverse | yes | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | — | reverse | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-40%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-46%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | — | reverse | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-39%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.003 | — | reverse | yes | 0.035 | <span style="color: red">-49%</span> | 0.014 | <span style="color: red">-44%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-92%</span> |
+-
+-### position rope reverse learned
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.032 | 0.012 | forward | reverse | no | 0.067 | -4% | 0.025 | 0% | 0.015 | <span style="color: green">+27%</span> | 0.011 | <span style="color: green">+14%</span> | 0.173 | -19% |
+-| 0.016 | 0.012 | forward | reverse | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | forward | reverse | no | 0.046 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | reverse | no | 0.044 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | forward | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-38%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.024 | forward | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-37%</span> | 0.009 | <span style="color: red">-27%</span> | 0.006 | <span style="color: red">-32%</span> | 0.018 | <span style="color: red">-92%</span> |
+-| 0.064 | 0.012 | forward | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-33%</span> | 0.017 | <span style="color: red">-92%</span> |
+-| 0.016 | 0.003 | forward | reverse | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | forward | reverse | no | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-31%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | forward | reverse | no | 0.037 | <span style="color: red">-47%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | forward | reverse | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-39%</span> | 0.006 | <span style="color: red">-40%</span> | 0.009 | <span style="color: red">-96%</span> |
+-
+-### position rope reverse learned alibi
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| **0.064** | **0.003** | **—** | **—** | **no** | **0.070** | **—** | **0.025** | **—** | **0.012** | **—** | **0.009** | **—** | **0.213** | **—** |
+-| 0.016 | 0.012 | forward | reverse | yes | 0.046 | <span style="color: red">-33%</span> | 0.016 | <span style="color: red">-35%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.006 | forward | reverse | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-37%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | forward | reverse | yes | 0.045 | <span style="color: red">-35%</span> | 0.016 | <span style="color: red">-37%</span> | 0.007 | <span style="color: red">-37%</span> | 0.006 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | forward | reverse | yes | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-39%</span> | 0.008 | <span style="color: red">-30%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | forward | reverse | yes | 0.043 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | forward | reverse | yes | 0.038 | <span style="color: red">-46%</span> | 0.014 | <span style="color: red">-42%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-31%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.024 | forward | reverse | yes | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-44%</span> | 0.005 | <span style="color: red">-55%</span> | 0.005 | <span style="color: red">-43%</span> | 0.005 | <span style="color: red">-98%</span> |
+-| 0.008 | 0.006 | forward | reverse | yes | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-44%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-94%</span> |
+-| 0.016 | 0.003 | forward | reverse | yes | 0.037 | <span style="color: red">-47%</span> | 0.013 | <span style="color: red">-47%</span> | 0.008 | <span style="color: red">-35%</span> | 0.005 | <span style="color: red">-42%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.003 | forward | reverse | yes | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-40%</span> | 0.005 | <span style="color: red">-42%</span> | 0.013 | <span style="color: red">-94%</span> |
+-
+-### position rope reverse learned reverse
+-
+-| embedding learning rate | deep learning rate | learned positions | RoPE | ALiBi | recall@100 | recall@100 vs control | ndcg@100 | ndcg@100 vs control | recall@10 | recall@10 vs control | ndcg@10 | ndcg@10 vs control | coverage@100 | coverage@100 vs control |
+-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+-| 0.064 | 0.003 | — | — | no | 0.070 | — | 0.025 | — | 0.012 | — | 0.009 | — | 0.213 | — |
+-| **0.064** | **0.048** | **reverse** | **reverse** | **no** | **0.086** | **<span style="color: green">+23%</span>** | **0.031** | **<span style="color: green">+27%</span>** | **0.016** | **<span style="color: green">+40%</span>** | **0.013** | **<span style="color: green">+38%</span>** | **0.421** | **<span style="color: green">+98%</span>** |
+-| 0.064 | 0.024 | reverse | reverse | no | 0.083 | <span style="color: green">+19%</span> | 0.031 | <span style="color: green">+25%</span> | 0.016 | <span style="color: green">+40%</span> | 0.013 | <span style="color: green">+39%</span> | 0.399 | <span style="color: green">+87%</span> |
+-| 0.128 | 0.024 | reverse | reverse | no | 0.080 | <span style="color: green">+15%</span> | 0.029 | <span style="color: green">+16%</span> | 0.016 | <span style="color: green">+35%</span> | 0.012 | <span style="color: green">+30%</span> | 0.821 | <span style="color: green">+285%</span> |
+-| 0.128 | 0.048 | reverse | reverse | no | 0.073 | <span style="color: green">+4%</span> | 0.027 | <span style="color: green">+9%</span> | 0.014 | +19% | 0.011 | <span style="color: green">+19%</span> | 0.739 | <span style="color: green">+246%</span> |
+-| 0.032 | 0.024 | reverse | reverse | no | 0.071 | +3% | 0.026 | <span style="color: green">+5%</span> | 0.013 | +6% | 0.010 | +6% | 0.163 | -24% |
+-| 0.016 | 0.048 | reverse | reverse | no | 0.067 | -4% | 0.025 | +1% | 0.014 | +16% | 0.011 | <span style="color: green">+13%</span> | 0.169 | -21% |
+-| 0.016 | 0.024 | reverse | reverse | no | 0.064 | <span style="color: red">-8%</span> | 0.022 | <span style="color: red">-9%</span> | 0.011 | -5% | 0.008 | <span style="color: red">-11%</span> | 0.064 | <span style="color: red">-70%</span> |
+-| 0.004 | 0.024 | reverse | reverse | no | 0.045 | <span style="color: red">-36%</span> | 0.016 | <span style="color: red">-36%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.024 | reverse | reverse | no | 0.044 | <span style="color: red">-36%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-32%</span> | 0.006 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.012 | reverse | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.012 | reverse | reverse | no | 0.044 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.007 | <span style="color: red">-42%</span> | 0.006 | <span style="color: red">-40%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.064 | 0.012 | reverse | reverse | no | 0.043 | <span style="color: red">-37%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | <span style="color: red">-26%</span> | 0.006 | <span style="color: red">-34%</span> | 0.020 | <span style="color: red">-91%</span> |
+-| 0.016 | 0.003 | reverse | reverse | no | 0.043 | <span style="color: red">-38%</span> | 0.015 | <span style="color: red">-37%</span> | 0.008 | <span style="color: red">-33%</span> | 0.006 | <span style="color: red">-34%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.048 | reverse | reverse | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-40%</span> | 0.008 | <span style="color: red">-34%</span> | 0.006 | <span style="color: red">-39%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.016 | 0.006 | reverse | reverse | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-39%</span> | 0.007 | <span style="color: red">-38%</span> | 0.006 | <span style="color: red">-40%</span> | 0.016 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.003 | reverse | reverse | no | 0.042 | <span style="color: red">-39%</span> | 0.015 | <span style="color: red">-38%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-35%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.032 | 0.012 | reverse | reverse | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -23% | 0.007 | <span style="color: red">-30%</span> | 0.016 | <span style="color: red">-92%</span> |
+-| 0.032 | 0.006 | reverse | reverse | no | 0.042 | <span style="color: red">-40%</span> | 0.015 | <span style="color: red">-38%</span> | 0.009 | -24% | 0.007 | <span style="color: red">-30%</span> | 0.015 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.006 | reverse | reverse | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.006 | <span style="color: red">-41%</span> | 0.014 | <span style="color: red">-93%</span> |
+-| 0.008 | 0.048 | reverse | reverse | no | 0.037 | <span style="color: red">-47%</span> | 0.014 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-43%</span> | 0.006 | <span style="color: red">-39%</span> | 0.003 | <span style="color: red">-99%</span> |
+-| 0.008 | 0.003 | reverse | reverse | no | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-45%</span> | 0.007 | <span style="color: red">-41%</span> | 0.005 | <span style="color: red">-42%</span> | 0.013 | <span style="color: red">-94%</span> |
+-| 0.064 | 0.096 | reverse | reverse | no | 0.036 | <span style="color: red">-48%</span> | 0.013 | <span style="color: red">-46%</span> | 0.007 | <span style="color: red">-36%</span> | 0.006 | <span style="color: red">-39%</span> | 0.005 | <span style="color: red">-98%</span> |
+-| 0.004 | 0.012 | reverse | reverse | no | 0.034 | <span style="color: red">-50%</span> | 0.013 | <span style="color: red">-46%</span> | 0.008 | <span style="color: red">-35%</span> | 0.006 | <span style="color: red">-34%</span> | 0.003 | <span style="color: red">-99%</span> |
++No RQ7 tuning table is generated from Yambda-50M. The eligible native-500M ledger is generated at [rq7_reinvestigation_tuning_500m.md](rq7_reinvestigation_tuning_500m.md); legacy concat r1/r2 and every 50M diagnostic are excluded.
+ 
+ ## RQ8 — How do scaling and architecture choices affect metrics?
+ 
+diff --git a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_500m.md b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_500m.md
+index 3a69b7e..cd511ba 100644
+--- a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_500m.md
++++ b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_500m.md
+@@ -67,27 +67,27 @@
+ 
+ ## RQ7 — Which position encoding works best: RoPE, ALiBi, learned positions, or combinations?
+ 
+-| encoding | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+-| --- | --- | --- | --- | --- | --- |
+-| position none | 0.124 | 0.047 | 0.025 | 0.020 | 0.650 |
+-| **position alibi** | <span style="color: green">+10% (0.135)</span> | <span style="color: green">+10% (0.052)</span> | <span style="color: green">+13% (0.029)</span> | <span style="color: green">+12% (0.023)</span> | -5% (0.620) |
+-| position all | <span style="color: green">+6% (0.131)</span> | <span style="color: green">+7% (0.050)</span> | +8% (0.027) | <span style="color: green">+8% (0.022)</span> | -13% (0.567) |
+-| position learned alibi | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+10% (0.052)</span> | +10% (0.028) | <span style="color: green">+11% (0.023)</span> | -4% (0.621) |
+-| position learned forward | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+9% (0.052)</span> | +10% (0.028) | <span style="color: green">+11% (0.023)</span> | -11% (0.577) |
+-| position learned forward reverse | <span style="color: red">-3% (0.120)</span> | <span style="color: red">-5% (0.045)</span> | -10% (0.023) | <span style="color: red">-10% (0.018)</span> | +4% (0.678) |
+-| position learned reverse | <span style="color: green">+5% (0.130)</span> | <span style="color: green">+4% (0.049)</span> | 0% (0.025) | +1% (0.020) | +3% (0.670) |
+-| position learned reverse alibi | +1% (0.125) | +1% (0.048) | -3% (0.025) | -1% (0.020) | <span style="color: red">-27% (0.475)</span> |
+-| position reverse all | <span style="color: red">-4% (0.119)</span> | <span style="color: red">-5% (0.045)</span> | -9% (0.023) | <span style="color: red">-8% (0.019)</span> | <span style="color: red">-31% (0.446)</span> |
+-| position rope | +1% (0.125) | +1% (0.048) | 0% (0.025) | +1% (0.020) | -4% (0.625) |
+-| position rope alibi | <span style="color: green">+9% (0.135)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+10% (0.022)</span> | +1% (0.659) |
+-| position rope learned | <span style="color: green">+8% (0.134)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+11% (0.023)</span> | -3% (0.631) |
+-| position rope learned reverse | <span style="color: red">-4% (0.118)</span> | <span style="color: red">-5% (0.045)</span> | -9% (0.023) | <span style="color: red">-6% (0.019)</span> | <span style="color: red">-41% (0.385)</span> |
+-| position rope learned reverse alibi | <span style="color: red">-5% (0.117)</span> | <span style="color: red">-6% (0.044)</span> | -12% (0.022) | <span style="color: red">-8% (0.019)</span> | <span style="color: red">-49% (0.332)</span> |
+-| position rope reverse | +1% (0.125) | +1% (0.048) | 0% (0.025) | +1% (0.021) | -4% (0.625) |
+-| position rope reverse alibi | <span style="color: green">+8% (0.133)</span> | <span style="color: green">+8% (0.051)</span> | +10% (0.028) | <span style="color: green">+9% (0.022)</span> | -9% (0.591) |
+-| position rope reverse learned | <span style="color: green">+9% (0.134)</span> | <span style="color: green">+9% (0.052)</span> | +11% (0.028) | <span style="color: green">+11% (0.023)</span> | -3% (0.628) |
+-| position rope reverse learned alibi | <span style="color: green">+7% (0.132)</span> | <span style="color: green">+7% (0.050)</span> | +8% (0.028) | <span style="color: green">+8% (0.022)</span> | -13% (0.567) |
+-| position rope reverse learned reverse | <span style="color: green">+6% (0.131)</span> | <span style="color: green">+6% (0.050)</span> | +7% (0.027) | <span style="color: green">+6% (0.021)</span> | -4% (0.623) |
++### Learned-position fusion comparisons
++
++| learned-position treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| forward additive | 0.134 | 0.051 | 0.028 | 0.022 | 0.647 | selected seed 42 |
++| forward concat r3 | 0% (0.134) | +1% (0.052) | +2% (0.029) | +3% (0.023) | +3% (0.668) | selected seed 42 |
++| forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward additive | 0.136 | 0.052 | 0.028 | 0.022 | 0.662 | selected seed 42 |
++| **ALiBi + forward concat r3** | +1% (0.138) | <span style="color: green">+3% (0.053)</span> | +7% (0.030) | <span style="color: green">+8% (0.024)</span> | +3% (0.684) | selected seed 42 |
++| ALiBi + forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
++
++### RoPE / ALiBi comparison
++
++| RoPE / ALiBi treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| no position encoding | -2% (0.133) | <span style="color: red">-3% (0.050)</span> | -5% (0.027) | <span style="color: red">-6% (0.022)</span> | +8% (0.671) | selected seed 42 |
++| **ALiBi** | 0.135 | 0.052 | 0.029 | 0.023 | 0.624 | 3-seed mean |
++| plain forward RoPE (base 10000) | -1% (0.135) | -1% (0.051) | -2% (0.028) | -3% (0.022) | +5% (0.653) | 3-seed mean |
++| forward RoPE + ALiBi | 0% (0.135) | -1% (0.052) | -2% (0.028) | -3% (0.022) | +5% (0.657) | 3-seed mean |
+ 
+ ## RQ8 — How do scaling and architecture choices affect metrics?
+ 
+diff --git a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_50m.md b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_50m.md
+index da1f156..5df2160 100644
+--- a/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_50m.md
++++ b/competition/experiments/g1_sasrec_item_ids_likes/scratchpad/research_questions_50m.md
+@@ -32,27 +32,7 @@
+ 
+ ## RQ7 — Which position encoding works best: RoPE, ALiBi, learned positions, or combinations?
+ 
+-| encoding | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+-| --- | --- | --- | --- | --- | --- |
+-| position none | 0.070 | 0.025 | 0.012 | 0.009 | 0.213 |
+-| position alibi | <span style="color: green">+6% (0.074)</span> | <span style="color: green">+10% (0.027)</span> | +14% (0.013) | <span style="color: green">+20% (0.011)</span> | -1% (0.211) |
+-| position all | <span style="color: red">-34% (0.046)</span> | <span style="color: red">-36% (0.016)</span> | <span style="color: red">-33% (0.008)</span> | <span style="color: red">-37% (0.006)</span> | <span style="color: red">-93% (0.016)</span> |
+-| position learned alibi | <span style="color: red">-13% (0.061)</span> | <span style="color: red">-12% (0.022)</span> | -6% (0.011) | <span style="color: red">-12% (0.008)</span> | <span style="color: red">-71% (0.063)</span> |
+-| position learned forward | -3% (0.068) | -1% (0.024) | +4% (0.012) | +2% (0.010) | -13% (0.186) |
+-| position learned forward reverse | <span style="color: green">+10% (0.077)</span> | <span style="color: green">+12% (0.028)</span> | +21% (0.014) | <span style="color: green">+18% (0.011)</span> | <span style="color: green">+55% (0.331)</span> |
+-| position learned reverse | <span style="color: green">+16% (0.081)</span> | <span style="color: green">+23% (0.030)</span> | <span style="color: green">+44% (0.017)</span> | <span style="color: green">+40% (0.013)</span> | <span style="color: green">+89% (0.403)</span> |
+-| position learned reverse alibi | <span style="color: red">-35% (0.045)</span> | <span style="color: red">-37% (0.015)</span> | <span style="color: red">-30% (0.008)</span> | <span style="color: red">-38% (0.006)</span> | <span style="color: red">-93% (0.015)</span> |
+-| position reverse all | <span style="color: red">-34% (0.046)</span> | <span style="color: red">-36% (0.016)</span> | <span style="color: red">-30% (0.008)</span> | <span style="color: red">-36% (0.006)</span> | <span style="color: red">-93% (0.015)</span> |
+-| position rope | +3% (0.072) | +3% (0.025) | +14% (0.013) | +6% (0.010) | -1% (0.210) |
+-| position rope alibi | <span style="color: green">+7% (0.075)</span> | <span style="color: green">+8% (0.027)</span> | +1% (0.012) | <span style="color: green">+11% (0.010)</span> | -27% (0.155) |
+-| position rope learned | -4% (0.067) | 0% (0.025) | <span style="color: green">+27% (0.015)</span> | <span style="color: green">+14% (0.011)</span> | -18% (0.174) |
+-| position rope learned reverse | <span style="color: red">-36% (0.045)</span> | <span style="color: red">-38% (0.015)</span> | <span style="color: red">-37% (0.007)</span> | <span style="color: red">-39% (0.006)</span> | <span style="color: red">-92% (0.016)</span> |
+-| position rope learned reverse alibi | <span style="color: red">-35% (0.046)</span> | <span style="color: red">-36% (0.016)</span> | <span style="color: red">-29% (0.008)</span> | <span style="color: red">-35% (0.006)</span> | <span style="color: red">-93% (0.015)</span> |
+-| position rope reverse | +3% (0.072) | +3% (0.025) | +10% (0.013) | +5% (0.010) | -1% (0.211) |
+-| position rope reverse alibi | <span style="color: green">+6% (0.074)</span> | <span style="color: green">+8% (0.027)</span> | +3% (0.012) | <span style="color: green">+12% (0.010)</span> | -27% (0.156) |
+-| position rope reverse learned | -4% (0.067) | 0% (0.025) | <span style="color: green">+27% (0.015)</span> | <span style="color: green">+14% (0.011)</span> | -19% (0.173) |
+-| position rope reverse learned alibi | <span style="color: red">-33% (0.046)</span> | <span style="color: red">-35% (0.016)</span> | <span style="color: red">-33% (0.008)</span> | <span style="color: red">-37% (0.006)</span> | <span style="color: red">-93% (0.016)</span> |
+-| **position rope reverse learned reverse** | <span style="color: green">+23% (0.086)</span> | <span style="color: green">+27% (0.031)</span> | <span style="color: green">+40% (0.016)</span> | <span style="color: green">+38% (0.013)</span> | <span style="color: green">+98% (0.421)</span> |
++No reader table is generated from Yambda-50M. These artifacts are correctness diagnostics only and are ineligible for treatment selection or reader claims.
+ 
+ ## RQ8 — How do scaling and architecture choices affect metrics?
+ 
+diff --git a/experiments/g1_sasrec_item_ids_likes/analysis/rq7_reinvestigation_report.py b/experiments/g1_sasrec_item_ids_likes/analysis/rq7_reinvestigation_report.py
+new file mode 100644
+index 0000000..41ffe4c
+--- /dev/null
++++ b/experiments/g1_sasrec_item_ids_likes/analysis/rq7_reinvestigation_report.py
+@@ -0,0 +1,635 @@
++from __future__ import annotations
++
++import argparse
++from dataclasses import dataclass
++import json
++import math
++from pathlib import Path
++import tempfile
++
++from experiments.g1_sasrec_item_ids_likes.analysis import reporting
++from experiments.g1_sasrec_item_ids_likes.analysis.rq7_reinvestigation_candidates import (
++    Rq7Candidate,
++    candidate_by_run,
++    current_implementation_revision,
++    initial_candidates,
++    make_boundary_candidate,
++    make_confirmation_candidate,
++)
++from experiments.g1_sasrec_item_ids_likes.analysis.rq7_reinvestigation_selection import (
++    SelectionEvidenceError,
++    filesystem_inspector,
++)
++
++
++_METRICS = ("recall@100", "ndcg@100", "recall@10", "ndcg@10", "coverage@100")
++_LEARNED = (
++    "learned_forward_add",
++    "learned_forward_concat",
++    "learned_forward_reverse_add",
++    "learned_forward_reverse_concat",
++    "learned_forward_add_alibi",
++    "learned_forward_concat_alibi",
++    "learned_forward_reverse_add_alibi",
++    "learned_forward_reverse_concat_alibi",
++)
++_LEARNED_LABELS = {
++    "learned_forward_add": "forward additive",
++    "learned_forward_concat": "forward concat r3",
++    "learned_forward_reverse_add": "forward + zero-initialized reverse additive r4",
++    "learned_forward_reverse_concat": "forward + zero-initialized reverse concat r4",
++    "learned_forward_add_alibi": "ALiBi + forward additive",
++    "learned_forward_concat_alibi": "ALiBi + forward concat r3",
++    "learned_forward_reverse_add_alibi": (
++        "ALiBi + forward + zero-initialized reverse additive r4"
++    ),
++    "learned_forward_reverse_concat_alibi": (
++        "ALiBi + forward + zero-initialized reverse concat r4"
++    ),
++}
++_LEARNED_REFERENCES = {
++    treatment: (
++        "learned_forward_add_alibi"
++        if treatment.endswith("_alibi")
++        else "learned_forward_add"
++    )
++    for treatment in _LEARNED
++}
++
++
++class Rq7ReportError(RuntimeError):
++    pass
++
++
++@dataclass(frozen=True)
++class Run:
++    candidate: Rq7Candidate
++    best_epoch: int
++    stopped_epoch: int
++    validation_recall: float
++    validation_ndcg: float
++    metrics: dict[str, float]
++
++
++@dataclass(frozen=True)
++class Resolution:
++    selected: Run | None
++    status: str
++
++
++@dataclass(frozen=True)
++class Rq7ReportBundle:
++    reader_markdown: str
++    tuning_markdown: str
++    evidence: dict[str, object]
++
++
++def collect_report_bundle(logs: Path) -> Rq7ReportBundle:
++    inspect = filesystem_inspector(logs)
++    runs: list[Run] = []
++    for directory in sorted(logs.iterdir()) if logs.is_dir() else ():
++        if not directory.is_dir():
++            continue
++        try:
++            candidate = candidate_by_run(directory.name)
++        except ValueError:
++            continue
++        if not _eligible(candidate):
++            continue
++        try:
++            evidence = inspect(candidate)
++        except SelectionEvidenceError as error:
++            raise Rq7ReportError(str(error)) from error
++        if evidence is None:
++            continue
++        try:
++            raw_metrics = json.loads((directory / "final_metrics.json").read_text())
++            metadata = json.loads((directory / "training_metadata.json").read_text())
++        except (OSError, json.JSONDecodeError) as error:
++            raise Rq7ReportError(
++                f"{candidate.run_name}: unreadable artifact"
++            ) from error
++        metrics = {
++            name: _metric(raw_metrics, name, candidate.run_name) for name in _METRICS
++        }
++        runs.append(
++            Run(
++                candidate,
++                int(metadata["best_epoch"]),
++                int(metadata["stopped_epoch"]),
++                evidence.validation_recall,
++                evidence.validation_ndcg,
++                metrics,
++            )
++        )
++    return build_report_bundle(runs)
++
++
++def build_report_bundle(runs: list[Run]) -> Rq7ReportBundle:
++    eligible = [run for run in runs if _eligible(run.candidate)]
++    by_name = {run.candidate.run_name: run for run in eligible}
++    if len(by_name) != len(eligible):
++        raise Rq7ReportError("duplicate RQ7 artifact identity")
++    resolutions = {
++        treatment: _resolve_surface(treatment, by_name)
++        for treatment in {candidate.treatment for candidate in initial_candidates()}
++    }
++    plain = _select_plain_rope(resolutions, by_name)
++    displayed = {
++        **{treatment: resolutions[treatment] for treatment in _LEARNED},
++        "none": resolutions["none"],
++        "alibi": resolutions["alibi"],
++        "plain_rope": plain,
++        "rope_forward_base10000_alibi": resolutions["rope_forward_base10000_alibi"],
++    }
++    selected_names = {
++        resolution.selected.candidate.run_name
++        for resolution in displayed.values()
++        if resolution.selected is not None
++    }
++    confirmations_required = _confirmations_required(plain, resolutions["alibi"])
++    confirmation_status = {
++        treatment: _confirmation_status(displayed[treatment], by_name)
++        for treatment in (
++            "alibi",
++            "plain_rope",
++            "rope_forward_base10000_alibi",
++        )
++    }
++    learned_ready = all(
++        displayed[treatment].status == "ready" for treatment in _LEARNED
++    )
++    rope_ready = all(
++        displayed[treatment].status == "ready"
++        for treatment in (
++            "none",
++            "alibi",
++            "plain_rope",
++            "rope_forward_base10000_alibi",
++        )
++    )
++    confirmations_ready = not confirmations_required or all(
++        status == "ready" for status in confirmation_status.values()
++    )
++    evidence = {
++        "dataset_size": "500m",
++        "eligible_native_runs": len(eligible),
++        "claims_status": (
++            "ready"
++            if learned_ready and rope_ready and confirmations_ready
++            else "pending"
++        ),
++        "learned_claims_status": "ready" if learned_ready else "pending",
++        "rope_claims_status": (
++            "ready" if rope_ready and confirmations_ready else "pending"
++        ),
++        "comparability_confirmations": {
++            "required": confirmations_required,
++            "status": confirmation_status,
++        },
++        "treatments": {
++            treatment: _treatment_evidence(
++                treatment,
++                resolution,
++                by_name,
++                confirmations_required=confirmations_required,
++            )
++            for treatment, resolution in displayed.items()
++        },
++        "validated_artifacts": [run.candidate.run_name for run in eligible],
++    }
++    return Rq7ReportBundle(
++        reader_markdown=_render_reader(
++            displayed, by_name, confirmations_required=confirmations_required
++        ),
++        tuning_markdown=_render_tuning(eligible, selected_names),
++        evidence=evidence,
++    )
++
++
++def write_report_bundle(
++    bundle: Rq7ReportBundle, scratchpad: Path, evidence: Path
++) -> dict[str, Path]:
++    paths = {
++        "tuning": scratchpad / "rq7_reinvestigation_tuning_500m.md",
++        "reader": scratchpad / "rq7_reinvestigation_reader_500m.md",
++        "evidence": evidence / "rq7_reinvestigation_results.json",
++    }
++    _write(paths["tuning"], bundle.tuning_markdown)
++    _write(paths["reader"], bundle.reader_markdown)
++    _write(
++        paths["evidence"], json.dumps(bundle.evidence, indent=2, sort_keys=True) + "\n"
++    )
++    return paths
++
++
++def sync_readme(path: Path, reader_markdown: str) -> None:
++    start = "<!-- rq7-reinvestigation-generated:start -->"
++    end = "<!-- rq7-reinvestigation-generated:end -->"
++    text = path.read_text()
++    if (
++        text.count(start) != 1
++        or text.count(end) != 1
++        or text.index(start) > text.index(end)
++    ):
++        raise Rq7ReportError(f"{path}: malformed RQ7 generated-table markers")
++    before, remainder = text.split(start, 1)
++    _, after = remainder.split(end, 1)
++    path.write_text(
++        before + start + "\n" + reader_markdown.rstrip() + "\n" + end + after
++    )
++
++
++def _eligible(candidate: Rq7Candidate) -> bool:
++    return (
++        candidate.dataset_size == "500m"
++        and candidate.implementation_revision
++        == current_implementation_revision(candidate.treatment)
++    )
++
++
++def _resolve_surface(treatment: str, runs: dict[str, Run]) -> Resolution:
++    initial = [
++        candidate
++        for candidate in initial_candidates()
++        if candidate.treatment == treatment
++    ]
++    loaded = [runs.get(candidate.run_name) for candidate in initial]
++    if any(run is None for run in loaded):
++        return Resolution(None, "pending native-500M LR surface")
++    surface = [run for run in loaded if run is not None]
++    for _ in range(16):
++        winner = _select(surface)
++        rates = sorted(run.candidate.deep_lr for run in surface)
++        if winner.candidate.deep_lr not in (rates[0], rates[-1]):
++            return Resolution(winner, "ready")
++        side = "low" if winner.candidate.deep_lr == rates[0] else "high"
++        steps = [
++            run.candidate.boundary_step or 0
++            for run in surface
++            if run.candidate.stage == "boundary" and run.candidate.boundary_side == side
++        ]
++        probe = make_boundary_candidate(
++            winner.candidate, side, max(steps, default=0) + 1
++        )
++        continuation = runs.get(probe.run_name)
++        if continuation is None:
++            return Resolution(None, "boundary pending")
++        surface.append(continuation)
++    raise Rq7ReportError(f"{treatment}: LR boundary did not resolve")
++
++
++def _select_plain_rope(
++    primary: dict[str, Resolution], runs: dict[str, Run]
++) -> Resolution:
++    base = primary["rope_forward_base10000"]
++    alibi = primary["alibi"]
++    if base.selected is None or alibi.selected is None:
++        return base
++    if not _materially_worse(base.selected, alibi.selected):
++        return base
++    alternatives = [base.selected]
++    for treatment in ("rope_forward_base100", "rope_forward_base1000"):
++        resolution = _resolve_optional_surface(treatment, runs, "rope_base")
++        if resolution.selected is None:
++            return resolution
++        alternatives.append(resolution.selected)
++    axis_winner = _select(alternatives)
++    outer = {
++        "rope_forward_base100": (
++            "rope_forward_base10",
++            "rope_base_extension",
++        ),
++        "rope_forward_base10000": (
++            "rope_forward_base100000",
++            "rope_base_extension",
++        ),
++    }.get(axis_winner.candidate.treatment)
++    if outer is not None:
++        resolution = _resolve_optional_surface(outer[0], runs, outer[1])
++        if resolution.selected is None:
++            return resolution
++        alternatives.append(resolution.selected)
++    return Resolution(_select(alternatives), "ready")
++
++
++def _resolve_optional_surface(
++    treatment: str, runs: dict[str, Run], initial_stage: str
++) -> Resolution:
++    candidates = [run for run in runs.values() if run.candidate.treatment == treatment]
++    if not candidates:
++        return Resolution(None, "native-500M RoPE-base surface pending")
++    initial = [run for run in candidates if run.candidate.stage == initial_stage]
++    if len(initial) != 3:
++        return Resolution(None, "pending native-500M LR surface")
++    surface = list(initial)
++    for _ in range(16):
++        winner = _select(surface)
++        rates = sorted(run.candidate.deep_lr for run in surface)
++        if winner.candidate.deep_lr not in (rates[0], rates[-1]):
++            return Resolution(winner, "ready")
++        side = "low" if winner.candidate.deep_lr == rates[0] else "high"
++        steps = [
++            run.candidate.boundary_step or 0
++            for run in surface
++            if run.candidate.stage == "boundary" and run.candidate.boundary_side == side
++        ]
++        probe = make_boundary_candidate(
++            winner.candidate, side, max(steps, default=0) + 1
++        )
++        continuation = runs.get(probe.run_name)
++        if continuation is None:
++            return Resolution(None, "boundary pending")
++        surface.append(continuation)
++    raise Rq7ReportError(f"{treatment}: LR boundary did not resolve")
++
++
++def _select(runs: list[Run]) -> Run:
++    ordered = sorted(
++        runs, key=lambda run: (run.validation_recall, run.validation_ndcg), reverse=True
++    )
++    if len(ordered) > 1 and (
++        ordered[0].validation_recall,
++        ordered[0].validation_ndcg,
++    ) == (ordered[1].validation_recall, ordered[1].validation_ndcg):
++        raise Rq7ReportError(f"{ordered[0].candidate.treatment}: exact validation tie")
++    return ordered[0]
++
++
++def _display_metrics(
++    resolution: Resolution, runs: dict[str, Run], confirmations: bool
++) -> tuple[dict[str, float] | None, str]:
++    if resolution.selected is None:
++        return None, resolution.status
++    winner = resolution.selected
++    if not confirmations:
++        return winner.metrics, "selected seed 42"
++    repeats = [winner]
++    for seed in (43, 44):
++        candidate = make_confirmation_candidate(winner.candidate, seed)
++        repeat = runs.get(candidate.run_name)
++        if repeat is None:
++            return winner.metrics, "confirmations pending"
++        repeats.append(repeat)
++    return (
++        {
++            metric: sum(run.metrics[metric] for run in repeats) / 3
++            for metric in _METRICS
++        },
++        "3-seed mean",
++    )
++
++
++def _confirmation_status(resolution: Resolution, runs: dict[str, Run]) -> str:
++    if resolution.selected is None:
++        return resolution.status
++    for seed in (43, 44):
++        candidate = make_confirmation_candidate(resolution.selected.candidate, seed)
++        if candidate.run_name not in runs:
++            return "pending"
++    return "ready"
++
++
++def _confirmations_required(plain: Resolution, alibi: Resolution) -> bool:
++    if plain.selected is None or alibi.selected is None:
++        return False
++    return not _materially_better(plain.selected, alibi.selected)
++
++
++def _materially_worse(candidate: Run, reference: Run) -> bool:
++    recall_delta = candidate.metrics["recall@100"] - reference.metrics["recall@100"]
++    if recall_delta < -0.003 and not math.isclose(recall_delta, -0.003, abs_tol=1e-12):
++        return True
++    return recall_delta <= 0.003 and (
++        candidate.metrics["ndcg@100"] - reference.metrics["ndcg@100"] < -0.001
++        and not math.isclose(
++            candidate.metrics["ndcg@100"] - reference.metrics["ndcg@100"],
++            -0.001,
++            abs_tol=1e-12,
++        )
++    )
++
++
++def _materially_better(candidate: Run, reference: Run) -> bool:
++    recall_delta = candidate.metrics["recall@100"] - reference.metrics["recall@100"]
++    if recall_delta > 0.003 and not math.isclose(recall_delta, 0.003, abs_tol=1e-12):
++        return True
++    return recall_delta >= -0.003 and (
++        candidate.metrics["ndcg@100"] - reference.metrics["ndcg@100"] > 0.001
++        and not math.isclose(
++            candidate.metrics["ndcg@100"] - reference.metrics["ndcg@100"],
++            0.001,
++            abs_tol=1e-12,
++        )
++    )
++
++
++def _render_reader(
++    displayed: dict[str, Resolution],
++    runs: dict[str, Run],
++    *,
++    confirmations_required: bool,
++) -> str:
++    lines = ["### Learned-position fusion comparisons", ""]
++    learned_metrics = {
++        treatment: _display_metrics(displayed[treatment], runs, False)
++        for treatment in _LEARNED
++    }
++    lines += _comparison_table(
++        "learned-position treatment",
++        _LEARNED,
++        _LEARNED_LABELS,
++        learned_metrics,
++        _LEARNED_REFERENCES,
++    )
++    lines += ["", "### RoPE / ALiBi comparison", ""]
++    rope_order = ("none", "alibi", "plain_rope", "rope_forward_base10000_alibi")
++    plain = displayed["plain_rope"].selected
++    plain_label = "plain forward RoPE"
++    if plain is not None:
++        plain_label += f" (base {plain.candidate.position.rope_base:g})"
++    rope_labels = {
++        "none": "no position encoding",
++        "alibi": "ALiBi",
++        "plain_rope": plain_label,
++        "rope_forward_base10000_alibi": "forward RoPE + ALiBi",
++    }
++    rope_metrics = {
++        treatment: _display_metrics(
++            displayed[treatment],
++            runs,
++            confirmations_required
++            and treatment in {"alibi", "plain_rope", "rope_forward_base10000_alibi"},
++        )
++        for treatment in rope_order
++    }
++    lines += _comparison_table(
++        "RoPE / ALiBi treatment",
++        rope_order,
++        rope_labels,
++        rope_metrics,
++        {treatment: "alibi" for treatment in rope_order},
++    )
++    return "\n".join(lines) + "\n"
++
++
++def _comparison_table(
++    axis: str,
++    order: tuple[str, ...],
++    labels: dict[str, str],
++    values: dict[str, tuple[dict[str, float] | None, str]],
++    references: dict[str, str],
++) -> list[str]:
++    lines = [
++        f"| {axis} | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |",
++        "| --- | ---: | ---: | ---: | ---: | ---: | --- |",
++    ]
++    ready = {
++        name: metrics for name, (metrics, _) in values.items() if metrics is not None
++    }
++    best = max(ready, key=lambda name: ready[name]["recall@100"]) if ready else None
++    for treatment in order:
++        metrics, status = values[treatment]
++        label = labels[treatment]
++        if treatment == best:
++            label = f"**{label}**"
++        if metrics is None:
++            cells = [label, *("—" for _ in _METRICS), status]
++        else:
++            reference = values.get(references[treatment], (None, ""))[0]
++            cells = [label]
++            for metric in _METRICS:
++                cells.append(
++                    reporting.absolute(metrics[metric])
++                    if reference is None or treatment == references[treatment]
++                    else reporting.change_cell(
++                        metrics[metric], reference[metric], metric
++                    )
++                )
++            cells.append(status)
++        lines.append("| " + " | ".join(cells) + " |")
++    return lines
++
++
++def _render_tuning(runs: list[Run], selected: set[str]) -> str:
++    lines = [
++        "# G1 RQ7 — native Yambda-500M tuning ledger",
++        "",
++        "Selection uses best-epoch validation recall@100, then same-epoch NDCG@100.",
++        "",
++        "| treatment | seed | embedding LR | deep LR | batch size | stage | best/stopped epoch | validation recall@100 | validation ndcg@100 | full-user recall@100 | full-user ndcg@100 |",
++        "| --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |",
++    ]
++    for run in sorted(
++        runs,
++        key=lambda item: (
++            item.candidate.treatment,
++            item.candidate.seed,
++            item.candidate.deep_lr,
++        ),
++    ):
++        chosen = run.candidate.run_name in selected
++        values = [
++            run.candidate.treatment,
++            str(run.candidate.seed),
++            f"{run.candidate.embedding_lr:.3f}",
++            f"{run.candidate.deep_lr:.6g}",
++            str(run.candidate.batch_size),
++            run.candidate.stage,
++            f"{run.best_epoch}/{run.stopped_epoch}",
++            f"{run.validation_recall:.6f}",
++            f"{run.validation_ndcg:.6f}",
++            f"{run.metrics['recall@100']:.6f}",
++            f"{run.metrics['ndcg@100']:.6f}",
++        ]
++        if chosen:
++            values[2] = f"**{values[2]}**"
++            values[3] = f"**{values[3]}**"
++        lines.append("| " + " | ".join(values) + " |")
++    return "\n".join(lines) + "\n"
++
++
++def _resolution_evidence(resolution: Resolution) -> dict[str, object]:
++    selected = resolution.selected
++    return {
++        "status": resolution.status,
++        "selected_run": None if selected is None else selected.candidate.run_name,
++        "selected_deep_lr": None if selected is None else selected.candidate.deep_lr,
++        "selected_best_epoch": None if selected is None else selected.best_epoch,
++        "selected_stopped_epoch": None if selected is None else selected.stopped_epoch,
++        "selected_validation_recall@100": (
++            None if selected is None else selected.validation_recall
++        ),
++        "selected_validation_ndcg@100": (
++            None if selected is None else selected.validation_ndcg
++        ),
++    }
++
++
++def _treatment_evidence(
++    treatment: str,
++    resolution: Resolution,
++    runs: dict[str, Run],
++    *,
++    confirmations_required: bool,
++) -> dict[str, object]:
++    repeated = confirmations_required and treatment in {
++        "alibi",
++        "plain_rope",
++        "rope_forward_base10000_alibi",
++    }
++    metrics, reader_evidence = _display_metrics(resolution, runs, repeated)
++    return {
++        **_resolution_evidence(resolution),
++        "reader_evidence": reader_evidence,
++        "reader_metrics": metrics,
++    }
++
++
++def _metric(metrics: object, name: str, context: str) -> float:
++    if not isinstance(metrics, dict):
++        raise Rq7ReportError(f"{context}: invalid final metrics")
++    value = metrics.get(name)
++    if (
++        not isinstance(value, (int, float))
++        or isinstance(value, bool)
++        or not math.isfinite(value)
++        or not 0 <= value <= 1
++    ):
++        raise Rq7ReportError(f"{context}: invalid final metric {name}")
++    return float(value)
++
++
++def _write(path: Path, content: str) -> None:
++    path.parent.mkdir(parents=True, exist_ok=True)
++    with tempfile.NamedTemporaryFile("w", dir=path.parent, delete=False) as temporary:
++        temporary.write(content)
++        temporary_path = Path(temporary.name)
++    temporary_path.replace(path)
++
++
++def main() -> None:
++    parser = argparse.ArgumentParser()
++    parser.add_argument("--logs", type=Path, default=Path("generated/logs"))
++    parser.add_argument(
++        "--scratchpad",
++        type=Path,
++        default=Path("experiments/g1_sasrec_item_ids_likes/scratchpad"),
++    )
++    parser.add_argument(
++        "--evidence",
++        type=Path,
++        default=Path("experiments/g1_sasrec_item_ids_likes/evidence"),
++    )
++    parser.add_argument("--readme", type=Path)
++    arguments = parser.parse_args()
++    bundle = collect_report_bundle(arguments.logs)
++    paths = write_report_bundle(bundle, arguments.scratchpad, arguments.evidence)
++    if arguments.readme is not None:
++        sync_readme(arguments.readme, bundle.reader_markdown)
++    for path in paths.values():
++        print(path)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/dcn/tests/experiments/test_g1_rq7_reinvestigation_report.py b/dcn/tests/experiments/test_g1_rq7_reinvestigation_report.py
+new file mode 100644
+index 0000000..769e703
+--- /dev/null
++++ b/dcn/tests/experiments/test_g1_rq7_reinvestigation_report.py
+@@ -0,0 +1,253 @@
++from __future__ import annotations
++
++from pathlib import Path
++import json
++
++from experiments.g1_sasrec_item_ids_likes.analysis.rq7_reinvestigation_candidates import (
++    diagnostic_candidates,
++    initial_candidates,
++    legacy_concat_diagnostic_candidates,
++    make_boundary_candidate,
++    make_confirmation_candidate,
++    make_rope_base_extension_candidates,
++    rope_base_candidates,
++)
++from experiments.g1_sasrec_item_ids_likes.analysis.rq7_reinvestigation_report import (
++    Run,
++    build_report_bundle,
++    sync_readme,
++    write_report_bundle,
++)
++
++
++METRICS = {
++    "recall@100": 0.13,
++    "ndcg@100": 0.05,
++    "recall@10": 0.027,
++    "ndcg@10": 0.021,
++    "coverage@100": 0.60,
++}
++
++
++def _run(candidate, validation: float, final: float | None = None) -> Run:
++    metrics = dict(METRICS)
++    metrics["recall@100"] = validation if final is None else final
++    return Run(candidate, 2, 20, validation, validation / 2, metrics)
++
++
++def _initial_runs() -> list[Run]:
++    scores = {0.006: 0.12, 0.012: 0.14, 0.024: 0.13}
++    return [
++        _run(candidate, scores[candidate.deep_lr]) for candidate in initial_candidates()
++    ]
++
++
++def test_incomplete_program_renders_two_pending_reader_tables() -> None:
++    bundle = build_report_bundle([])
++
++    assert bundle.reader_markdown.count("| learned-position treatment |") == 1
++    assert bundle.reader_markdown.count("| RoPE / ALiBi treatment |") == 1
++    assert "pending native-500M LR surface" in bundle.reader_markdown
++    assert "50m" not in bundle.tuning_markdown.lower()
++    assert bundle.evidence["claims_status"] == "pending"
++
++
++def test_selection_uses_validation_winner_but_renders_full_user_metrics() -> None:
++    runs = _initial_runs()
++    treatment = "learned_forward_add"
++    for index, run in enumerate(runs):
++        if run.candidate.treatment == treatment and run.candidate.deep_lr == 0.006:
++            runs[index] = _run(run.candidate, 0.12, 0.90)
++        if run.candidate.treatment == treatment and run.candidate.deep_lr == 0.012:
++            runs[index] = _run(run.candidate, 0.14, 0.15)
++
++    bundle = build_report_bundle(runs)
++    row = next(
++        line
++        for line in bundle.reader_markdown.splitlines()
++        if "forward additive" in line and line.startswith("|")
++    )
++
++    assert "0.150" in row
++    assert "0.900" not in row
++    assert "| **0.064** | **0.012** |" in bundle.tuning_markdown
++
++
++def test_boundary_winner_is_pending_until_the_next_geometric_probe() -> None:
++    runs = _initial_runs()
++    alibi = [run for run in runs if run.candidate.treatment == "alibi"]
++    for run in alibi:
++        runs[runs.index(run)] = _run(run.candidate, run.candidate.deep_lr)
++
++    pending = build_report_bundle(runs)
++    assert pending.evidence["treatments"]["alibi"]["status"] == "boundary pending"
++
++    surface = next(run.candidate for run in runs if run.candidate.treatment == "alibi")
++    continuation = make_boundary_candidate(surface, "high", 1)
++    runs.append(_run(continuation, 0.01))
++    resolved = build_report_bundle(runs)
++
++    assert resolved.evidence["treatments"]["alibi"]["selected_deep_lr"] == 0.024
++    assert "| 0.064 | 0.048 |" in resolved.tuning_markdown
++
++
++def test_complete_confirmations_replace_seed42_with_three_seed_mean() -> None:
++    runs = _initial_runs()
++    winner = next(
++        run.candidate
++        for run in runs
++        if run.candidate.treatment == "alibi" and run.candidate.deep_lr == 0.012
++    )
++    for index, run in enumerate(runs):
++        if run.candidate == winner:
++            runs[index] = _run(winner, 0.14, 0.12)
++        if (
++            run.candidate.treatment == "rope_forward_base10000"
++            and run.candidate.deep_lr == 0.012
++        ):
++            runs[index] = _run(run.candidate, 0.14, 0.12)
++    runs.extend(
++        [
++            _run(make_confirmation_candidate(winner, 43), 0.14, 0.15),
++            _run(make_confirmation_candidate(winner, 44), 0.14, 0.18),
++        ]
++    )
++
++    bundle = build_report_bundle(runs)
++    row = next(
++        line
++        for line in bundle.reader_markdown.splitlines()
++        if "ALiBi" in line and "3-seed mean" in line
++    )
++
++    assert "0.150" in row
++    assert "3-seed mean" in row
++
++
++def test_comparability_claims_wait_for_every_declared_confirmation() -> None:
++    runs = _initial_runs()
++    winners = [
++        run.candidate
++        for run in runs
++        if run.candidate.deep_lr == 0.012
++        and run.candidate.treatment
++        in {
++            "alibi",
++            "rope_forward_base10000",
++            "rope_forward_base10000_alibi",
++        }
++    ]
++    runs.append(_run(make_confirmation_candidate(winners[0], 43), 0.14))
++
++    pending = build_report_bundle(runs)
++    assert pending.evidence["claims_status"] == "pending"
++    assert "confirmations pending" in pending.reader_markdown
++
++    runs.extend(
++        _run(make_confirmation_candidate(winner, seed), 0.14)
++        for winner in winners
++        for seed in (43, 44)
++        if make_confirmation_candidate(winner, seed).run_name
++        not in {run.candidate.run_name for run in runs}
++    )
++    complete = build_report_bundle(runs)
++
++    assert complete.evidence["rope_claims_status"] == "ready"
++    assert complete.reader_markdown.count("3-seed mean") == 3
++
++
++def test_plain_rope_selection_resolves_lower_and_outer_base_surfaces() -> None:
++    runs = _initial_runs()
++    for index, run in enumerate(runs):
++        if run.candidate.treatment == "rope_forward_base10000":
++            runs[index] = _run(
++                run.candidate,
++                {0.006: 0.09, 0.012: 0.10, 0.024: 0.095}[run.candidate.deep_lr],
++            )
++    runs.extend(
++        _run(
++            candidate,
++            {
++                "rope_forward_base100": {0.006: 0.14, 0.012: 0.16, 0.024: 0.15},
++                "rope_forward_base1000": {0.006: 0.13, 0.012: 0.15, 0.024: 0.14},
++            }[candidate.treatment][candidate.deep_lr],
++        )
++        for candidate in rope_base_candidates()
++    )
++
++    pending = build_report_bundle(runs)
++    assert pending.evidence["treatments"]["plain_rope"]["status"] == (
++        "native-500M RoPE-base surface pending"
++    )
++
++    runs.extend(
++        _run(candidate, {0.006: 0.13, 0.012: 0.14, 0.024: 0.135}[candidate.deep_lr])
++        for candidate in make_rope_base_extension_candidates("low")
++    )
++    resolved = build_report_bundle(runs)
++
++    assert "plain forward RoPE (base 100)" in resolved.reader_markdown
++
++
++def test_tuning_ledger_excludes_50m_and_legacy_concat_diagnostics() -> None:
++    runs = _initial_runs()
++    runs.extend(_run(candidate, 0.99) for candidate in diagnostic_candidates())
++    runs.extend(
++        _run(candidate, 0.99)
++        for revision in (1, 2)
++        for candidate in legacy_concat_diagnostic_candidates(revision)
++    )
++
++    bundle = build_report_bundle(runs)
++
++    assert bundle.evidence["eligible_native_runs"] == 36
++    assert "diagnostic" not in bundle.tuning_markdown
++    assert "_r1_50m" not in bundle.tuning_markdown
++    assert "_r2_50m" not in bundle.tuning_markdown
++
++
++def test_bundle_writer_and_readme_sync_replace_only_generated_rq7_tables(
++    tmp_path: Path,
++) -> None:
++    bundle = build_report_bundle([])
++    paths = write_report_bundle(bundle, tmp_path / "scratchpad", tmp_path / "evidence")
++    readme = tmp_path / "README.md"
++    readme.write_text(
++        "before\n<!-- rq7-reinvestigation-generated:start -->\nold\n"
++        "<!-- rq7-reinvestigation-generated:end -->\nafter\n"
++    )
++
++    sync_readme(readme, bundle.reader_markdown)
++
++    assert set(paths) == {"tuning", "reader", "evidence"}
++    assert "old" not in readme.read_text()
++    assert "learned-position treatment" in readme.read_text()
++    assert readme.read_text().startswith("before\n")
++    assert readme.read_text().endswith("after\n")
++
++
++def test_checked_in_report_replaces_historical_tables_and_keeps_r4_pending() -> None:
++    root = Path(__file__).parents[3]
++    report = root / "experiments/g1_sasrec_item_ids_likes"
++    readme = (report / "README.md").read_text()
++    reader_50m = (report / "scratchpad/research_questions_50m.md").read_text()
++    tuning_50m = (report / "scratchpad/hyperparameter_tuning_50m.md").read_text()
++    tuning_500m = (report / "scratchpad/rq7_reinvestigation_tuning_500m.md").read_text()
++    evidence = json.loads(
++        (report / "evidence/rq7_reinvestigation_results.json").read_text()
++    )
++
++    assert readme.count("<!-- rq7-reinvestigation-generated:start -->") == 1
++    assert readme.count("<!-- rq7-reinvestigation-generated:end -->") == 1
++    assert "item + forward_normal + reverse_zero" in readme
++    assert "variance_preserved(DenseNet([item; learned position(s)]))" in readme
++    assert "relative phases" in readme
++    assert "position rope reverse learned reverse" not in readme
++    assert "No reader table is generated from Yambda-50M" in reader_50m
++    assert "No RQ7 tuning table is generated from Yambda-50M" in tuning_50m
++    assert "diagnostic" not in tuning_500m
++    assert "_50m" not in tuning_500m
++    assert evidence["claims_status"] == "pending"
++    assert evidence["learned_claims_status"] == "pending"
++    assert evidence["rope_claims_status"] == "ready"
++    assert evidence["treatments"]["plain_rope"]["reader_evidence"] == "3-seed mean"
+diff --git a/experiments/g1_sasrec_item_ids_likes/evidence/rq7_reinvestigation_results.json b/experiments/g1_sasrec_item_ids_likes/evidence/rq7_reinvestigation_results.json
+new file mode 100644
+index 0000000..d90610f
+--- /dev/null
++++ b/experiments/g1_sasrec_item_ids_likes/evidence/rq7_reinvestigation_results.json
+@@ -0,0 +1,234 @@
++{
++  "claims_status": "pending",
++  "comparability_confirmations": {
++    "required": true,
++    "status": {
++      "alibi": "ready",
++      "plain_rope": "ready",
++      "rope_forward_base10000_alibi": "ready"
++    }
++  },
++  "dataset_size": "500m",
++  "eligible_native_runs": 35,
++  "learned_claims_status": "pending",
++  "rope_claims_status": "ready",
++  "treatments": {
++    "alibi": {
++      "reader_evidence": "3-seed mean",
++      "reader_metrics": {
++        "coverage@100": 0.6237112637717631,
++        "ndcg@10": 0.022838791823713622,
++        "ndcg@100": 0.05204688867650464,
++        "recall@10": 0.028606008072703474,
++        "recall@100": 0.1354862553114171
++      },
++      "selected_best_epoch": 13,
++      "selected_deep_lr": 0.012,
++      "selected_run": "g1_rq7_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0519,
++      "selected_validation_recall@100": 0.1356,
++      "status": "ready"
++    },
++    "learned_forward_add": {
++      "reader_evidence": "selected seed 42",
++      "reader_metrics": {
++        "coverage@100": 0.647406851935408,
++        "ndcg@10": 0.022354138845048072,
++        "ndcg@100": 0.051152729439223756,
++        "recall@10": 0.028061112473717106,
++        "recall@100": 0.13395121942221913
++      },
++      "selected_best_epoch": 15,
++      "selected_deep_lr": 0.012,
++      "selected_run": "g1_rq7_learned_forward_add_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0511,
++      "selected_validation_recall@100": 0.1335,
++      "status": "ready"
++    },
++    "learned_forward_add_alibi": {
++      "reader_evidence": "selected seed 42",
++      "reader_metrics": {
++        "coverage@100": 0.6616483537433988,
++        "ndcg@10": 0.022167357366176945,
++        "ndcg@100": 0.05155521416201222,
++        "recall@10": 0.028337419409983765,
++        "recall@100": 0.13600082966017368
++      },
++      "selected_best_epoch": 13,
++      "selected_deep_lr": 0.048,
++      "selected_run": "g1_rq7_learned_forward_add_alibi_e0p064_d0p048_b1280_seed42_h20_boundaryhigh1_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0515,
++      "selected_validation_recall@100": 0.1359,
++      "status": "ready"
++    },
++    "learned_forward_concat": {
++      "reader_evidence": "selected seed 42",
++      "reader_metrics": {
++        "coverage@100": 0.6682003342717515,
++        "ndcg@10": 0.02296755126700017,
++        "ndcg@100": 0.051806046530168924,
++        "recall@10": 0.028607773108909197,
++        "recall@100": 0.13444369409081286
++      },
++      "selected_best_epoch": 14,
++      "selected_deep_lr": 0.024,
++      "selected_run": "g1_rq7_learned_forward_concat_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r3_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0519,
++      "selected_validation_recall@100": 0.1338,
++      "status": "ready"
++    },
++    "learned_forward_concat_alibi": {
++      "reader_evidence": "selected seed 42",
++      "reader_metrics": {
++        "coverage@100": 0.6836238616648767,
++        "ndcg@10": 0.023988278891000633,
++        "ndcg@100": 0.0533196361815232,
++        "recall@10": 0.030234200943187087,
++        "recall@100": 0.13781620365080155
++      },
++      "selected_best_epoch": 14,
++      "selected_deep_lr": 0.024,
++      "selected_run": "g1_rq7_learned_forward_concat_alibi_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r3_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0532,
++      "selected_validation_recall@100": 0.1367,
++      "status": "ready"
++    },
++    "learned_forward_reverse_add": {
++      "reader_evidence": "pending native-500M LR surface",
++      "reader_metrics": null,
++      "selected_best_epoch": null,
++      "selected_deep_lr": null,
++      "selected_run": null,
++      "selected_stopped_epoch": null,
++      "selected_validation_ndcg@100": null,
++      "selected_validation_recall@100": null,
++      "status": "pending native-500M LR surface"
++    },
++    "learned_forward_reverse_add_alibi": {
++      "reader_evidence": "pending native-500M LR surface",
++      "reader_metrics": null,
++      "selected_best_epoch": null,
++      "selected_deep_lr": null,
++      "selected_run": null,
++      "selected_stopped_epoch": null,
++      "selected_validation_ndcg@100": null,
++      "selected_validation_recall@100": null,
++      "status": "pending native-500M LR surface"
++    },
++    "learned_forward_reverse_concat": {
++      "reader_evidence": "pending native-500M LR surface",
++      "reader_metrics": null,
++      "selected_best_epoch": null,
++      "selected_deep_lr": null,
++      "selected_run": null,
++      "selected_stopped_epoch": null,
++      "selected_validation_ndcg@100": null,
++      "selected_validation_recall@100": null,
++      "status": "pending native-500M LR surface"
++    },
++    "learned_forward_reverse_concat_alibi": {
++      "reader_evidence": "pending native-500M LR surface",
++      "reader_metrics": null,
++      "selected_best_epoch": null,
++      "selected_deep_lr": null,
++      "selected_run": null,
++      "selected_stopped_epoch": null,
++      "selected_validation_ndcg@100": null,
++      "selected_validation_recall@100": null,
++      "status": "pending native-500M LR surface"
++    },
++    "none": {
++      "reader_evidence": "selected seed 42",
++      "reader_metrics": {
++        "coverage@100": 0.6708312944451152,
++        "ndcg@10": 0.02150473227061503,
++        "ndcg@100": 0.050365351312519874,
++        "recall@10": 0.027143873476828687,
++        "recall@100": 0.13269954619513225
++      },
++      "selected_best_epoch": 14,
++      "selected_deep_lr": 0.024,
++      "selected_run": "g1_rq7_none_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.05,
++      "selected_validation_recall@100": 0.132,
++      "status": "ready"
++    },
++    "plain_rope": {
++      "reader_evidence": "3-seed mean",
++      "reader_metrics": {
++        "coverage@100": 0.6531941169866397,
++        "ndcg@10": 0.02218587792076256,
++        "ndcg@100": 0.05134405967937191,
++        "recall@10": 0.0280780815112581,
++        "recall@100": 0.13463941151783201
++      },
++      "selected_best_epoch": 13,
++      "selected_deep_lr": 0.012,
++      "selected_run": "g1_rq7_rope_forward_base10000_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0505,
++      "selected_validation_recall@100": 0.1337,
++      "status": "ready"
++    },
++    "rope_forward_base10000_alibi": {
++      "reader_evidence": "3-seed mean",
++      "reader_metrics": {
++        "coverage@100": 0.6568503466639551,
++        "ndcg@10": 0.022267323403198896,
++        "ndcg@100": 0.05154141782092303,
++        "recall@10": 0.028065391351113123,
++        "recall@100": 0.13493470558852777
++      },
++      "selected_best_epoch": 16,
++      "selected_deep_lr": 0.012,
++      "selected_run": "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++      "selected_stopped_epoch": 20,
++      "selected_validation_ndcg@100": 0.0512,
++      "selected_validation_recall@100": 0.134,
++      "status": "ready"
++    }
++  },
++  "validated_artifacts": [
++    "g1_rq7_alibi_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_alibi_e0p064_d0p012_b1280_seed43_h20_confirm_ts2_r1_500m",
++    "g1_rq7_alibi_e0p064_d0p012_b1280_seed44_h20_confirm_ts2_r1_500m",
++    "g1_rq7_alibi_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_alibi_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_alibi_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_alibi_e0p064_d0p048_b1280_seed42_h20_boundaryhigh1_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_alibi_e0p064_d0p096_b1280_seed42_h20_boundaryhigh2_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_add_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_learned_forward_concat_alibi_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_alibi_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_alibi_e0p064_d0p048_b1280_seed42_h20_boundaryhigh1_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r3_500m",
++    "g1_rq7_learned_forward_concat_e0p064_d0p048_b1280_seed42_h20_boundaryhigh1_ts2_r3_500m",
++    "g1_rq7_none_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_none_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_none_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_none_e0p064_d0p048_b1280_seed42_h20_boundaryhigh1_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p012_b1280_seed43_h20_confirm_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p012_b1280_seed44_h20_confirm_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_alibi_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_e0p064_d0p006_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_e0p064_d0p012_b1280_seed42_h20_initial_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_e0p064_d0p012_b1280_seed43_h20_confirm_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_e0p064_d0p012_b1280_seed44_h20_confirm_ts2_r1_500m",
++    "g1_rq7_rope_forward_base10000_e0p064_d0p024_b1280_seed42_h20_initial_ts2_r1_500m"
++  ]
++}
+diff --git a/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_reader_500m.md b/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_reader_500m.md
+new file mode 100644
+index 0000000..8a047c8
+--- /dev/null
++++ b/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_reader_500m.md
+@@ -0,0 +1,21 @@
++### Learned-position fusion comparisons
++
++| learned-position treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| forward additive | 0.134 | 0.051 | 0.028 | 0.022 | 0.647 | selected seed 42 |
++| forward concat r3 | 0% (0.134) | +1% (0.052) | +2% (0.029) | +3% (0.023) | +3% (0.668) | selected seed 42 |
++| forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward additive | 0.136 | 0.052 | 0.028 | 0.022 | 0.662 | selected seed 42 |
++| **ALiBi + forward concat r3** | +1% (0.138) | <span style="color: green">+3% (0.053)</span> | +7% (0.030) | <span style="color: green">+8% (0.024)</span> | +3% (0.684) | selected seed 42 |
++| ALiBi + forward + zero-initialized reverse additive r4 | — | — | — | — | — | pending native-500M LR surface |
++| ALiBi + forward + zero-initialized reverse concat r4 | — | — | — | — | — | pending native-500M LR surface |
++
++### RoPE / ALiBi comparison
++
++| RoPE / ALiBi treatment | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 | evidence |
++| --- | ---: | ---: | ---: | ---: | ---: | --- |
++| no position encoding | -2% (0.133) | <span style="color: red">-3% (0.050)</span> | -5% (0.027) | <span style="color: red">-6% (0.022)</span> | +8% (0.671) | selected seed 42 |
++| **ALiBi** | 0.135 | 0.052 | 0.029 | 0.023 | 0.624 | 3-seed mean |
++| plain forward RoPE (base 10000) | -1% (0.135) | -1% (0.051) | -2% (0.028) | -3% (0.022) | +5% (0.653) | 3-seed mean |
++| forward RoPE + ALiBi | 0% (0.135) | -1% (0.052) | -2% (0.028) | -3% (0.022) | +5% (0.657) | 3-seed mean |
+diff --git a/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_tuning_500m.md b/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_tuning_500m.md
+new file mode 100644
+index 0000000..5ca0daa
+--- /dev/null
++++ b/experiments/g1_sasrec_item_ids_likes/scratchpad/rq7_reinvestigation_tuning_500m.md
+@@ -0,0 +1,41 @@
++# G1 RQ7 — native Yambda-500M tuning ledger
++
++Selection uses best-epoch validation recall@100, then same-epoch NDCG@100.
++
++| treatment | seed | embedding LR | deep LR | batch size | stage | best/stopped epoch | validation recall@100 | validation ndcg@100 | full-user recall@100 | full-user ndcg@100 |
++| --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |
++| alibi | 42 | 0.064 | 0.006 | 1280 | initial | 13/20 | 0.130300 | 0.049400 | 0.130581 | 0.049723 |
++| alibi | 42 | **0.064** | **0.012** | 1280 | initial | 13/20 | 0.135600 | 0.051900 | 0.135500 | 0.051942 |
++| alibi | 42 | 0.064 | 0.024 | 1280 | initial | 16/20 | 0.133300 | 0.050700 | 0.134284 | 0.051002 |
++| alibi | 43 | 0.064 | 0.012 | 1280 | confirmation | 13/20 | 0.135000 | 0.052200 | 0.134300 | 0.051837 |
++| alibi | 44 | 0.064 | 0.012 | 1280 | confirmation | 14/20 | 0.138500 | 0.052700 | 0.136659 | 0.052362 |
++| learned_forward_add | 42 | 0.064 | 0.006 | 1280 | initial | 12/20 | 0.129900 | 0.049200 | 0.130676 | 0.049341 |
++| learned_forward_add | 42 | **0.064** | **0.012** | 1280 | initial | 15/20 | 0.133500 | 0.051100 | 0.133951 | 0.051153 |
++| learned_forward_add | 42 | 0.064 | 0.024 | 1280 | initial | 15/20 | 0.132800 | 0.050400 | 0.133638 | 0.050756 |
++| learned_forward_add_alibi | 42 | 0.064 | 0.006 | 1280 | initial | 14/20 | 0.132500 | 0.050300 | 0.131808 | 0.050390 |
++| learned_forward_add_alibi | 42 | 0.064 | 0.012 | 1280 | initial | 19/20 | 0.135200 | 0.052100 | 0.134891 | 0.052149 |
++| learned_forward_add_alibi | 42 | 0.064 | 0.024 | 1280 | initial | 14/20 | 0.135400 | 0.051500 | 0.135926 | 0.051973 |
++| learned_forward_add_alibi | 42 | **0.064** | **0.048** | 1280 | boundary | 13/20 | 0.135900 | 0.051500 | 0.136001 | 0.051555 |
++| learned_forward_add_alibi | 42 | 0.064 | 0.096 | 1280 | boundary | 16/20 | 0.131900 | 0.049500 | 0.131805 | 0.049569 |
++| learned_forward_concat | 42 | 0.064 | 0.006 | 1280 | initial | 12/20 | 0.132000 | 0.050800 | 0.132999 | 0.050970 |
++| learned_forward_concat | 42 | 0.064 | 0.012 | 1280 | initial | 14/20 | 0.133400 | 0.051300 | 0.133769 | 0.051299 |
++| learned_forward_concat | 42 | **0.064** | **0.024** | 1280 | initial | 14/20 | 0.133800 | 0.051900 | 0.134444 | 0.051806 |
++| learned_forward_concat | 42 | 0.064 | 0.048 | 1280 | boundary | 14/20 | 0.131000 | 0.050600 | 0.132568 | 0.050862 |
++| learned_forward_concat_alibi | 42 | 0.064 | 0.006 | 1280 | initial | 14/20 | 0.131800 | 0.050400 | 0.132197 | 0.050543 |
++| learned_forward_concat_alibi | 42 | 0.064 | 0.012 | 1280 | initial | 14/20 | 0.133900 | 0.051900 | 0.134507 | 0.051975 |
++| learned_forward_concat_alibi | 42 | **0.064** | **0.024** | 1280 | initial | 14/20 | 0.136700 | 0.053200 | 0.137816 | 0.053320 |
++| learned_forward_concat_alibi | 42 | 0.064 | 0.048 | 1280 | boundary | 15/20 | 0.133000 | 0.050600 | 0.133407 | 0.050823 |
++| none | 42 | 0.064 | 0.006 | 1280 | initial | 17/20 | 0.127800 | 0.048400 | 0.128424 | 0.048587 |
++| none | 42 | 0.064 | 0.012 | 1280 | initial | 18/20 | 0.131600 | 0.049900 | 0.131663 | 0.050086 |
++| none | 42 | **0.064** | **0.024** | 1280 | initial | 14/20 | 0.132000 | 0.050000 | 0.132700 | 0.050365 |
++| none | 42 | 0.064 | 0.048 | 1280 | boundary | 14/20 | 0.131500 | 0.049600 | 0.130926 | 0.049514 |
++| rope_forward_base10000 | 42 | 0.064 | 0.006 | 1280 | initial | 11/20 | 0.129700 | 0.049000 | 0.130121 | 0.049121 |
++| rope_forward_base10000 | 42 | **0.064** | **0.012** | 1280 | initial | 13/20 | 0.133700 | 0.050500 | 0.134354 | 0.050953 |
++| rope_forward_base10000 | 42 | 0.064 | 0.024 | 1280 | initial | 12/20 | 0.133200 | 0.050000 | 0.133420 | 0.050216 |
++| rope_forward_base10000 | 43 | 0.064 | 0.012 | 1280 | confirmation | 18/20 | 0.134200 | 0.051500 | 0.133716 | 0.051243 |
++| rope_forward_base10000 | 44 | 0.064 | 0.012 | 1280 | confirmation | 16/20 | 0.137200 | 0.052000 | 0.135849 | 0.051836 |
++| rope_forward_base10000_alibi | 42 | 0.064 | 0.006 | 1280 | initial | 13/20 | 0.130100 | 0.049200 | 0.130926 | 0.049647 |
++| rope_forward_base10000_alibi | 42 | **0.064** | **0.012** | 1280 | initial | 16/20 | 0.134000 | 0.051200 | 0.134628 | 0.051540 |
++| rope_forward_base10000_alibi | 42 | 0.064 | 0.024 | 1280 | initial | 16/20 | 0.133100 | 0.050300 | 0.133120 | 0.050388 |
++| rope_forward_base10000_alibi | 43 | 0.064 | 0.012 | 1280 | confirmation | 15/20 | 0.135600 | 0.052000 | 0.135058 | 0.051537 |
++| rope_forward_base10000_alibi | 44 | 0.064 | 0.012 | 1280 | confirmation | 16/20 | 0.136500 | 0.051900 | 0.135119 | 0.051547 |
+

@@ -1,0 +1,12 @@
+version: 1
+id: g1-rq8-architecture
+title: Reinvestigate G1 RQ8 query and sequence architecture
+description: >-
+  Remove the obsolete RQ8 FFN axis, recheck standard and end-only CLS against
+  an interleaved autoregressive CLS treatment, and rebuild the sequence-length
+  evidence for ALiBi and reverse-RoPE plus ALiBi. Every tuning and confirmation
+  run uses the user-approved native Yambda-500M protocol in
+  experiments/g1_sasrec_item_ids_likes/protocol/rq8_reinvestigation_plan.md.
+blocked_by: []
+ideas_tags:
+  - g1-rq8

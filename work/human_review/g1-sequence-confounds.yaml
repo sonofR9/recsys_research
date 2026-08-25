@@ -1,0 +1,12 @@
+version: 1
+id: g1-sequence-confounds
+title: Replace the confounded RQ8 sequence-length surface
+description: >-
+  The replacement sequence surface preserved batch and learning-rate controls
+  but fixed attention_window at 50. With two layers this caps usable history at
+  99 tokens, so the completed runs cannot answer whether longer retained
+  history helps. Replace the full 12/25/50/100/128/200/256/512 axis under both
+  causal ALiBi and reverse-index RoPE plus ALiBi with a receptive field that
+  grows with retained length, on native Yambda-500M.
+blocked_by: []
+ideas_tags: []

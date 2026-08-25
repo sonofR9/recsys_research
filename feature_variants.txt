@@ -1,0 +1,389 @@
+# Comprehensive Feature Engineering Catalog
+
+## Overview of Dimensions
+
+| Dimension | Options |
+|-----------|---------|
+| **Entity** | user_id, item_id, album_id, artist_id |
+| **Event** | like, dislike, all |
+| **Organic Filter** | all, organic_only, non_organic_only |
+| **Time Window** | 1d, 7d, 30d, 90d, all_time |
+
+---
+
+## 1. SIMPLE AGGREGATIONS
+
+### 1.1 Raw Counts
+```sql
+-- Count of [event_type] for [entity] in [time_window]
+COUNT(*) WHERE event_type = 'like' GROUP BY user_id
+```
+
+### 1.2 Distinct Counts
+```sql
+-- Unique [entity_A] count per [entity_B]
+COUNT(DISTINCT user_id) GROUP BY item_id  -- unique users per item
+COUNT(DISTINCT item_id) GROUP BY user_id  -- unique items per user
+COUNT(DISTINCT album_id) GROUP BY user_id -- unique albums per user
+COUNT(DISTINCT artist_id) GROUP BY user_id -- unique artists per user
+```
+
+---
+
+## 2. RATIO FEATURES
+
+### 2.1 Engagement Rate
+```sql
+-- Like ratio for [entity]
+SUM(CASE WHEN event_type='like' THEN 1 ELSE 0 END) / COUNT(*) 
+GROUP BY item_id
+```
+
+### 2.2 Organic Ratio
+```sql
+-- Organic interaction ratio for [entity]
+AVG(is_organic::int) GROUP BY user_id
+```
+
+### 2.3 Organic-Conditioned Engagement
+```sql
+-- Like ratio ONLY within organic interactions
+SUM(CASE WHEN event_type='like' AND is_organic THEN 1 END) / 
+SUM(CASE WHEN is_organic THEN 1 END)
+```
+
+### 2.4 Like-to-Dislike Ratio
+```sql
+SUM(CASE WHEN event_type='like' THEN 1 END) / 
+NULLIF(SUM(CASE WHEN event_type='dislike' THEN 1 END), 0)
+```
+
+---
+
+## 3. CROSS-ENTITY FEATURES
+
+### 3.1 User-Artist Affinity
+```sql
+-- User's historical like rate for this artist
+SELECT user_id, artist_id,
+       SUM(CASE WHEN event_type='like' THEN 1 END) / COUNT(*)
+FROM events
+GROUP BY user_id, artist_id
+```
+
+### 3.2 User-Album Affinity
+```sql
+-- User's historical like rate for this album
+GROUP BY user_id, album_id
+```
+
+### 3.3 User's Experience with Artist/Album
+```sql
+-- Number of items user has seen from this artist
+COUNT(DISTINCT item_id) GROUP BY user_id, artist_id
+```
+
+### 3.4 Album Coverage by User
+```sql
+-- Fraction of album items user has interacted with
+COUNT(DISTINCT item_id) / (SELECT COUNT(DISTINCT item_id) FROM items WHERE album_id = X)
+```
+
+---
+
+## 4. RELATIVE/COMPARATIVE FEATURES
+
+### 4.1 Item vs Album Average
+```sql
+-- Item like_rate relative to its album's average
+item_like_rate / AVG(item_like_rate) OVER (PARTITION BY album_id)
+```
+
+### 4.2 Item vs Artist Average
+```sql
+-- Item like_rate relative to artist's average
+item_like_rate / AVG(item_like_rate) OVER (PARTITION BY artist_id)
+```
+
+### 4.3 User vs Global Average
+```sql
+-- User's like rate compared to global average
+user_like_rate / (SELECT AVG(like_rate) FROM all_users)
+```
+
+### 4.4 Percentile Rank
+```sql
+-- Item popularity percentile within artist catalog
+PERCENT_RANK() OVER (PARTITION BY artist_id ORDER BY like_count)
+```
+
+---
+
+## 5. TEMPORAL FEATURES
+
+### 5.1 Recency
+```sql
+-- Time since last [event_type] for [entity]
+EXTRACT(EPOCH FROM NOW() - MAX(event_time)) WHERE event_type='like' GROUP BY user_id
+```
+
+### 5.2 Tenure / Age
+```sql
+-- Time since first interaction for [entity]
+EXTRACT(EPOCH FROM NOW() - MIN(event_time)) GROUP BY user_id
+```
+
+### 5.3 Trend (Momentum)
+```sql
+-- Ratio of recent activity to older activity
+COUNT(*) FILTER (WHERE event_time > NOW() - '7d') /
+NULLIF(COUNT(*) FILTER (WHERE event_time BETWEEN NOW()-'30d' AND NOW()-'7d'), 0)
+```
+
+### 5.4 Velocity
+```sql
+-- Events per day for [entity] in [window]
+COUNT(*) / 7.0  -- events per day in last week
+```
+
+### 5.5 Acceleration
+```sql
+-- Change in velocity between windows
+(count_last_7d / 7) - (count_7_to_14d / 7)
+```
+
+### 5.6 Inter-Event Gap (Average)
+```sql
+-- Average time between interactions for user
+AVG(event_time - LAG(event_time) OVER (PARTITION BY user_id ORDER BY event_time))
+```
+
+### 5.7 Inter-Event Gap (Std Dev)
+```sql
+-- Consistency of interaction timing
+STDDEV(time_between_events)
+```
+
+---
+
+## 6. TEMPORAL PATTERN FEATURES
+
+### 6.1 Day-of-Week Distribution Entropy
+```sql
+-- How spread out are user's interactions across weekdays
+-SUM(p * LOG(p)) WHERE p = day_count/total_count
+```
+
+### 6.2 Dominant Hour
+```sql
+-- Most common hour of interaction for user
+MODE() WITHIN GROUP (ORDER BY EXTRACT(HOUR FROM event_time))
+```
+
+### 6.3 Weekend Ratio
+```sql
+-- Fraction of interactions on weekends
+AVG(CASE WHEN EXTRACT(DOW FROM event_time) IN (0,6) THEN 1 ELSE 0 END)
+```
+
+### 6.4 Peak Hour Concentration
+```sql
+-- Fraction of activity in top-3 hours
+SUM(top_3_hours_count) / total_count
+```
+
+---
+
+## 7. SEQUENCE/ORDER FEATURES
+
+### 7.1 Interaction Position
+```sql
+-- Position of item in user's chronological history
+ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY event_time)
+```
+
+### 7.2 Is First Interaction with Entity
+```sql
+-- Is this user's first item from this artist?
+CASE WHEN ROW_NUMBER() OVER (PARTITION BY user_id, artist_id ORDER BY event_time) = 1 
+     THEN 1 ELSE 0 END
+```
+
+### 7.3 Re-engagement Flag
+```sql
+-- Has user interacted with this exact item before?
+COUNT(*) OVER (PARTITION BY user_id, item_id ORDER BY event_time ROWS UNBOUNDED PRECEDING) > 1
+```
+
+### 7.4 Previous Event Outcome
+```sql
+-- Was user's last interaction a like?
+LAG(event_type) OVER (PARTITION BY user_id ORDER BY event_time) = 'like'
+```
+
+### 7.5 Streak Length
+```sql
+-- Consecutive likes/dislikes streak
+COUNT(*) of consecutive same event_type
+```
+
+---
+
+## 8. DIVERSITY/ENTROPY FEATURES
+
+### 8.1 Artist Concentration (Gini/Entropy)
+```sql
+-- How concentrated is user's taste across artists
+-- Low = diverse, High = focused
+1 - SUM((artist_count/total)^2)  -- inverse Herfindahl
+```
+
+### 8.2 Album Diversity
+```sql
+-- Unique albums / total interactions
+COUNT(DISTINCT album_id) / COUNT(*)
+```
+
+### 8.3 Artist Exploration Rate
+```sql
+-- New artists in last 7d / total artists historically
+COUNT(DISTINCT artist_id) FILTER (first_seen > NOW()-'7d') / 
+COUNT(DISTINCT artist_id)
+```
+
+---
+
+## 9. STATISTICAL DISTRIBUTION FEATURES
+
+### 9.1 Variance in Entity Popularity
+```sql
+-- Variance of like_counts for items in album
+VARIANCE(item_like_count) GROUP BY album_id
+```
+
+### 9.2 Skewness of User Engagement
+```sql
+-- Skewness of item interaction counts per user
+-- High skew = few heavily engaged items
+```
+
+### 9.3 Min/Max Ratio
+```sql
+-- Ratio of least to most popular item in album
+MIN(like_count) / MAX(like_count) GROUP BY album_id
+```
+
+---
+
+## 10. CO-OCCURRENCE / SIMILARITY FEATURES
+
+### 10.1 Item Co-Like Score
+```sql
+-- Users who liked item_A also liked item_B
+SELECT a.item_id, b.item_id, COUNT(DISTINCT a.user_id)
+FROM likes a JOIN likes b ON a.user_id = b.user_id AND a.item_id != b.item_id
+GROUP BY 1, 2
+```
+
+### 10.2 User Taste Overlap
+```sql
+-- Jaccard similarity between users based on liked items
+|items_liked_by_A ∩ items_liked_by_B| / |items_liked_by_A ∪ items_liked_by_B|
+```
+
+### 10.3 Item Audience Overlap
+```sql
+-- Jaccard similarity between items based on who liked them
+```
+
+---
+
+## 11. BOOLEAN/FLAG FEATURES
+
+### 11.1 Has Prior Interaction
+```sql
+CASE WHEN EXISTS (prior interaction with item/album/artist) THEN 1 ELSE 0 END
+```
+
+### 11.2 Is Power User
+```sql
+CASE WHEN user_total_likes > percentile_90 THEN 1 ELSE 0 END
+```
+
+### 11.3 Is Cold Item
+```sql
+CASE WHEN item_total_interactions < 10 THEN 1 ELSE 0 END
+```
+
+### 11.4 Is New Release (Item Age)
+```sql
+CASE WHEN first_item_interaction > NOW() - '30d' THEN 1 ELSE 0 END
+```
+
+---
+
+## 12. HIERARCHY FEATURES
+
+### 12.1 Artist Popularity
+```sql
+-- Total likes across all artist's albums/items
+SUM(likes) GROUP BY artist_id
+```
+
+### 12.2 Album Share within Artist
+```sql
+-- Album likes / Artist total likes
+album_likes / SUM(album_likes) OVER (PARTITION BY artist_id)
+```
+
+### 12.3 Item Dominance in Album
+```sql
+-- Is this the top item in its album?
+RANK() OVER (PARTITION BY album_id ORDER BY like_count DESC)
+```
+
+---
+
+## Summary Matrix of Distinct Feature Patterns
+
+| # | Pattern | Description |
+|---|---------|-------------|
+| 1 | Raw count | COUNT of events |
+| 2 | Distinct count | COUNT DISTINCT entities |
+| 3 | Engagement rate | Likes / Total |
+| 4 | Organic rate | Organic / Total |
+| 5 | Conditional rate | Rate within segment |
+| 6 | Cross-entity affinity | User×Artist, User×Album rates |
+| 7 | Entity coverage | Items seen / Total items |
+| 8 | Relative to parent | Item vs Album avg |
+| 9 | Percentile rank | Position in distribution |
+| 10 | Recency | Time since last event |
+| 11 | Tenure | Time since first event |
+| 12 | Trend/Momentum | Recent / Older ratio |
+| 13 | Velocity | Events per time unit |
+| 14 | Acceleration | Change in velocity |
+| 15 | Inter-event gap mean | Avg time between events |
+| 16 | Inter-event gap std | Consistency of timing |
+| 17 | Temporal entropy | Distribution across time |
+| 18 | Dominant period | Mode of hour/day |
+| 19 | Weekend ratio | Weekend / Total |
+| 20 | Sequence position | Nth interaction |
+| 21 | First interaction flag | New entity encounter |
+| 22 | Re-engagement flag | Repeat interaction |
+| 23 | Previous outcome | Lag of event_type |
+| 24 | Streak length | Consecutive same events |
+| 25 | Diversity entropy | Spread across entities |
+| 26 | Exploration rate | New entities / Total |
+| 27 | Variance | Spread of counts |
+| 28 | Min/Max ratio | Range compression |
+| 29 | Co-occurrence count | Shared likes between items |
+| 30 | Jaccard similarity | Overlap coefficient |
+| 31 | Boolean flags | Cold/Hot/Power user |
+| 32 | Hierarchy aggregation | Artist total from items |
+| 33 | Share within parent | Album's share of artist |
+| 34 | Rank within parent | Item rank in album |
+
+---
+
+**Total distinct feature patterns: 34**  
+**With entity×time×event×organic combinations: 1000+ actual features**

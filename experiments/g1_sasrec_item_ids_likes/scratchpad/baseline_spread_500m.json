@@ -1,0 +1,109 @@
+{
+  "description": "Shared empirical resolution bands from ten unchanged independent Yambda-500M accepted-control repeats; not confidence intervals or treatment-specific significance tests.",
+  "metrics": {
+    "capped_recall@10": {
+      "absolute_band": 0.0008192111944940422,
+      "mean": 0.027726030108046966,
+      "sample_stddev": 0.0008192111944940422,
+      "stddev_percent_of_mean": 2.9546645924483843
+    },
+    "capped_recall@100": {
+      "absolute_band": 0.002149607191586883,
+      "mean": 0.1277013957169503,
+      "sample_stddev": 0.002149607191586883,
+      "stddev_percent_of_mean": 1.6833075155666113
+    },
+    "capped_recall@50": {
+      "absolute_band": 0.0017302935271073197,
+      "mean": 0.0821356418260365,
+      "sample_stddev": 0.0017302935271073197,
+      "stddev_percent_of_mean": 2.106629337324819
+    },
+    "coverage@10": {
+      "absolute_band": 0.033334490741818996,
+      "mean": 0.19883259086027313,
+      "sample_stddev": 0.033334490741818996,
+      "stddev_percent_of_mean": 16.765104049388135
+    },
+    "coverage@100": {
+      "absolute_band": 0.07109742016070275,
+      "mean": 0.5294165496291872,
+      "sample_stddev": 0.07109742016070275,
+      "stddev_percent_of_mean": 13.429391319651918
+    },
+    "coverage@50": {
+      "absolute_band": 0.0617217933199932,
+      "mean": 0.4086904300412438,
+      "sample_stddev": 0.0617217933199932,
+      "stddev_percent_of_mean": 15.102333889678903
+    },
+    "mrr@10": {
+      "absolute_band": 0.0008434224371313885,
+      "mean": 0.035246417015488814,
+      "sample_stddev": 0.0008434224371313885,
+      "stddev_percent_of_mean": 2.392930994264614
+    },
+    "mrr@100": {
+      "absolute_band": 0.0009196833364066767,
+      "mean": 0.0441157320050924,
+      "sample_stddev": 0.0009196833364066767,
+      "stddev_percent_of_mean": 2.084706055201612
+    },
+    "mrr@50": {
+      "absolute_band": 0.0009210730794763323,
+      "mean": 0.04270919654330592,
+      "sample_stddev": 0.0009210730794763323,
+      "stddev_percent_of_mean": 2.1566153288376433
+    },
+    "ndcg@10": {
+      "absolute_band": 0.0005425073760215525,
+      "mean": 0.02024636015065937,
+      "sample_stddev": 0.0005425073760215525,
+      "stddev_percent_of_mean": 2.6795304044015262
+    },
+    "ndcg@100": {
+      "absolute_band": 0.0009512178348245378,
+      "mean": 0.048379843381667474,
+      "sample_stddev": 0.0009512178348245378,
+      "stddev_percent_of_mean": 1.9661449238692283
+    },
+    "ndcg@50": {
+      "absolute_band": 0.000840122151732798,
+      "mean": 0.03697633937420944,
+      "sample_stddev": 0.000840122151732798,
+      "stddev_percent_of_mean": 2.2720533345136196
+    },
+    "recall@10": {
+      "absolute_band": 0.0007892470634162343,
+      "mean": 0.025037289195255018,
+      "sample_stddev": 0.0007892470634162343,
+      "stddev_percent_of_mean": 3.1522864047351007
+    },
+    "recall@100": {
+      "absolute_band": 0.0021501867108938925,
+      "mean": 0.12762410937350052,
+      "sample_stddev": 0.0021501867108938925,
+      "stddev_percent_of_mean": 1.684780972379777
+    },
+    "recall@50": {
+      "absolute_band": 0.0017316910326323574,
+      "mean": 0.08184092003987449,
+      "sample_stddev": 0.0017316910326323574,
+      "stddev_percent_of_mean": 2.115923222501218
+    }
+  },
+  "n": 10,
+  "run_prefix": "g1_calibrated_homework_baseline_native500_r3_cap40_ts2_500m_s",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ]
+}

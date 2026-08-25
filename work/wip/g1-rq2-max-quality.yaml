@@ -1,0 +1,26 @@
+version: 1
+id: g1-rq2-max-quality
+title: Select maximum-quality G1 recipe
+description: >-
+  Build and evaluate the current-protocol maximum-quality combination on
+  native Yambda-500M. The approved aggregate contains SwiGLU-192, deep-only
+  one-cycle cosine, ALiBi plus learned-forward-and-reverse item concatenation,
+  post-LayerNorm, input plus final RMSNorm, end-only CLS, the 32-bin plus raw
+  reverse timestamp-RoPE bundle, popularity-catalog global-q, GQA, BOS, and a
+  4/6/8-layer search. Freeze a
+  current-protocol reconstruction of the original G1 model, run one-factor
+  bridges for valid summed-gain arithmetic, retune the aggregate deep rate,
+  and report its measured and summed gains plus their interaction gap. The
+  exact approved plan is in protocol/aggregate_improvement_plan.md.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq4-swiglu
+  - g1-rq5-scheduler
+  - g1-rq6-warmup
+  - g1-rq7-position-encoding
+  - g1-rq8-architecture
+  - g1-rq9-time-features
+  - g1-rq10-layer-embeddings
+  - g1-rq11-negatives
+ideas_tags:
+  - g1-rq2

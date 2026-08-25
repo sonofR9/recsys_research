@@ -1,0 +1,12 @@
+version: 1
+id: g1-final-combination
+title: Run final G1 combination
+description: >-
+  Run the one approved 500M final combined recipe, record metrics and complete
+  configuration, and make it the baseline for later experiment groups.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq2-max-quality
+  - g1-rq3-balanced
+  - g1-homework-batch1280-calibration
+ideas_tags: []

@@ -1,0 +1,37 @@
+    # FIXME(sonofr): asap. some embeddings may not have original id. So It should be a new column.
+
+    logging: get column types automatically? (no need for logging_int_columns)?
+
+recall@k
+more metrics into the model
+
+multiple embedding tables
+how to train sasrec in my framework? rl?
+rqvae? (may be separate)
+инициализацию добавить!
+
+========================================================================
+HIGH-LEVEL REVIEW (dcn/) — 2026-06-28
+Big-block / missing-functionality / convenience items. Mid-level interface
+nits are inline FIXMEs in the code, not here.
+========================================================================
+
+[training] Embedding-freeze during pretrain is half-built. CombinedOptimizer
+  has set_enabled() (only exercised in its own unit test), the trainer has a
+  FIXME "add freeze to part of the model", but nothing wires it and
+  PretrainConfig has no freeze knob. Either finish (config field -> trainer
+  toggles set_enabled at the right epoch) or remove the scaffolding.
+
+[architecture] Dead config-driven layer-building subsystem contradicts the
+  config-as-code design: layer_registry / build_layer / ConfigurableLayer.
+  build_layer is never called, only SwiGLU is registered, and models are built
+  directly in Python. The string-config factory classes are gone (per review):
+  ActivationFactory / NormalizationFactory are now plain callable aliases that
+  match what crossnet/resnet are really passed. What remains to decide is the
+  registry path itself — delete it, or commit to it.
+
+[data] EventDataset loads each day fully into RAM
+  (pl.concat([read_parquet ...]).to_numpy()). Fine for day-by-day on 50m, but
+  it's the scaling ceiling for 500m/5b — note it before pointing the framework
+  at the larger sizes. SequenceDataset already spills into RAM-bounded buckets;
+  the event path could borrow that.

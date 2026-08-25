@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "selector": {
+    "deep_lr": "0.002",
+    "embedding_lr": "0.001",
+    "source_artifacts": 42,
+    "source_digest": "af8b8a8133c769b1103e67add6bb520b9b3e50f94707302486a1764b69dac778",
+    "source_id": "af8b8a8133c7",
+    "winner_run": "g1_transfer_batchscale_b1280_e0p001_d0p002_cap60_ts2_r2_50m"
+  },
+  "target": {
+    "files": {
+      "final_metrics.json": "82248f5e4fcf71ef4998a4000033e24f238558ae35f2e28548d21a92ee7c9e55",
+      "training_metadata.json": "b97626706c51b6f724382f95921124533c7863c005f3ebbb6f2b4993f635a701"
+    },
+    "run": "g1_transfer_selected_native50_af8b8a8133c7_e0p001_d0p002_cap40_ts2_r2_500m"
+  }
+}

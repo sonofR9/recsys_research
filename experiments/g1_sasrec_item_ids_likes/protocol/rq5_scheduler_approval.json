@@ -1,0 +1,82 @@
+{
+  "probe_policy": {
+    "reference": "User approved in chat on 2026-08-22",
+    "local_factor": 2.0,
+    "boundary_extension": 4.0,
+    "boundary_points": 3
+  },
+  "selection_policy": {
+    "reference": "User approved in chat on 2026-08-22",
+    "metric_decimals": 4,
+    "primary": "best_epoch_validation_recall@100",
+    "secondary": "same_epoch_validation_ndcg@100",
+    "tie_breaker": "surface_run_name"
+  },
+  "horizon_followup": {
+    "reference": "User approved initial corrections on 2026-08-22 and standing small follow-ups on 2026-08-23",
+    "max_additional_attempts": 2,
+    "midpoint_rounding": "lower",
+    "stagewise": true,
+    "preserve_acceptance_tolerance": true,
+    "final_resolution_reference": "User approved exact initial resolutions and standing small follow-ups in chat on 2026-08-23",
+    "max_final_attempts": 1,
+    "approved_initial_surfaces": [
+      "g1_rq5_cosine_both_d0p003_h21_cap21_a0_ts2_r1_500m",
+      "g1_rq5_cosine_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_deep_only_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles1_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles1_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles1_deep_only_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p003_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p006_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p012_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles2_deep_only_d0p024_pb1lrhi1_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles4_both_d0p003_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_exponential_both_d0p003_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_exponential_both_d0p006_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_exponential_both_d0p048_pb1lrhi2_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_exponential_deep_only_d0p096_pb1lrhi3_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_linear_both_d0p003_h17_cap17_a0_ts2_r1_500m",
+      "g1_rq5_linear_both_d0p048_pb1lrhi2_h17_cap17_a0_ts2_r1_500m",
+      "g1_rq5_linear_deep_only_d0p048_pb1lrhi2_h17_cap17_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p006_h20_cap20_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_step_both_d0p012_h20_cap20_a0_ts2_r1_500m",
+      "g1_rq5_wsd_both_d0p003_h20_cap20_a0_ts2_r1_500m",
+      "g1_rq5_wsd_both_d0p024_pb1lrhi1_h20_cap20_a0_ts2_r1_500m",
+      "g1_rq5_wsd_both_d0p048_pb1lrhi2_h20_cap20_a0_ts2_r1_500m",
+      "g1_rq5_wsd_deep_only_d0p006_h20_cap20_a0_ts2_r1_500m"
+    ],
+    "final_attempt_horizons": {
+      "g1_rq5_cosine_both_d0p003_h21_cap21_a0_ts2_r1_500m": 22,
+      "g1_rq5_cosine_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m": 20,
+      "g1_rq5_cosine_deep_only_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m": 22,
+      "g1_rq5_cosine_warmup5_cycles1_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m": 22,
+      "g1_rq5_cosine_warmup5_cycles1_deep_only_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m": 16,
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p003_h22_cap22_a0_ts2_r1_500m": 23,
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p012_h22_cap22_a0_ts2_r1_500m": 17,
+      "g1_rq5_exponential_both_d0p006_h18_cap18_a0_ts2_r1_500m": 21,
+      "g1_rq5_exponential_both_d0p048_pb1lrhi2_h18_cap18_a0_ts2_r1_500m": 28,
+      "g1_rq5_exponential_deep_only_d0p096_pb1lrhi3_h18_cap18_a0_ts2_r1_500m": 14,
+      "g1_rq5_polynomial_both_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m": 30
+    },
+    "ineligible_initial_surfaces": [
+      "g1_rq5_cosine_both_d0p003_h21_cap21_a0_ts2_r1_500m",
+      "g1_rq5_cosine_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_deep_only_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles1_both_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles1_deep_only_d0p096_pb1lrhi3_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles2_both_d0p012_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_cosine_warmup5_cycles4_both_d0p003_h22_cap22_a0_ts2_r1_500m",
+      "g1_rq5_exponential_both_d0p006_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_exponential_deep_only_d0p096_pb1lrhi3_h18_cap18_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p024_pb1lrhi1_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_polynomial_both_d0p048_pb1lrhi2_h15_cap15_a0_ts2_r1_500m",
+      "g1_rq5_wsd_both_d0p048_pb1lrhi2_h20_cap20_a0_ts2_r1_500m"
+    ]
+  }
+}

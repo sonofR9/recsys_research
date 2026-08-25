@@ -1,0 +1,10 @@
+version: 1
+id: g1-rq10-layer-embeddings
+title: Close G1 RQ10 layer embeddings
+description: >-
+  Resolve the exact control-final mismatch, regenerate the layer-embedding
+  comparison, and obtain independent evidence review.
+blocked_by:
+  - g1-training-protocol-reset
+ideas_tags:
+  - g1-rq10

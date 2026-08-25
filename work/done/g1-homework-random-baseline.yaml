@@ -1,0 +1,10 @@
+version: 1
+id: g1-homework-random-baseline
+title: Run homework baseline with uniform random negatives
+description: >-
+  Keep the calibrated homework architecture, data, batch 1280, stopping rule,
+  and training recipe fixed; replace fixed in-batch logQ with 512 uniform
+  random negatives, tune only embedding/deep LR on native 50M, and confirm the
+  selected configuration once on native 500M.
+blocked_by: []
+ideas_tags: []

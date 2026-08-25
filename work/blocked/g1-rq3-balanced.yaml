@@ -1,0 +1,19 @@
+version: 1
+id: g1-rq3-balanced
+title: Select balanced G1 recipe
+description: >-
+  Evaluate the current-protocol Pareto candidates after RQ8/RQ11 close. The
+  exact plan and full-data run also require explicit user approval before
+  implementation or training.
+blocked_by:
+  - g1-training-protocol-reset
+  - g1-rq4-swiglu
+  - g1-rq5-scheduler
+  - g1-rq6-warmup
+  - g1-rq7-position-encoding
+  - g1-rq8-architecture
+  - g1-rq9-time-features
+  - g1-rq10-layer-embeddings
+  - g1-rq11-negatives
+ideas_tags:
+  - g1-rq3

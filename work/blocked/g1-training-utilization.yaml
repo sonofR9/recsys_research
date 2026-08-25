@@ -1,0 +1,11 @@
+version: 1
+id: g1-training-utilization
+title: Raise G1 in-training GPU utilization
+description: >-
+  Compatible-history queue depth, retained rejected-GPU evidence, and the
+  current batch-1280 opt-in gate are implemented. Run and review the real A100
+  gate only when four devices are genuinely dedicated; foreign compute
+  currently prevents accepted post-reset utilization evidence.
+blocked_by:
+  - g1-training-protocol-reset
+ideas_tags: []

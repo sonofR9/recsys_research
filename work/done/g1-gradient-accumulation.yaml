@@ -1,0 +1,9 @@
+version: 1
+id: g1-gradient-accumulation
+title: Add gradient accumulation
+description: >-
+  Preserve the reviewed implementation, but revalidate its 500M sequence-512
+  result under best-epoch selection and early stopping.
+blocked_by:
+  - g1-training-protocol-reset
+ideas_tags: []

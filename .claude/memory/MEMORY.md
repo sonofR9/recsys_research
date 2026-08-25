@@ -1,0 +1,4 @@
+- [Running tests on the a100 box](running-tests-on-a100-box.md) — the CLAUDE.md venv path is dead; what to use instead and which failures are pre-existing.
+- [Tuning search method](tuning-search-method.md) — grid search only for a single parameter; random search or Optuna otherwise.
+- [G1 report audit](g1-report-audit-2026-08-17.md) — when a result contradicts theory, suspect the protocol; the LR-horizon bug and the still-open logQ question.
+- [experiments/AGENTS.md](experiments-agents-md.md) — a second binding rules file with the protocol, transfer, and report-format rules; missing it cost a whole study.

@@ -1,0 +1,40 @@
+# eSASRec (idea 2) — state
+
+Work lives in the worktree /home/sashanovak/tmp_a100/ysda_recsys_esasrec
+(branch exp/esasrec). Full write-up: experiments/g2_esasrec/README.md there.
+
+## Goal
+1. New branch via git worktree — done.
+2. Run official eSASRec on yambda 50m. Allowed: flash attention + a ragged
+   variant. Neither was needed; see the README's Deviations section — done.
+3. Implement the missing features in our framework and match the official
+   recall@100 on 50m — done, 0.11513 ± 0.00331 against 0.11126 ± 0.00037.
+4. Run and tune on 500m, then report (a) official vs port on 50m and (b)
+   eSASRec on 500m — the tuning sweep is the last thing still running.
+
+## Where things are
+- Official runner: experiments/g2_esasrec/official/run_official.py, in its own
+  virtualenv /home/sashanovak/envs/esasrec (RecTools pins numpy<2).
+- Port: experiments/g2_esasrec/configs/variant.py, G2_VARIANT picks the variant.
+- 500m launcher: experiments/g2_esasrec/launchers/tuning_500m.sh.
+- Tables: python3 experiments/g2_esasrec/collect.py --size 50m|500m
+
+## Environment
+- The project env is /home/sashanovak/envs/base — plain `python3` and `pytest`,
+  nothing to source. (An earlier note here said `yrec`; that env has no `mup`
+  and cannot run dcn.)
+- The official side needs /home/sashanovak/envs/esasrec instead.
+- pip needs `--index-url https://pypi.org/simple`; the default config points at
+  an internal mirror that does not carry rectools.
+
+## Open
+- The training queue service was restarted from the worktree, because the queue
+  runs `python -m dcn.main` from the scheduler's own directory and the g2 code
+  only exists there. Move it back to the main checkout when the 500m sweep is
+  done:
+      python3 utils/training_queue/service.py stop     # from the worktree
+      cd /home/sashanovak/tmp_a100/ysda_recsys/competition
+      python3 utils/training_queue/service.py start
+- The port trails the official near the top of the list (recall@10 / recall@100
+  of 0.19 against 0.25). The likeliest cause is the one deviation the port
+  cannot avoid: RecTools' N(0, 1) item table does not survive bfloat16 here.

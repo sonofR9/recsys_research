@@ -1,0 +1,170 @@
+{
+  "baseline": {
+    "job_id": "control_tuning:control_trial_01",
+    "method": "control",
+    "run_name": "g2_control_trial_01_native50m",
+    "stage": "control_tuning"
+  },
+  "baseline_fallback": {
+    "job_id": "control_tuning:control_trial_01",
+    "method": "control",
+    "run_name": "g2_control_trial_01_native50m",
+    "selected": false,
+    "selection_condition": "no_atomic_bundle_qualified",
+    "stage": "control_tuning"
+  },
+  "candidates": [
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:standard_sampled_softmax_trial_05",
+      "method": "standard_sampled_softmax",
+      "qualification_reason": "recall_gain_beyond_band",
+      "qualified": true,
+      "run_name": "g2_standard_sampled_softmax_trial_05_native50m",
+      "selected": false,
+      "stage": "component_tuning"
+    },
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:standard_gbce_trial_02",
+      "method": "standard_gbce",
+      "qualification_reason": "recall_gain_beyond_band",
+      "qualified": true,
+      "run_name": "g2_standard_gbce_trial_02_native50m",
+      "selected": false,
+      "stage": "component_tuning"
+    },
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:matched_standard_sampled_softmax_trial_00",
+      "method": "matched_standard_sampled_softmax",
+      "qualification_reason": "recall_gain_beyond_band",
+      "qualified": true,
+      "run_name": "g2_matched_standard_sampled_softmax_trial_00_native50m",
+      "selected": false,
+      "stage": "component_tuning"
+    },
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:matched_standard_gbce_trial_07",
+      "method": "matched_standard_gbce",
+      "qualification_reason": "recall_gain_beyond_band",
+      "qualified": true,
+      "run_name": "g2_matched_standard_gbce_trial_07_native50m",
+      "selected": false,
+      "stage": "component_tuning"
+    },
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+      "method": "ligr_sampled_softmax",
+      "qualification_reason": "recall_gain_beyond_band",
+      "qualified": true,
+      "run_name": "g2_ligr_sampled_softmax_trial_08_native50m",
+      "selected": true,
+      "stage": "component_tuning"
+    },
+    {
+      "candidate_kind": "component",
+      "job_id": "component_tuning:ligr_gbce_trial_04",
+      "method": "ligr_gbce",
+      "qualification_reason": null,
+      "qualified": false,
+      "run_name": "g2_ligr_gbce_trial_04_native50m",
+      "selected": false,
+      "stage": "component_tuning"
+    }
+  ],
+  "dataset_size": "native-50m",
+  "included_bundle": {
+    "job_id": "component_tuning:ligr_sampled_softmax_trial_08",
+    "method": "ligr_sampled_softmax",
+    "run_name": "g2_ligr_sampled_softmax_trial_08_native50m",
+    "stage": "component_tuning"
+  },
+  "interaction_resolution": "unresolved against native-50m size-matched empirical bands",
+  "manifest_sha256": "48ed205cd44e7016c596410cbb0a62b3c4457465fe465f2dbff5ff815875033f",
+  "metrics": {
+    "coverage@100": {
+      "aggregate": 0.48259321829371304,
+      "aggregate_gain_percent": -30.17764392649818,
+      "aggregate_gain_points": -0.20857970314951124,
+      "baseline": 0.6911729214432243,
+      "interaction_band": 0.06,
+      "interaction_gap_points": 0.0,
+      "interaction_label": "unresolved",
+      "standalone_sum_points": -0.20857970314951124
+    },
+    "ndcg@100": {
+      "aggregate": 0.05270636357225205,
+      "aggregate_gain_percent": 22.13802800198194,
+      "aggregate_gain_points": 0.009553248662457714,
+      "baseline": 0.043153114909794336,
+      "interaction_band": 0.002,
+      "interaction_gap_points": 0.0,
+      "interaction_label": "unresolved",
+      "standalone_sum_points": 0.009553248662457714
+    },
+    "recall@100": {
+      "aggregate": 0.1364118250263857,
+      "aggregate_gain_percent": 18.26226832637335,
+      "aggregate_gain_points": 0.02106495492414459,
+      "baseline": 0.11534687010224112,
+      "interaction_band": 0.003,
+      "interaction_gap_points": 0.0,
+      "interaction_label": "unresolved",
+      "standalone_sum_points": 0.02106495492414459
+    }
+  },
+  "mixed_candidate_eligible": false,
+  "mixed_candidate_status": {
+    "method": "mixed_sampler",
+    "reason": "no_eligible_mixed_winner",
+    "status": "omitted"
+  },
+  "omissions": [
+    {
+      "job_id": "component_tuning:standard_sampled_softmax_trial_05",
+      "method": "standard_sampled_softmax",
+      "reason": "qualified_but_not_selected_by_band_aware_rule",
+      "run_name": "g2_standard_sampled_softmax_trial_05_native50m",
+      "stage": "component_tuning"
+    },
+    {
+      "job_id": "component_tuning:standard_gbce_trial_02",
+      "method": "standard_gbce",
+      "reason": "qualified_but_not_selected_by_band_aware_rule",
+      "run_name": "g2_standard_gbce_trial_02_native50m",
+      "stage": "component_tuning"
+    },
+    {
+      "job_id": "component_tuning:matched_standard_sampled_softmax_trial_00",
+      "method": "matched_standard_sampled_softmax",
+      "reason": "qualified_but_not_selected_by_band_aware_rule",
+      "run_name": "g2_matched_standard_sampled_softmax_trial_00_native50m",
+      "stage": "component_tuning"
+    },
+    {
+      "job_id": "component_tuning:matched_standard_gbce_trial_07",
+      "method": "matched_standard_gbce",
+      "reason": "qualified_but_not_selected_by_band_aware_rule",
+      "run_name": "g2_matched_standard_gbce_trial_07_native50m",
+      "stage": "component_tuning"
+    },
+    {
+      "job_id": "component_tuning:ligr_gbce_trial_04",
+      "method": "ligr_gbce",
+      "reason": "not_qualified_for_promotion",
+      "run_name": "g2_ligr_gbce_trial_04_native50m",
+      "stage": "component_tuning"
+    },
+    {
+      "job_id": null,
+      "method": "mixed_sampler",
+      "reason": "no_eligible_mixed_winner",
+      "run_name": null,
+      "stage": "mixed_tuning"
+    }
+  ],
+  "selection_rule": "band_aware_promotion_then_recall_ndcg_cost"
+}

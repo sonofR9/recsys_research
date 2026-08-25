@@ -1,0 +1,10 @@
+version: 1
+id: g1-rq7-position-encoding
+title: Close G1 RQ7 position encoding
+description: >-
+  Implement additive and item-concatenated learned forward/reverse positions,
+  compare each with and without ALiBi, and resolve plain RoPE versus ALiBi on
+  native Yambda-500M after native learning-rate tuning and 50M debugging.
+blocked_by: []
+ideas_tags:
+  - g1-rq7
