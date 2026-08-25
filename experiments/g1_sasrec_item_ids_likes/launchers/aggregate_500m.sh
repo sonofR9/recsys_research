@@ -6,7 +6,7 @@ source "$launcher_dir/artifacts.sh" || exit 1
 repo_root=$(cd "$launcher_dir/../../.." && pwd) || exit 1
 cd "$repo_root" || exit 1
 
-stage=${G1_AGGREGATE_STAGE:-initial}
+stage=${G1_AGGREGATE_STAGE:-full_horizon}
 logs=${G1_AGGREGATE_LOGS:-$repo_root/generated/logs}
 export WANDB_MODE=${WANDB_MODE:-offline}
 export G1_DATASET_SIZE=500m
@@ -19,33 +19,23 @@ TRAINING_QUEUE_SCRIPT=$config
 source "${G1_TRAINING_QUEUE_LIBRARY:-utils/training_queue/queue.sh}" || exit 1
 
 case "$stage" in
-    initial)
+    full_horizon)
         mapfile -t candidate_rows < <(
             python - <<'PY'
-from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import initial_candidates
+from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import full_horizon_rerun_candidates
 
-for candidate in initial_candidates():
+for candidate in full_horizon_rerun_candidates():
     print(candidate.run_name)
 PY
         )
-        if [[ "${#candidate_rows[@]}" -ne 12 ]]; then
-            echo "Aggregate initial surface expected 12 runs" >&2
+        if [[ "${#candidate_rows[@]}" -ne 2 ]]; then
+            echo "Aggregate full-horizon correction expected exactly 2 runs" >&2
             exit 2
         fi
         ;;
-    recovery)
-        mapfile -t candidate_rows < <(
-            python - <<'PY'
-from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import recovery_candidates
-
-for candidate in recovery_candidates():
-    print(candidate.run_name)
-PY
-        )
-        if [[ "${#candidate_rows[@]}" -ne 8 ]]; then
-            echo "Aggregate recovery surface expected 8 runs" >&2
-            exit 2
-        fi
+    initial|recovery)
+        echo "Aggregate $stage is historical audit-only; use stage=full_horizon" >&2
+        exit 2
         ;;
     followups|bridges)
         required_output=$(
@@ -69,8 +59,8 @@ candidates = [
     for name in os.environ.get("G1_AGGREGATE_REQUIRED", "").split()
 ]
 if requested == "followups":
-    if any(candidate.stage == "initial" for candidate in candidates):
-        raise SystemExit("the exact initial surface is incomplete; use stage=initial")
+    if any(candidate.stage in {"initial", "full_horizon_rerun"} for candidate in candidates):
+        raise SystemExit("the exact full-H15 surface is incomplete; use stage=full_horizon")
     selected = [candidate for candidate in candidates if candidate.family != "bridge"]
 else:
     if any(candidate.family != "bridge" for candidate in candidates):
@@ -92,7 +82,7 @@ PY
         fi
         ;;
     *)
-        echo "G1_AGGREGATE_STAGE must be initial, recovery, followups, or bridges" >&2
+        echo "G1_AGGREGATE_STAGE must be full_horizon, followups, or bridges" >&2
         exit 2
         ;;
 esac
@@ -108,15 +98,19 @@ for run in "${candidate_rows[@]}"; do
     seen[$run]=1
     directory="$logs/$run"
     verifier_args=("G1_AGGREGATE_RUN=$run")
-    artifact_status=0
-    g1_require_config_recipe_compatible_or_absent "$directory" "$config" \
-        "${verifier_args[@]}" || artifact_status=$?
-    if [[ "$artifact_status" -eq 0 ]]; then
-        echo "=== skipped compatible $run ==="
-        skipped_count=$((skipped_count + 1))
-        continue
+    if g1_artifact_exists "$directory"; then
+        artifact_status=0
+        g1_verify_config_artifact "$directory" "$config" \
+            "${verifier_args[@]}" || artifact_status=$?
+        if [[ "$artifact_status" -eq 0 ]]; then
+            echo "=== skipped compatible $run ==="
+            skipped_count=$((skipped_count + 1))
+            continue
+        fi
+        [[ "$artifact_status" -eq 1 ]] || exit "$artifact_status"
+        echo "Refusing to replace or archive existing aggregate artifact: $directory" >&2
+        exit 2
     fi
-    [[ "$artifact_status" -eq 1 ]] || exit "$artifact_status"
     TRAINING_QUEUE_DATA_GROUP="g1-aggregate-500m-seq100" \
         enqueue "$run" "${verifier_args[@]}" || exit 1
     enqueued_count=$((enqueued_count + 1))

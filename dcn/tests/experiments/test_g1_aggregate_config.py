@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 import runpy
 from types import SimpleNamespace
 
+import pytest
 import torch
 
 from dcn.config import MuTransferGenerationExperiment
@@ -124,7 +126,7 @@ def test_aggregate_materializes_all_ten_fixed_members_at_each_selected_depth() -
         assert experiment.lr_schedule_horizon_epochs == 15
         assert experiment.num_epochs == 15
         assert not experiment.adaptive_schedule_early_stopping
-        assert experiment.create_callbacks().early_stopping is None
+        assert experiment.lr_schedule.anneals_over_horizon
 
 
 def test_full_h15_reruns_disable_adaptive_and_patience_stopping() -> None:
@@ -134,7 +136,7 @@ def test_full_h15_reruns_disable_adaptive_and_patience_stopping() -> None:
         assert experiment.num_epochs == 15
         assert experiment.lr_schedule_horizon_epochs == 15
         assert not experiment.adaptive_schedule_early_stopping
-        assert experiment.create_callbacks().early_stopping is None
+        assert experiment.lr_schedule.anneals_over_horizon
 
 
 def test_each_fixed_bridge_changes_only_its_named_member() -> None:
@@ -211,6 +213,148 @@ def test_deep_only_trace_accepts_an_exact_noncentral_embedding_lr() -> None:
     }
 
     assert verify_artifact._valid_group_lr_traces(metadata, schedule)
+
+
+@pytest.mark.parametrize(
+    ("stopped_epoch", "horizon_complete", "expected"),
+    [(15, True, True), (14, False, False)],
+)
+def test_historical_h15_verifier_requires_the_completed_declared_horizon(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    stopped_epoch: int,
+    horizon_complete: bool,
+    expected: bool,
+) -> None:
+    run_name = "historical_h15"
+    directory = tmp_path / run_name
+    directory.mkdir()
+    schedule = {"shape": "cosine"}
+    metadata = {
+        "num_epochs": 15,
+        "max_epochs": 15,
+        "epochs_trained": stopped_epoch,
+        "stopped_epoch": stopped_epoch,
+        "best_epoch": min(10, stopped_epoch),
+        "targets_per_epoch": 2,
+        "tokens_per_epoch": 3,
+        "optimizer_steps_per_epoch": 4,
+        "optimizer_steps": 4 * stopped_epoch,
+        "training_horizon": 2 * stopped_epoch,
+        "token_horizon": 3 * stopped_epoch,
+        "tokens_seen": 3 * stopped_epoch,
+        "lr_schedule_horizon_epochs": 15,
+        "lr_horizon_complete": horizon_complete,
+        "transfer_invariants": {
+            "adaptive_schedule_early_stopping": True,
+            "lr_schedule": schedule,
+        },
+    }
+    (directory / "training_metadata.json").write_text(json.dumps(metadata))
+    (directory / "final_metrics.json").write_text(
+        json.dumps({"recall@100": 0.1})
+    )
+    experiment = SimpleNamespace(
+        run_name=run_name,
+        lr_schedule_horizon_epochs=15,
+        num_epochs=15,
+        adaptive_schedule_early_stopping=False,
+    )
+    monkeypatch.setattr(
+        verify_artifact, "_config_experiment", lambda *_args: experiment
+    )
+    monkeypatch.setattr(
+        verify_artifact,
+        "_expected_metadata",
+        lambda _experiment: (
+            {"num_epochs": 15},
+            {
+                "adaptive_schedule_early_stopping": False,
+                "lr_schedule": schedule,
+            },
+        ),
+    )
+    monkeypatch.setattr(
+        verify_artifact, "has_current_generation_semantics", lambda _metadata: True
+    )
+    monkeypatch.setattr(
+        verify_artifact, "_with_legacy_accumulation_defaults", lambda metadata: metadata
+    )
+    monkeypatch.setattr(
+        verify_artifact, "_valid_group_lr_traces", lambda *_args: True
+    )
+
+    assert (
+        verify_artifact.verify_config_completed_historical_horizon(
+            directory, CONFIG, []
+        )
+        is expected
+    )
+
+
+@pytest.mark.parametrize(
+    ("stopped_epoch", "horizon_complete", "expected"),
+    [(14, True, False), (15, False, False), (15, True, True)],
+)
+def test_public_config_verifier_requires_full_nonadaptive_horizon(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    stopped_epoch: int,
+    horizon_complete: bool,
+    expected: bool,
+) -> None:
+    run_name = "current_h15"
+    directory = tmp_path / run_name
+    directory.mkdir()
+    schedule = {"shape": "cosine"}
+    invariants = {
+        "adaptive_schedule_early_stopping": False,
+        "lr_schedule": schedule,
+    }
+    metadata = {
+        "num_epochs": 15,
+        "max_epochs": 15,
+        "epochs_trained": stopped_epoch,
+        "stopped_epoch": stopped_epoch,
+        "best_epoch": min(10, stopped_epoch),
+        "early_stopped": stopped_epoch < 15,
+        "best_epoch_at_cap": False,
+        "selection_resolved": expected,
+        "lr_schedule_horizon_epochs": 15,
+        "lr_horizon_complete": horizon_complete,
+        "targets_per_epoch": 2,
+        "tokens_per_epoch": 3,
+        "optimizer_steps_per_epoch": 4,
+        "optimizer_steps": 4 * stopped_epoch,
+        "training_horizon": 2 * stopped_epoch,
+        "token_horizon": 3 * stopped_epoch,
+        "tokens_seen": 3 * stopped_epoch,
+        "transfer_invariants": invariants,
+    }
+    (directory / "training_metadata.json").write_text(json.dumps(metadata))
+    (directory / "final_metrics.json").write_text(
+        json.dumps({"recall@100": 0.1})
+    )
+    experiment = SimpleNamespace(
+        run_name=run_name,
+        adaptive_schedule_early_stopping=False,
+    )
+    monkeypatch.setattr(
+        verify_artifact, "_config_experiment", lambda *_args: experiment
+    )
+    monkeypatch.setattr(
+        verify_artifact,
+        "_expected_metadata",
+        lambda _experiment: ({"num_epochs": 15}, invariants),
+    )
+    monkeypatch.setattr(
+        verify_artifact, "has_current_generation_semantics", lambda _metadata: True
+    )
+    monkeypatch.setattr(
+        verify_artifact, "_with_legacy_accumulation_defaults", lambda value: value
+    )
+
+    assert verify_artifact.verify_config(directory, CONFIG, []) is expected
 
 
 def test_aggregate_composition_materializes_and_runs_jointly_on_cpu(

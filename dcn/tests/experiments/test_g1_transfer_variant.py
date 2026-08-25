@@ -220,7 +220,7 @@ def test_transfer_environment_is_validated(
         _load(monkeypatch, **{name: value})
 
 
-def test_artifact_horizon_uses_actual_early_stopped_epochs() -> None:
+def test_nonadaptive_annealing_rejects_an_early_stopped_horizon() -> None:
     valid = runpy.run_path(str(VERIFY_ARTIFACT))["_valid_dynamic_metadata"]
     metadata = {
         "num_epochs": 20,
@@ -241,7 +241,7 @@ def test_artifact_horizon_uses_actual_early_stopped_epochs() -> None:
         "transfer_invariants": {"lr_schedule": {"shape": "linear"}},
     }
 
-    assert valid(metadata)
+    assert not valid(metadata)
 
     metadata["training_horizon"] = 11 * 20
     metadata["token_horizon"] = 13 * 20
@@ -286,12 +286,14 @@ def test_a_spent_annealing_horizon_needs_no_early_stop() -> None:
         "best_epoch_at_cap": False,
         "selection_resolved": True,
         "lr_schedule_horizon_epochs": 20,
+        "lr_horizon_complete": True,
         "targets_per_epoch": 11,
         "tokens_per_epoch": 13,
         "training_horizon": 220,
         "token_horizon": 260,
         "tokens_seen": 260,
-        "optimizer_steps": 5,
+        "optimizer_steps": 100,
+        "optimizer_steps_per_epoch": 5,
         "validation_loss": 0.5,
         "transfer_invariants": {"lr_schedule": {"shape": "linear"}},
     }
@@ -299,7 +301,7 @@ def test_a_spent_annealing_horizon_needs_no_early_stop() -> None:
     assert valid(metadata)
 
 
-def test_a_best_epoch_past_the_annealing_horizon_is_rejected() -> None:
+def test_annealing_horizon_must_equal_the_declared_epoch_count() -> None:
     valid = runpy.run_path(str(VERIFY_ARTIFACT))["_valid_dynamic_metadata"]
     metadata = {
         "num_epochs": 40,
@@ -324,7 +326,7 @@ def test_a_best_epoch_past_the_annealing_horizon_is_rejected() -> None:
     assert not valid(metadata)
 
     metadata["best_epoch"] = 19
-    assert valid(metadata)
+    assert not valid(metadata)
 
 
 @pytest.mark.parametrize(

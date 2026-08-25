@@ -115,25 +115,25 @@
   `0.15239050098894713/0.24190484157981565/0.384`. If both coordinates are
   boundary-adjacent, add all six runs. Allow one boundary round and return for
   user review if an outer point still wins.
-- Each aggregate candidate starts with the selected RQ5 one-cycle horizon of
-  15 epochs and follows RQ5's approved from-scratch adaptive-horizon
-  calibration, with at most two corrective reruns per candidate. The scheduler
-  bridge receives the same two-correction limit. Horizon-free baseline and
-  bridge runs use an 80-epoch safety cap with patience three; an unresolved cap
-  returns for approval.
-- The approved recovery wave makes exactly two recipe-specific exceptions to
-  that limit: 6 layers at embedding/deep LR
-  `0.0468526465053628/0.032703745675187676` receives H18 after
-  H15 -> H23 -> H12, and 8 layers at
-  `0.07764674795069047/0.02484672863178322` receives H13 after
-  H15 -> H23 -> H17. No other recipe may receive a third correction.
-- Post-recovery metadata for the 6-layer lower-random recipe at H18 records
-  `best_epoch=16`, `stopped_epoch=18`, and requests H27. Continue exactly that
-  recipe through H15 -> H23 -> H12 -> H18 -> H27 as its sole fourth-correction
-  exception. Every other fourth correction remains prohibited. This is a
-  protocol-preserving small post-initial correction under the user's rule that
-  only the initial plan and initial corrections require approval; subsequent
-  small corrections do not require repeated approval.
+- Every aggregate candidate and the scheduler bridge use the declared
+  one-cycle H15 horizon, train all 15 epochs without an early-stopping
+  callback, restore the best validation epoch within that completed horizon,
+  and never trigger adaptive horizon correction. A historical H15 artifact is
+  selection-eligible only when its metadata proves
+  `stopped_epoch == epochs_trained == lr_schedule_horizon_epochs == 15` and
+  `lr_horizon_complete == true`; the dormant historical adaptive flag may be
+  true. Horizon-free baseline and bridge runs retain their 80-epoch safety cap
+  and patience-three stopping rule.
+- Before any further selection, rerun exactly two incomplete H15 recipes under
+  the corrected full-horizon method: 6 layers at embedding/deep LR
+  `0.064/0.048`, and 8 layers at
+  `0.0468526465053628/0.032703745675187676`. Their run names explicitly contain
+  `full_horizon_rerun`. Only these two runs are in the pre-selection launcher
+  and report requirement.
+- Historical audit only: earlier adaptive work produced H13, H18, H27, and
+  other H12/H17/H19/H23 corrections. All raw directories and names remain
+  immutable evidence, but corrections are excluded from current selection and
+  cannot supersede, block, or request another run.
 - Select the aggregate by validation Recall@100, then same-epoch NDCG@100,
   then stable run name. Report the restored best checkpoint's full-user
   metrics.
@@ -149,21 +149,16 @@
   native-500M single-run noise bands. Run ten fixed-member one-factor bridges
   against the frozen baseline. After aggregate selection freezes one of 4, 6,
   or 8 layers, run that selected depth as the eleventh bridge.
-- Initial native-500M budget: three baseline candidates, ten fixed-member
-  bridges, nine aggregate candidates (three optimizer pairs at each depth),
-  and one selected-depth bridge: 23 runs.
-- The baseline boundary adds at most three configurations. Per-depth aggregate
-  local and boundary stages add at most 27 configurations across the three
-  depths. Including at most two horizon corrections for each of the 36 possible
-  aggregate tuning configurations and the scheduler bridge, the approved
-  envelope plus the two approved recipe-specific third corrections and the
-  single metadata-requested fourth correction is at most 130 launched runs.
-  The recovery launcher contains exactly those two new
-  corrections, the already-approved lower baseline boundary, and the
-  already-approved 4-layer second-random-winner local surface: eight runs in
-  total, six of which were already inside the earlier envelope. An
-  unresolved safety cap, horizon, or extended boundary returns for approval.
-  Any new treatment, dataset, metric rule, or tuning axis also does.
+- Twenty-nine historical configurations have already been launched. The
+  corrected pre-selection wave adds exactly two, for 31 launched artifacts
+  after it completes. The maximum conditional envelope is 66: the 11 immutable
+  historical corrections already present, plus at most 55 current-protocol
+  configurations (six baseline, nine original aggregate, two full-H15 reruns,
+  up to nine local, up to eighteen optimizer-boundary, and eleven bridge
+  configurations). No adaptive horizon extension is part of this envelope.
+  An unresolved horizon-free safety cap or extended optimizer boundary returns
+  for approval. Any new treatment, dataset, metric rule, or tuning axis also
+  does.
 - Submit granular jobs to the existing persistent training queue without GPU
   exclusions. The service may fill all admitted GPUs in parallel.
 - Existing sequence caches may be reused only after their metadata matches the
@@ -192,9 +187,14 @@
 - Material choices requiring approval: the exact eleven-member manifest, the
   RQ9 numerical-Recall conflict rule, the original-model baseline
   reconstruction, the per-depth aggregate joint-LR surface, reuse of the
-  single-run bands, the 23-run initial budget, and the 130-run maximum
+  single-run bands, the 23-run initial budget, and the current 66-run maximum
   conditional envelope.
-- User approval: approved with corrections on 2026-08-25. The exact recovery
-  wave and revised 129-run maximum envelope were approved on 2026-08-26. The
-  metadata-requested H27 continuation raises the protocol envelope to 130 under
-  the user's standing rule for small post-initial corrections.
+- Historical audit: the initial plan was approved with corrections on
+  2026-08-25; the recovery wave and then H27 continuation were approved on
+  2026-08-26 under the former adaptive method. Those approvals explain the
+  preserved artifacts but are superseded for current selection by the
+  methodology correction below.
+- Methodology correction approved on 2026-08-26: completed H15 replaces
+  adaptive horizon calibration for current selection; exactly two full-H15
+  reruns precede selection; historical correction artifacts remain audit-only;
+  the current actual/planned count is 29/31 and the revised maximum is 66.

@@ -9,7 +9,6 @@ import re
 from typing import Any, Iterable
 
 from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import (
-    ApprovalRequired,
     AggregateCandidate,
     aggregate_boundary_candidates,
     aggregate_local_candidates,
@@ -17,11 +16,11 @@ from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import (
     bridge_candidates,
     candidate_by_run,
     initial_candidates,
-    make_horizon_correction,
+    selection_initial_candidates,
 )
 from experiments.g1_sasrec_item_ids_likes.launchers.verify_artifact import (
     verify_config,
-    verify_config_recipe,
+    verify_config_completed_historical_horizon,
 )
 
 
@@ -63,10 +62,11 @@ class AggregateReportBundle:
 def build_report_bundle(
     runs: Iterable[AggregateRun], *, forced_followups: Iterable[str] = ()
 ) -> AggregateReportBundle:
-    run_list = list(runs)
+    run_list = [run for run in runs if run.candidate.correction == 0]
     _require_unique_runs(run_list)
     followups = list(dict.fromkeys(forced_followups))
     by_recipe = _by_recipe(run_list)
+    selection_initial = selection_initial_candidates()
 
     if followups:
         planned_recipes = {
@@ -74,18 +74,18 @@ def build_report_bundle(
         }
         followups.extend(
             candidate.run_name
-            for candidate in initial_candidates()
+            for candidate in selection_initial
             if _recipe_key(candidate) not in by_recipe
             and _recipe_key(candidate) not in planned_recipes
         )
         return _pending(run_list, followups)
 
-    missing_initial = _missing(initial_candidates(), by_recipe)
+    missing_initial = _missing(selection_initial, by_recipe)
     if missing_initial:
         followups.extend(candidate.run_name for candidate in missing_initial)
         return _pending(run_list, followups)
 
-    baseline_surface = _available(initial_candidates()[:3], by_recipe)
+    baseline_surface = _available(selection_initial[:3], by_recipe)
     baseline = _select(baseline_surface)
     baseline_boundaries = baseline_boundary_candidates(baseline.candidate)
     missing_baseline_boundaries = _missing(baseline_boundaries, by_recipe)
@@ -100,12 +100,17 @@ def build_report_bundle(
 
     selected_by_depth: list[AggregateRun] = []
     for depth in (4, 6, 8):
+        selection_depth = tuple(
+            candidate
+            for candidate in selection_initial
+            if candidate.family == "aggregate" and candidate.num_layers == depth
+        )
         initial_depth = tuple(
             candidate
             for candidate in initial_candidates()
             if candidate.family == "aggregate" and candidate.num_layers == depth
         )
-        surface = _available(initial_depth, by_recipe)
+        surface = _available(selection_depth, by_recipe)
         winner = _select(surface)
         local = aggregate_local_candidates(
             _surface_candidate(winner, initial_depth)
@@ -161,7 +166,6 @@ def build_report_bundle(
 
 def collect_report_bundle(logs: Path) -> AggregateReportBundle:
     runs: list[AggregateRun] = []
-    unresolved: dict[tuple[Any, ...], tuple[Path, AggregateCandidate]] = {}
     if not logs.exists():
         return build_report_bundle(runs)
     for directory in sorted(logs.glob("g1_aggregate_*_500m")):
@@ -171,99 +175,26 @@ def collect_report_bundle(logs: Path) -> AggregateReportBundle:
             candidate = candidate_by_run(directory.name)
         except ValueError:
             continue
+        if candidate.correction != 0:
+            continue
         assignment = [f"G1_AGGREGATE_RUN={candidate.run_name}"]
-        if verify_config(directory, _CONFIG, assignment):
+        if verify_config(directory, _CONFIG, assignment) or (
+            _historical_h15_candidate(candidate)
+            and verify_config_completed_historical_horizon(
+                directory, _CONFIG, assignment
+            )
+        ):
             runs.append(_load_run(directory, candidate))
-            continue
-        if verify_config_recipe(directory, _CONFIG, assignment):
-            key = _recipe_key(candidate)
-            previous = unresolved.get(key)
-            if previous is None or candidate.correction > previous[1].correction:
-                unresolved[key] = (directory, candidate)
-    highest_valid_correction: dict[tuple[Any, ...], int] = {}
-    for run in runs:
-        key = _recipe_key(run.candidate)
-        highest_valid_correction[key] = max(
-            highest_valid_correction.get(key, -1), run.candidate.correction
-        )
-    higher_unresolved = {
-        key
-        for key, (_, candidate) in unresolved.items()
-        if candidate.correction > highest_valid_correction.get(key, -1)
-    }
-    excluded_recipes: set[tuple[Any, ...]] = set()
-    selection_runs = list(runs)
-    while True:
-        preliminary = build_report_bundle(selection_runs)
-        newly_active = (
-            _active_recipe_keys(preliminary) & higher_unresolved
-        ) - excluded_recipes
-        if not newly_active:
-            break
-        excluded_recipes.update(newly_active)
-        selection_runs = [
-            run
-            for run in runs
-            if _recipe_key(run.candidate) not in excluded_recipes
-        ]
-    required_recipes = {
-        _recipe_key(candidate_by_run(run_name))
-        for run_name in preliminary.evidence["required_followups"]
-    }
-    forced_followups = []
-    approval_required = []
-    for key, (directory, candidate) in unresolved.items():
-        if key not in required_recipes:
-            continue
-        try:
-            forced_followups.append(
-                _correction_for(directory, candidate).run_name
-            )
-        except ApprovalRequired as error:
-            approval_required.append(
-                {"run": candidate.run_name, "reason": str(error)}
-            )
-    if approval_required:
-        return _with_approval_required(preliminary, approval_required)
-    return (
-        build_report_bundle(selection_runs, forced_followups=forced_followups)
-        if forced_followups
-        else preliminary
-    )
+    return build_report_bundle(runs)
 
 
-def _active_recipe_keys(bundle: AggregateReportBundle) -> set[tuple[Any, ...]]:
-    names = list(bundle.evidence["required_followups"])
-    for field in ("selected_baseline", "selected_aggregate"):
-        selected = bundle.evidence.get(field)
-        if selected is not None:
-            names.append(selected["run"])
-    names.extend(
-        bridge["run"] for bridge in bundle.evidence.get("bridges", ())
-    )
-    return {_recipe_key(candidate_by_run(run_name)) for run_name in names}
-
-
-def _with_approval_required(
-    bundle: AggregateReportBundle, issues: list[dict[str, str]]
-) -> AggregateReportBundle:
-    evidence = {
-        **bundle.evidence,
-        "claims_status": "approval_required",
-        "required_followups": [],
-        "approval_required": issues,
-    }
-    reasons = "\n".join(
-        f"- `{issue['run']}`: {issue['reason']}" for issue in issues
-    )
-    return AggregateReportBundle(
-        reader_markdown=(
-            "## Aggregated improvement\n\n"
-            "Approval is required before further horizon correction.\n\n"
-            f"{reasons}\n"
-        ),
-        tuning_markdown=bundle.tuning_markdown,
-        evidence=evidence,
+def _historical_h15_candidate(candidate: AggregateCandidate) -> bool:
+    return candidate.horizon_epochs == 15 and (
+        candidate.family == "aggregate"
+        and candidate.stage in {"initial", "local", "optimizer_boundary"}
+        or candidate.family == "bridge"
+        and candidate.member == "scheduler"
+        and candidate.stage == "bridge"
     )
 
 
@@ -557,18 +488,6 @@ def _best_epoch_metrics(directory: Path, best_epoch: int) -> tuple[float, float]
             f"{directory.name}: missing or conflicting best-epoch validation metrics"
         )
     return values[0]
-
-
-def _correction_for(directory: Path, candidate: AggregateCandidate) -> AggregateCandidate:
-    metadata = _load_json(directory / "training_metadata.json")
-    if not isinstance(metadata, dict):
-        raise AggregateReportError(f"{candidate.run_name}: malformed metadata")
-    if candidate.horizon_epochs is None:
-        raise ApprovalRequired(f"{candidate.run_name}: safety cap did not resolve")
-    horizon = metadata.get("next_lr_schedule_horizon_epochs")
-    if not isinstance(horizon, int) or isinstance(horizon, bool) or horizon < 1:
-        raise ApprovalRequired(f"{candidate.run_name}: horizon did not resolve")
-    return make_horizon_correction(candidate, horizon)
 
 
 def _metric(metrics: dict[str, Any], name: str, context: str) -> float:

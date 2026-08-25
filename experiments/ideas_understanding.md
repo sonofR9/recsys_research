@@ -44,27 +44,14 @@ useful proxies, even though the downstream target metric selects treatments.
 
 ### Common acceptance contract
 
-Acceptance means that an RQ has produced a defensible comparative answer, not
-merely that its arms ran. Each RQ below names its control and decision rule.
-Unless it says otherwise:
-
-- promote a quality treatment only when its primary downstream metric improves
-  over the named control beyond the dataset-size empirical band;
-- accept an efficiency treatment only when primary quality is not worse beyond
-  the band and at least one declared resource metric improves measurably;
-- treat a delta inside the band as a resolved null result, not a gain; and
-- reject a treatment that is worse beyond the band, while retaining the result
-  as a valid negative finding once the regression is explained.
-
-A negative or surprising null result is acceptance-ready only after focused
-invariants prove that the treatment was active, the comparison was matched,
-the hyperparameter optimum was not left on a search boundary, training reached
-its valid stopping condition and restored its best checkpoint, and learning
-curves plus relevant data/model slices identify a plausible mechanism. Rerun
-matched controls or seeds when those checks cannot distinguish a real effect
-from instability. Every report states the comparative decision—promote,
-trade-off, no detectable effect, reject, or blocked—and includes the evidence
-required by its RQ-specific acceptance paragraph.
+An RQ is accepted when every planned arm is implemented, trained to the valid
+stopping condition, evaluated, and reported with a decision. Recall@100 against
+the named control and the size-matched empirical band decides quality: above is
+an improvement, inside is a null, and below is a regression. Non-inferiority
+selects a treatment only for an explicitly stated efficiency trade-off.
+Regressions and surprising nulls require focused correctness checks and a short
+analysis. All standard evidence and reporting rules in `experiments/AGENTS.md`
+still apply.
 
 ## 1. SASRec over item IDs and likes
 
@@ -90,12 +77,8 @@ with the unchanged control and strongest individual treatment. Report the sum
 of isolated gains beside the measured joint gain and analyze destructive or
 synergistic interactions.
 
-**Acceptance.** Select the combination only if Recall@100 exceeds the strongest
-qualifying individual treatment beyond the native-500M band; otherwise retain
-that individual and report a null or regression. Compare its measured gain with
-the approved sum of non-overlapping component gains. A shortfall beyond the
-interaction-resolution band requires component-removal runs plus compatibility,
-convergence, and tuning-boundary analysis.
+**Acceptance.** Compare the combination with the strongest included individual
+treatment. Also report its interaction gap against the sum of component gains.
 
 ### RQ3 — What is the best quality/performance balance?
 
@@ -108,12 +91,9 @@ accelerator memory, and parameter count. Remove dominated points, then select a
 cheaper configuration under an explicit maximum recall loss. The selected point
 must be a complete configuration and is retuned as such.
 
-**Acceptance.** The selected point must be Pareto-nondominated against all
-eligible complete configurations. A cheaper point qualifies only when
-Recall@100 is non-inferior to the maximum-quality configuration within the band
-and at least one of epoch time, full-catalog latency, peak memory, or parameters
-improves beyond repeated-measurement dispersion. If none qualifies, retain the
-maximum-quality configuration and report the absence of a useful trade-off.
+**Acceptance.** Select a Pareto-nondominated point. A cheaper point must be
+Recall@100-non-inferior to the maximum-quality configuration and improve at
+least one declared resource metric.
 
 ### RQ10 — Do per-layer item embeddings help?
 
@@ -127,15 +107,9 @@ wider/deeper control. Tune the treatment family fairly and report quality,
 total parameters, active accelerator parameters, lookup bandwidth, memory, and
 latency. Reference: [Gemma PLE](https://ai.google.dev/gemma/docs/gemma-3n).
 
-**Acceptance.** Attribute a quality gain to per-layer embeddings only if
-Recall@100 exceeds both the shared-table control and parameter-matched
-wider/deeper control beyond the band; beating only the smaller control is a
-capacity result. A trade-off qualifies only with recall non-inferiority and a
-cost improvement beyond measurement dispersion. Nulls or regressions require
-tests of layer-table independence/gradient flow and analysis of lookup use,
-bandwidth, memory, convergence, and tuning boundaries. Until the
-parameter-matched control and those diagnostics exist, leave the mechanism
-unresolved even if a smaller-control comparison has completed.
+**Acceptance.** A PLE gain must beat both the shared-table and
+parameter-matched capacity controls. Beating only the smaller control is a
+capacity result, not evidence for PLE.
 
 ### Dataset-size RQ — Does scale change the maximum-quality G1 gain?
 
@@ -149,12 +123,9 @@ configuration and homework baseline. Recalibrate both optimizer groups at each
 size, retain the same architectural treatment definition, and compare
 `delta_50M` with `delta_500M`. This is distinct from RQ1's μP transfer question.
 
-**Acceptance.** Compute treatment-minus-baseline Recall@100 deltas independently
-at 50M and 500M and compare their difference with a predeclared combined
-resolution from the two size-specific bands. Claim a scale interaction only
-beyond that resolution; otherwise conclude that the gain is stable within
-measurement resolution. A sign reversal or boundary case requires seed,
-tuning-boundary, catalog-slice, and protocol-equivalence analysis.
+**Acceptance.** Compare treatment-minus-baseline Recall@100 at both sizes.
+Claim a scale effect only when the two deltas differ beyond their combined
+resolution.
 
 ## 2. eSASRec
 
@@ -185,18 +156,9 @@ eSASRec model, tuning mixture and logQ rather than confounding the factorial.
 Match capacity and report quality, coverage, time, memory, and latency.
 References: [paper](https://arxiv.org/abs/2508.06450) and [RecTools](https://github.com/MTSWebServices/RecTools).
 
-**Acceptance.** Official and local forward, loss, and gradient tensors must
-agree within predeclared dtype-specific numerical tolerance, and reproduced
-official metrics must lie inside their repeat-derived band before local results
-are eligible. Claim eSASRec improvement only when selected eSASRec Recall@100
-beats the G1-derived control beyond the band. Resolve LiGR versus standard
-blocks at the same loss and matched capacity, and gBCE versus sampled softmax at
-the same block family. Resolve mixture logQ only against an otherwise identical
-same-fraction uncorrected arm. Promote each component only for a Recall@100 gain
-beyond its paired band; a tied model needs non-inferior recall and a measurable
-resource gain. Nulls or regressions require convergence, loss-scale,
-proposal/logQ, coverage, capacity, and interaction analysis without
-double-counting sampled softmax.
+**Acceptance.** Pass parity against the official implementation. Report matched
+effects for LiGR, loss type, sampler mixture, and logQ, then compare the selected
+eSASRec system with the G1 control.
 
 ## 3. Pretrained item embeddings
 
@@ -221,13 +183,8 @@ vector followed by a learned projection to model width. Keep the learned
 item-ID output target fixed. Tune the projection and model rates, match active
 capacity where possible, and report overall plus item-frequency slices.
 
-**Acceptance.** Classify content-only input as improvement, null, or regression
-from its Recall@100 delta against the learned item-ID control and the empirical
-band. Select it overall only after a band-exceeding gain; a slice-specialist
-claim additionally requires aggregate non-inferiority and a predeclared
-frequency-slice gain beyond its control-derived band. Nulls or regressions
-require coverage, missing-vector, norm, head/mid/tail, convergence, and resource
-analysis after frozen-vector and projection-gradient tests pass.
+**Acceptance.** Compare content-only input with learned item IDs. Report overall
+and head/mid/tail results; a slice-only win requires aggregate non-inferiority.
 
 ### RQ2 — Does concatenating content and item ID help?
 
@@ -240,13 +197,8 @@ item-ID input and a proposed parameter-matched item-ID-only DenseNet control.
 Keep the learned item-output target fixed. Tune encoder capacity and relevant
 rates without changing the negative objective.
 
-**Acceptance.** Attribute complementarity to content only when concatenation
-beats the parameter-matched item-ID-only DenseNet control beyond the Recall@100
-band and does not regress against the unchanged item-ID control. Beating only
-the unchanged control is an encoder/capacity result. A tied treatment qualifies
-only with recall non-inferiority and a resource or predeclared slice improvement
-beyond its measurement band; otherwise retain the simpler control after
-projection-use, slice, convergence, and boundary analysis.
+**Acceptance.** Concatenation must beat both the unchanged item-ID model and the
+parameter-matched item-ID-only encoder to establish content complementarity.
 
 ### RQ3 — Which prediction embedding is best?
 
@@ -271,13 +223,9 @@ Match final output dimension and normalization, and give each family the same
 tuning budget. This separates target identity, initialization, and whether the
 content component remains frozen.
 
-**Acceptance.** Replace the randomly initialized learned item-output table only
-when a candidate's Recall@100 gain exceeds the band; a cheaper target may
-qualify with recall non-inferiority and resource savings beyond dispersion.
-Paired contrasts must separately resolve target type, pretrained
-initialization, and freezing. Nulls or regressions require dimension/freeze and
-full-catalog tests plus score-scale, normalization, trainable-copy drift,
-frequency-slice, convergence, and tuning-boundary analysis.
+**Acceptance.** Compare every output target with the learned item-output table.
+Use paired contrasts to separate target type, pretrained initialization, and
+freezing.
 
 ### Dataset-size RQ — Does scale change the content benefit?
 
@@ -291,13 +239,9 @@ at both sizes. Rebuild mapped content tables and tune both families fairly
 inside each size. Compare overall, head/mid/tail, and low-history treatment
 deltas; do not reselect a different G3 treatment on 500M.
 
-**Acceptance.** Compare the frozen treatment-minus-item-ID Recall@100 deltas
-between 50M and 500M using combined size-specific resolution. Claim a scale
-effect only when that delta difference exceeds the combined resolution;
-otherwise report no detectable interaction. Overall and head/mid/tail or
-low-history conclusions must agree or the report must explain their
-disagreement through content coverage, catalog composition, slice weighting,
-convergence, and tuning boundaries without reselecting the treatment at 500M.
+**Acceptance.** Compare the selected treatment's Recall@100 gain over item IDs
+at both sizes. Claim a scale effect only when the two gains differ beyond their
+combined resolution.
 
 ## 4. Predicting future items during training
 
@@ -322,13 +266,8 @@ the number of prefix-positive
 pairs and optimizer budget to the next-item control. Report aggregate metrics
 and recall by temporal distance. Reference: [PinnerFormer](https://arxiv.org/abs/2205.04507).
 
-**Acceptance.** The 24-hour objective helps only if final Recall@100 exceeds the
-matched next-item control beyond the band; a within-band delta is a null and a
-negative beyond-band delta rejects it. A temporal-slice benefit is reportable
-only with aggregate non-inferiority and a slice gain beyond its control-derived
-band. Nulls or regressions require strict-future/window and negative-mask tests
-plus temporal-distance, activity, multiplicity, coverage, and convergence
-analysis.
+**Acceptance.** Compare the 24-hour objective with next-item training. Report
+results by target distance and user activity.
 
 ### RQ2 — Does a next-event-count window help?
 
@@ -340,13 +279,8 @@ keeping prefix sampling and total positive-pair budget matched. The source asks
 for 10; smaller `k` values are optional diagnostics, not required treatments.
 Compare with next-item and 24-hour objectives under the same evaluator.
 
-**Acceptance.** Select next-10-events only when Recall@100 exceeds both
-next-item and 24-hour controls beyond the band; otherwise retain the strongest
-non-regressing control. A specialist conclusion requires aggregate
-non-inferiority and a predeclared activity-rate slice gain beyond its band.
-Nulls or regressions require exact-next-events and negative-mask tests plus
-activity-rate, temporal-distance, target-overlap, multiplicity, and convergence
-analysis.
+**Acceptance.** Compare next-10-events with both next-item and 24-hour training.
+Report results by target distance and user activity.
 
 ### RQ3 — Can behavior-similar periods define better positives?
 
@@ -382,13 +316,9 @@ before recommender training if the classifier does not beat the deterministic
 selectors on held-out period-pair ranking or if materializing its positives is
 outside the approved runtime budget.
 
-**Acceptance.** Advance the classifier only if held-out period ranking beats
-the best deterministic selector beyond its repeat-derived band and
-materialization stays within the approved relative runtime budget. The selected
-period treatment wins only if downstream Recall@100 beats next-item and the
-best fixed-window control beyond the recommendation band. Otherwise reject it
-after leakage tests and selector-rank/recall, positive-overlap/diversity,
-distance/activity, and runtime analysis.
+**Acceptance.** The learned selector must beat the best deterministic selector,
+and its downstream model must beat next-item and the best fixed-window control.
+Report selector quality and materialization cost.
 
 ## 5. Likes and listens with action tokens
 
@@ -413,13 +343,9 @@ likes+listens history. Repeat symmetrically for listens. Keep the target head,
 loss, and evaluation fixed within each pair. This produces two transfer deltas:
 listens→likes and likes→listens.
 
-**Acceptance.** Resolve listens→likes and likes→listens independently against
-their target-only controls; joint history is promoted for a direction only
-after a target Recall@100 gain beyond its band. A trade-off requires target
-non-inferiority and a resource benefit beyond dispersion; macro averaging may
-not hide negative transfer. Nulls or regressions require chronology/merge tests
-and history-length, activity, action-overlap, attention-use, convergence, and
-cost analysis.
+**Acceptance.** Compare each cross-action history direction with its target-only
+control. Report likes and listens separately; averaging may not hide negative
+transfer.
 
 ### RQ2 — Does jointly predicting likes and listens help?
 
@@ -431,12 +357,8 @@ one shared encoder and two task heads. Tune the loss weight, compare shared and
 task-specific output projections under matched budgets, and report both target
 deltas against their corresponding single-task control.
 
-**Acceptance.** A joint model is a quality winner only when neither action's
-Recall@100 regresses beyond its band and at least one improves beyond its band.
-If both are merely non-inferior, selection requires a serving or training cost
-saving beyond dispersion. Otherwise keep separate models after head-routing and
-mask tests plus loss-boundary, gradient-conflict, calibration, per-action, and
-convergence analysis.
+**Acceptance.** The joint model must improve at least one action without
+regressing the other. Compare it with both single-task controls.
 
 ### RQ3 — Are explicit `<action>` and `<item>` tokens needed?
 
@@ -449,13 +371,9 @@ single item event carrying an action embedding and, if desired, action-specific
 item tokens. Match visible event history and transformer capacity. Report raw
 token length and latency in addition to per-action quality.
 
-**Acceptance.** Prefer compact single-event serialization when like and listen
-Recall@100 are both non-inferior and token count or latency improves beyond
-dispersion. Prefer explicit typing for quality only when at least one action
-improves beyond its band without beyond-band harm to the other. If both quality
-and cost are indistinguishable, report a null; regressions require equal-history
-and causal tests plus truncation, action-confusion, position, and representation
-use analysis.
+**Acceptance.** Compare explicit tokens with compact event encoding. Prefer the
+compact form when quality is non-inferior and sequence length or latency is
+better.
 
 ### RQ4 — Does request-conditioned interleaving help?
 
@@ -498,14 +416,9 @@ is a deliberately non-production control: it tests whether enriched item events
 and multi-task prediction beat the special-token interface, not whether they
 support a serving request protocol.
 
-**Acceptance.** A request-conditioned system qualifies only if requested-like,
-requested-listen, and ordinary next-item recall do not regress beyond their
-bands and at least one improves beyond its band; alternatively all must be
-non-inferior with a cost saving beyond dispersion. The offline enriched-event
-model is selected only as an offline baseline under the same metric rule, not
-as a production interface. Nulls or regressions require mask/target tests and
-block-mixture, gradient-conflict, calibration, oracle, slice, and latency
-analysis.
+**Acceptance.** Request conditioning must improve at least one requested task
+without regressing the others. Evaluate the offline enriched-event model by the
+same rule, but label it non-production.
 
 ### RQ4.1 — How should action and item tokens be aggregated?
 
@@ -516,12 +429,8 @@ from `DenseNet(concat(action_embedding, item_embedding))`. Keep the same event
 history and request/target grammar. BPE is not assumed to solve this comparison;
 it can be studied later as a separate serializer.
 
-**Acceptance.** Select the aggregated event vector only when both action recalls
-are non-inferior and sequence length, memory, or latency improves beyond
-dispersion; select expanded tokens for quality only after a band-exceeding gain
-on one action without harm to the other. If quality and costs stay within their
-bands, report no detectable difference. Regressions require equal-access tests
-and truncation, representation-use, action-confusion, and latency profiling.
+**Acceptance.** Prefer aggregation when both action metrics are non-inferior and
+sequence length, memory, or latency improves; otherwise select by quality.
 
 ### RQ4.2 — Which auxiliary losses are needed?
 
@@ -533,13 +442,8 @@ and next-item plus interaction-type loss. Tune the joint weight and report both
 item retrieval and action classification. Do not add an interaction-only arm:
 without an item objective it cannot answer the recommendation question.
 
-**Acceptance.** The no-auxiliary-loss arm is the control. The auxiliary action
-loss helps recommendation only when item Recall@100 improves beyond its band
-without beyond-band harm to either action. It may be retained as a multi-task
-trade-off when recall is non-inferior and action classification or calibration
-improves beyond its repeat-derived band. Otherwise reject it after loss-mask
-tests and weight-boundary, gradient-conflict, calibration, per-action, and
-convergence analysis.
+**Acceptance.** Compare with no auxiliary loss. Keep the auxiliary loss only if
+item retrieval improves, or stays non-inferior while action prediction improves.
 
 ### RQ4.3 — Additional ablation
 
@@ -555,13 +459,9 @@ length, and whether intermediate request tokens alter the opposite action's
 transfer. This is a proposed completion of the blank RQ, not an interpretation
 of a treatment already specified in `ideas.md`.
 
-**Acceptance.** Per-target request placement helps only if one action recall
-improves beyond its band and the other does not regress; query-only placement is
-preferred when both are non-inferior and its token or latency saving exceeds
-dispersion. If quality and cost deltas are all within their bands, report no
-detectable placement effect. Regressions require position/mask tests plus
-opposite-action transfer, truncation, attention-to-request, calibration, and
-leakage analysis.
+**Acceptance.** Compare per-target with query-only request placement. Per-target
+placement must improve one action without regressing the other; otherwise
+prefer the cheaper query-only form.
 
 ## 6. RQ-KMeans semantic IDs in history
 
@@ -594,12 +494,9 @@ expanded forms truncate by history-item count and keep the same items visible.
 Tune SID parameters and representation capacity separately for every family
 under one fixed collision-resolution policy; RQ2/RQ3 later reopen that policy.
 
-**Acceptance.** Compare every independently tuned SID representation with the
-learned item-ID history control. Promote one only through a Recall@100 gain
-beyond the band, or through non-inferior recall plus a sequence-length, memory,
-or latency improvement beyond dispersion; otherwise retain item IDs. Nulls or
-regressions require alignment/truncation/mask tests and analysis by history
-length, collision bucket, and item popularity with full SID diagnostics.
+**Acceptance.** Compare every tuned SID representation with learned item-ID
+history. A representation may also win on efficiency when recall is
+non-inferior.
 
 ### RQ1 — How should SID embeddings be initialized?
 
@@ -613,12 +510,9 @@ under equal budgets and report convergence plus final quality. If the RQ0
 winner has no trainable SID lookup, use the strongest applicable representation
 for this initialization RQ without replacing the RQ0 winner.
 
-**Acceptance.** Random initialization is the control. Select content/codebook
-initialization if final Recall@100 improves beyond the band, or if recall is
-non-inferior and time-to-best validation improves beyond run-time dispersion;
-early convergence alone is otherwise diagnostic. Nulls or regressions require
-artifact/scale/trainability tests plus learning-curve, update-norm, collision,
-and popularity analysis.
+**Acceptance.** Compare content/codebook initialization with random
+initialization. Faster convergence counts only when final recall is
+non-inferior.
 
 ### RQ2 — What is the best collision-resolution-token setup?
 
@@ -635,12 +529,9 @@ memory, and latency as diagnostics. Apply the `2^13` maximum to every level,
 including the collision-resolution level/symbols, for an approximately
 `2^20`-item catalog.
 
-**Acceptance.** Replace the fixed collision-token reference only when a tuned
-configuration improves Recall@100 beyond the band, or is non-inferior while
-using measurably less vocabulary, memory, or latency. If none qualifies, retain
-the reference. Nulls or regressions require deterministic uniqueness and symbol-
-limit tests plus load, collision-bucket, tail-recall, memory, and latency
-analysis.
+**Acceptance.** Compare every tuned collision-token configuration with the
+fixed reference. A simpler configuration may win with non-inferior recall and
+lower vocabulary, memory, or latency.
 
 ### RQ3 — What happens without collision resolution?
 
@@ -656,12 +547,8 @@ its bucket. Select on downstream item recall and report the same intrinsic,
 collision-bucket, memory, and latency diagnostics so the independently selected
 with/without-collision setups can be compared.
 
-**Acceptance.** Compare the independently tuned no-collision system with the
-independently tuned RQ2 collision winner. Prefer no collision only after a
-Recall@100 gain beyond the band, or non-inferior recall with a measurable
-vocabulary, memory, or latency benefit; otherwise retain collision resolution.
-Nulls or regressions require ambiguous-tuple/full-catalog tests and bucket-size,
-tail, load, and latency analysis.
+**Acceptance.** Compare independently tuned systems with and without collision
+resolution. No-collision may win on efficiency only with non-inferior recall.
 
 ### Dataset-size RQ — Does scale change the SID-history gain?
 
@@ -673,12 +560,9 @@ RQ-KMeans natively and retune baseline/treatment at each size. Compare against
 the learned item-ID history baseline, including changes in ICR, load, collision
 distribution, tail recall, and treatment delta.
 
-**Acceptance.** Resolve the SID-history gain separately at each size against its
-size-local item-ID control. Claim a scale interaction only when the difference
-between treatment deltas exceeds the preapproved combined resolution; otherwise
-report no detectable scale effect. Nulls, reversals, or slice disagreement
-require artifact-isolation tests and catalog, load, collision, truncation,
-frequency-slice, and cost analysis at both sizes.
+**Acceptance.** Compare SID-history gain over item-ID history at both sizes.
+Claim a scale effect only when the two gains differ beyond their combined
+resolution.
 
 ## 7. Semantic-ID generation
 
@@ -711,12 +595,8 @@ the SID autoregressively. Match active parameters, history items, target tokens,
 beam width, and training budget. Use item IDs in encoder history as the initial
 explicit control.
 
-**Acceptance.** Decoder-only is the control. Select encoder-decoder only after a
-Recall@100 gain beyond the band, or non-inferior recall with a measurable
-training/serving resource advantage; otherwise retain decoder-only. Nulls or
-regressions require causal-boundary, leakage, parameter, and decoding-equivalence
-tests plus beam-survival, branching, history-length, and cost analysis with SID
-diagnostics.
+**Acceptance.** Compare encoder-decoder with matched decoder-only generation.
+An efficiency win requires non-inferior recall.
 
 ### RQ2 — How should the encoder describe history?
 
@@ -731,12 +611,8 @@ representation. Then give each representation an equal independent tokenizer
 search over levels, per-level codebook sizes, and RQ-KMeans parameters; these
 tuned-system runs determine the final answer.
 
-**Acceptance.** The projected SID event is the reference. Select SID+item-ID or
-per-level tokens only if the independently tuned system beats it beyond the
-Recall@100 band, or is non-inferior with a measurable resource benefit. Shared-
-tokenizer and independently tuned conclusions must agree or their reversal must
-be explained through sequence length, representation–tokenizer interaction,
-collision/load, and target-survival analysis.
+**Acceptance.** Compare all three history representations. Independently tuned
+systems decide; the shared-tokenizer comparison only explains the result.
 
 ### RQ3 — Causal or bidirectional encoder?
 
@@ -748,11 +624,8 @@ forbids.
 architecture. Keep query extraction, positions, decoder, and history identical.
 Verify that neither mask can see target SID tokens.
 
-**Acceptance.** The causal encoder is the control. Select bidirectional history
-attention only if Recall@100 improves beyond the band, or is non-inferior with a
-measurable resource benefit; otherwise retain causal attention. Nulls or
-regressions require exact-mask/leakage tests and history-length, attention-
-distance, prefix-depth, and beam-survival analysis.
+**Acceptance.** Compare bidirectional with causal history attention under the
+same encoder-decoder setup.
 
 ### RQ4 — Does next-item encoder pretraining help?
 
@@ -764,11 +637,8 @@ prediction using training data only, then fine-tune the whole generator. Compare
 with scratch under matched final-stage budgets. A frozen-encoder arm is a
 proposed diagnostic, not a source requirement.
 
-**Acceptance.** Scratch training is the control. Promote pretraining only when
-Recall@100 improves beyond the band; an efficiency claim requires non-inferior
-recall and lower amortized total pretraining-plus-fine-tuning cost beyond
-dispersion. Nulls or regressions require prefix/checkpoint/unfreezing tests and
-learning-curve, representation-drift, history, and popularity analysis.
+**Acceptance.** Compare pretrained and scratch generators. Any efficiency claim
+must include pretraining plus fine-tuning cost.
 
 ### RQ5 — Does SID-level logQ help?
 
@@ -795,12 +665,8 @@ unadjusted train/eval control. Unit tests must compare cached counts, support,
 and normalization with hand-computed fixtures; this is unit validation rather
 than a separate experiment. Keep concrete-item popularity out of this RQ.
 
-**Acceptance.** `beta = 0` is the control. Select a nonzero marginal,
-conditional, hybrid, or clipped adjustment only when item Recall@100—not SID
-token accuracy—improves beyond the band; otherwise keep raw training logits.
-Nulls or regressions require count/support/normalization fixtures and level-,
-prefix-frequency-, load-, collision-, and calibration analysis with SID
-diagnostics.
+**Acceptance.** Compare every adjustment with `beta = 0`. Select by item
+Recall@100, not SID-token accuracy.
 
 ### RQ6 — Does item-popularity correction applied to the SID help?
 
@@ -833,13 +699,9 @@ attribute differences between the positive-only and sampled-tuple objective
 families to popularity correction. Verify item-proposal normalization and
 one-time correction in deterministic unit tests.
 
-**Acceptance.** Resolve the three matched pairs independently. A correction
-qualifies after a Recall@100 gain beyond the paired empirical band; an in-band
-delta is no detectable effect and a beyond-band loss rejects it. A predeclared
-tail/coverage trade-off requires recall non-inferiority and a secondary gain
-beyond its band. Nulls or regressions require weight/proposal/pair-identity tests
-and popularity-decile, collision, candidate-oracle, head/tail, and SID analysis;
-cross-objective differences are not correction evidence.
+**Acceptance.** Resolve the weighting, sampled-softmax correction, and reranking
+pairs separately. Do not compare across objective families; report head/tail
+effects for any accepted trade-off.
 
 ### RQ7 — Does reverse SID generation order help?
 
@@ -857,11 +719,8 @@ traversal together; do not merely reverse positional embeddings. Report prefix
 and item recall by generated depth, valid-branch counts, beam survival of the
 target item, and latency.
 
-**Acceptance.** Forward order is the control. Select reverse order only when the
-independently tuned system improves Recall@100 beyond the band, or is
-non-inferior with a measurable latency benefit; otherwise retain forward order.
-A null, regression, or shared-versus-tuned reversal requires complete reversal/
-trie tests and depth-wise branching and target-survival analysis.
+**Acceptance.** Compare independently tuned forward and reverse systems. Use
+the shared-tokenizer comparison only to isolate generation order.
 
 ### Decoder-only RQ2 — How should history be serialized?
 
@@ -879,12 +738,8 @@ give every representation an equal independent search over SID levels,
 per-level sizes, RQ-KMeans settings, and its representation-specific model
 settings; the independently tuned systems determine the final answer.
 
-**Acceptance.** The projected SID event is the decoder-only reference. Select
-another serialization only if its independently tuned Recall@100 improves
-beyond the band, or is non-inferior with a measurable sequence-length, memory,
-or latency benefit. Nulls, regressions, or shared-versus-tuned reversals require
-causal/equal-history tests and truncation, interaction, target-survival,
-collision/load, and SID analysis.
+**Acceptance.** Compare all three decoder-only serializations. Independently
+tuned systems decide; the shared-tokenizer comparison only explains the result.
 
 ### Decoder-only RQ4 — Does next-item pretraining help?
 
@@ -897,11 +752,8 @@ training prefixes. Initialize the SID generator from that backbone and
 fine-tune every parameter. Compare with a scratch model under the same final
 training and tuning budget; retain a frozen-backbone arm only as a diagnostic.
 
-**Acceptance.** Scratch training is the control. Promote decoder-only
-pretraining only after a Recall@100 gain beyond the band; an efficiency claim
-requires non-inferior recall and lower amortized total cost beyond dispersion.
-Nulls or regressions require checkpoint/causal-prefix/unfreezing tests and
-learning-curve, representation-drift, history, popularity, and SID analysis.
+**Acceptance.** Compare pretrained and scratch decoder-only generators. Any
+efficiency claim must include pretraining plus fine-tuning cost.
 
 ### Decoder-only RQ5 — Does SID-level logQ help?
 
@@ -921,11 +773,8 @@ model logits. The `beta = 0` arm is the unadjusted train/eval control. An
 inference-time SID adjustment would be a separate reranking RQ, not another
 interpretation of these runs.
 
-**Acceptance.** `beta = 0` is the decoder-only control. Select a nonzero
-adjustment only when item Recall@100 improves beyond the band; otherwise retain
-unadjusted training and inference. Nulls or regressions require count/support,
-target-mask, and raw-inference tests plus level-, prefix-frequency-, load-,
-collision-, calibration-, and SID analysis.
+**Acceptance.** Compare every decoder-only adjustment with `beta = 0`. Select by
+item Recall@100, not SID-token accuracy.
 
 ### Decoder-only RQ6 — Does item-popularity correction help?
 
@@ -948,13 +797,9 @@ Every negative tuple is scored after the same causal history boundary. Do not
 attribute differences between positive-only and sampled-tuple objective
 families to popularity correction.
 
-**Acceptance.** Resolve each weighted/unweighted, corrected/uncorrected, and
-reranked/raw pair independently. Select a correction after a Recall@100 gain
-beyond the paired empirical band; an in-band delta is no detectable effect and
-a beyond-band loss rejects it. A tail/coverage trade-off requires
-non-inferiority and a secondary gain beyond its band. Nulls or regressions
-require pair-identity/proposal tests and popularity, collision, oracle,
-beam-survival, and SID analysis.
+**Acceptance.** Resolve the weighting, sampled-softmax correction, and reranking
+pairs separately. Do not compare across objective families; report head/tail
+effects for any accepted trade-off.
 
 ### Decoder-only RQ7 — Does reverse SID order help?
 
@@ -968,11 +813,8 @@ and prefix constraints together. First isolate order with one shared tokenizer;
 then independently tune tokenizer and decoder settings for each direction under
 equal budgets. Match final beam and candidate budgets.
 
-**Acceptance.** Forward order is the control. Select reversed decoder-only order
-only when independently tuned Recall@100 improves beyond the band, or is
-non-inferior with a measurable latency benefit. Nulls, regressions, or shared-
-versus-tuned reversals require identical-history/reversal/trie tests and depth-
-wise branching, target-survival, and SID analysis.
+**Acceptance.** Compare independently tuned forward and reverse decoder-only
+systems. Use the shared-tokenizer comparison only to isolate generation order.
 
 ### Dataset-size RQ — Does scale change generative retrieval's gain?
 
@@ -991,12 +833,9 @@ Keep the treatment definition and candidate/beam budget rule fixed, and report
 within-size treatment deltas plus the change in delta, using separately measured
 size-specific bands.
 
-**Acceptance.** Resolve generator-minus-item-ID Recall@100 separately at 50M
-and 500M with their size-local bands. Claim scale dependence only when the
-difference in those deltas exceeds the preapproved combined resolution;
-otherwise report no detectable interaction. Nulls, reversals, or unequal slice
-effects require cross-size isolation tests and catalog-load, collision,
-branching, oracle, latency, and SID analysis.
+**Acceptance.** Compare generator gain over item-ID retrieval at both sizes.
+Claim a scale effect only when the two gains differ beyond their combined
+resolution.
 
 ## 8. Item-ID and SID outputs in an encoder-decoder model
 
@@ -1035,13 +874,8 @@ prefixes; at inference only the generated path counts. Report each output's
 recall, their oracle union, fused ranking, latency, and error recovery when an
 earlier SID level is wrong.
 
-**Acceptance.** Compare every joint architecture with the stronger of the
-SID-only and item-only controls. Promote it only for a fused Recall@100 gain
-beyond the band, or non-inferior recall with a measurable latency or memory
-gain. Oracle union is diagnostic and cannot establish a win. Nulls or
-regressions require per-head recall, branch complementarity, gradient/loss
-balance, teacher-forced versus generated-SID gaps, error recovery, and cost
-analysis, plus tests that each loss reaches only its intended head.
+**Acceptance.** Compare each joint architecture with the stronger single-output
+control. Select by realized fused recall; oracle union is diagnostic only.
 
 ### RQ2 — Which logQ definition is correct for the joint model?
 
@@ -1061,14 +895,9 @@ adjustment, use that exact method on the SID loss; do not rename it SID logQ.
 Tune correction strength for every enabled head and the joint loss weight. Do
 not spend runs on marginal/prefix SID variants that G7 already rejected.
 
-**Acceptance.** No correction is the control and item-only correction is always
-eligible. SID-only and combined correction are eligible only after G7 accepts
-SID correction. Promote a combination only when fused Recall@100 improves
-beyond its matched no-correction control; claim an interaction only when the
-combined effect differs from the two isolated effects beyond the predeclared
-interaction resolution. Nulls or regressions require per-head, popularity,
-collision, calibration, loss-balance, and gradient analysis. The report must
-record the G7 gate and cannot claim an SID-correction result if that gate fails.
+**Acceptance.** Compare every eligible correction combination with no
+correction. Test SID correction only if G7 accepted it; report isolated and
+combined effects separately.
 
 ### RQ3 — Which head should produce the final ranking?
 
@@ -1080,12 +909,9 @@ same candidate set by accumulated SID likelihood or the item branch. Also
 report the candidate-set oracle. An independent union of item-branch candidates
 is a separate treatment because it changes recall opportunity.
 
-**Acceptance.** SID-likelihood ranking is the control. Select item-head ranking
-only when it improves Recall@100 on the identical resolved candidate set beyond
-the band; otherwise retain SID likelihood. A candidate union is judged as a
-separate treatment at a fixed final candidate budget. Candidate-set oracle is
-diagnostic only. Nulls or regressions require reachability, score calibration,
-collision-bucket, popularity, and candidate-survival analysis.
+**Acceptance.** Compare SID and item-head ranking on identical candidates.
+Evaluate candidate union separately under the same final budget; oracle recall
+is diagnostic only.
 
 ### RQ4 — Does an encoder-decoder help regular item-ID SASRec?
 
@@ -1101,11 +927,8 @@ full-catalog item loss at that single decoder position. Match active parameters,
 history, objective, candidates, and tuning budget. Do not generate a sequence
 of future items in this RQ.
 
-**Acceptance.** Causal SASRec is the control. Select the one-token
-encoder-decoder only for a Recall@100 gain beyond the band, or non-inferior
-recall with a measurable training-time, serving-latency, or memory advantage.
-Nulls or regressions require leakage and one-output-position tests plus matched
-parameter, optimization, attention-use, history-length, and cost analysis.
+**Acceptance.** Compare the one-token encoder-decoder with matched causal
+SASRec. An efficiency win requires non-inferior recall.
 
 ### RQ5 — Do parallel forward/reverse SID branches help?
 
@@ -1121,13 +944,9 @@ union followed by normalized score fusion, and the union oracle. Keep the final
 candidate budget fixed so a larger union is not a free recall advantage; report
 branch overlap, unique hits, latency, and memory.
 
-**Acceptance.** The stronger forward-only or reverse-only branch is the
-control. Promote parallel branches, with or without the item head, only when
-realized fused Recall@100 improves beyond the band under the same final
-candidate budget, or is non-inferior with a measurable resource advantage.
-Oracle union is diagnostic only. Nulls or regressions require branch overlap,
-unique-hit survival, reachability, score calibration, loss balance, latency,
-memory, and SID diagnostics.
+**Acceptance.** Compare parallel branches with the stronger single branch under
+one final candidate budget. Select by realized fusion; oracle union is
+diagnostic only.
 
 ## 9. Improving semantic IDs
 
@@ -1157,13 +976,9 @@ and RQ-KMeans fitting parameters under the shared bound and budget. Every trial
 trains/evaluates the common downstream generator; select by item recall, then
 freeze its assignments. This is the control for tokenizer improvements.
 
-**Acceptance.** The predeclared default RQ-KMeans configuration is the search
-control. Replace it only when a tuned configuration improves downstream item
-Recall@100 beyond the band; if quality is non-inferior, prefer a configuration
-only for a measurable tokenizer or decoding resource advantage. Deterministic,
-training-only fitting, parameter-bound, and frozen-assignment tests are
-required. A null or boundary optimum requires load, collision,
-reconstruction, cohesion, and beam analysis before the default is retained.
+**Acceptance.** Compare tuned RQ-KMeans configurations with the predeclared
+default and select on downstream item recall. Report tokenizer and decoding
+cost for non-inferior alternatives.
 
 ### RQ2 — Does RQ-VAE improve over RQ-KMeans?
 
@@ -1176,12 +991,8 @@ Train/evaluate the same downstream generator for selection, freeze the winning
 tokenizer, and compare both intrinsic SID metrics and downstream item recall
 with RQ-KMeans.
 
-**Acceptance.** Selected RQ-KMeans is the control. Promote independently tuned
-RQ-VAE only when downstream item Recall@100 improves beyond the band, or is
-non-inferior with a measurable end-to-end resource advantage; reconstruction
-or intrinsic SID gains alone cannot select it. Nulls or regressions require
-code utilization, residual/reconstruction, collision, cohesion, target beam
-survival, and training-stability analysis.
+**Acceptance.** Compare independently tuned RQ-VAE with selected RQ-KMeans.
+Select on item recall; intrinsic SID metrics are diagnostic only.
 
 ### RQ3 — Does PLUM or a PLUM modification help?
 
@@ -1213,14 +1024,9 @@ limit. Compare the winning tokenizer with an equal-checkpoint PLUM control and
 report level utilization and collision structure; do not attribute checkpoint
 or continued-pretraining gains to the schedule.
 
-**Acceptance.** Use matched contrasts: standard SIDs plus continued pretraining
-versus standard SIDs with direct fine-tuning isolates pretraining; front-heavy
-PLUM versus the equal-checkpoint standard-SID arm isolates its tokenizer; and
-back- or middle-heavy schedules versus front-heavy isolate schedule order.
-Accept each claim only for a downstream item Recall@100 gain beyond its matched
-control; intrinsic SID gains alone are insufficient. Nulls or regressions
-require checkpoint/corpus equivalence plus per-level attribution, utilization,
-collision, reconstruction, cohesion, and beam analysis.
+**Acceptance.** Use matched contrasts for continued pretraining, the PLUM
+tokenizer, and codebook-size order. Select each only by its item-recall gain;
+intrinsic SID metrics are diagnostic.
 
 ### RQ4 — Does R3-VAE help?
 
@@ -1232,12 +1038,8 @@ added mechanisms against matched RQ-VAE. Freeze each selected tokenizer before
 the common generator and report stability/collapse as well as final metrics.
 Reference: [R3-VAE](https://arxiv.org/abs/2604.11440).
 
-**Acceptance.** Matched RQ-VAE is the control. Promote the tuned full R3-VAE
-only for an item Recall@100 gain beyond the band, or non-inferior recall with a
-measurable stability or resource benefit. Attribute a component only when its
-removal worsens recall beyond the band relative to the full model. Nulls or
-regressions require collapse, utilization, optimization stability,
-reconstruction, collision, and beam diagnostics.
+**Acceptance.** Compare full R3-VAE with matched RQ-VAE. Attribute an R3-VAE
+component only when removing it worsens item recall.
 
 ### RQ5 — Do variable-length BPE SIDs help?
 
@@ -1249,12 +1051,8 @@ training catalog only, and map every item to its merged token sequence. Compare
 under fixed decoding-latency and candidate budgets, reporting vocabulary size,
 length distribution, collisions, and quality.
 
-**Acceptance.** Fixed-length base SIDs are the control. Promote BPE only for an
-item Recall@100 gain beyond the band, or non-inferior recall with a measurable
-sequence-length or decoding-latency benefit under the fixed candidate budget.
-Tests must verify training-only merges, reversible mapping, EOS/PAD handling,
-valid generation, and collision preservation. Nulls or regressions require
-length-by-frequency, collision, target-survival, and beam-cost analysis.
+**Acceptance.** Compare BPE SIDs with fixed-length base SIDs under one candidate
+budget. BPE may win with non-inferior recall and shorter or faster decoding.
 
 ### RQ6 — Does DIGER's differentiable tokenizer help?
 
@@ -1266,13 +1064,8 @@ exploration and a declared uncertainty-decay schedule. Compare with the same
 architecture using a frozen tokenizer and ablate exploration/decay. Report code
 utilization throughout training. Reference: [DIGER](https://arxiv.org/abs/2601.19711).
 
-**Acceptance.** The identical generator with a frozen tokenizer is the control.
-Promote full DIGER only for an item Recall@100 gain beyond the band, or
-non-inferior recall with a measurable resource benefit. An exploration or
-decay mechanism is supported only when its ablation worsens recall beyond the
-band. Tests must verify tokenizer gradients, Gumbel behavior, schedule
-completion, and frozen inference. Nulls or regressions require utilization,
-assignment churn, collapse, uncertainty, stability, and beam analysis.
+**Acceptance.** Compare DIGER with the same generator and a frozen tokenizer.
+Attribute exploration or decay only when its ablation worsens item recall.
 
 ### RQ7 — Does a collision token help?
 
@@ -1283,12 +1076,9 @@ multiple items.
 with collision suffixes. Report exact item resolution, suffix vocabulary/load,
 dynamic-catalog implications, decoding cost, and item metrics.
 
-**Acceptance.** Unresolved base tuples are the control. Promote collision
-suffixes for a Recall@100 gain beyond the band; alternatively accept them as a
-trade-off when recall is non-inferior and concrete-item ambiguity is eliminated
-without a measurable latency or memory regression. Nulls or regressions require
-collision-bucket, tail-item, suffix-load, reachability, dynamic-catalog, and
-decoding-cost analysis plus exact-resolution tests.
+**Acceptance.** Compare collision suffixes with unresolved tuples. Suffixes may
+win with non-inferior recall if they remove item ambiguity without a material
+cost regression.
 
 ### RQ8 — Does Purely Semantic Indexing improve collision resolution?
 
@@ -1316,13 +1106,8 @@ the same beam budget. This is 50M-only by explicit scope decision; its result
 must not be generalized to 500M from the separate RQ-KMeans scale study.
 Reference: [Purely Semantic Indexing](https://arxiv.org/abs/2509.16446).
 
-**Acceptance.** The nearest-tuple tokenizer with collision suffixes is the
-control. Promote ECM or RRS only for an item Recall@100 gain beyond the band;
-accept RRS as an efficiency trade-off only with non-inferior recall and a
-measurable assignment-time or memory gain. Both must reproduce paper-style
-allocation on fixed fixtures and produce unique suffix-free assignments.
-Nulls or regressions require displacement, reconstruction, cohesion,
-order-sensitivity, failure-rate, assignment-cost, and beam analysis.
+**Acceptance.** Compare ECM and RRS with collision suffixes. Both must produce
+unique assignments; RRS may win on assignment cost with non-inferior recall.
 
 ## 10. Semantic IDs with collaborative information
 
@@ -1348,12 +1133,8 @@ recommendation-trained item space with contrastive alignment. Compare content
 only, collaborative only, and aligned content+collaborative inputs before the
 same quantizer. Reference direction: [QARM V2](https://arxiv.org/abs/2602.08559).
 
-**Acceptance.** Content-only and collaborative-only tokenizers are both
-controls. Promote aligned content+collaborative input only when downstream item
-Recall@100 beats both beyond their bands. A cheaper representation is acceptable
-only with recall non-inferior to the stronger control and a measurable pipeline
-resource gain. Nulls or regressions require alignment-quality, neighbor,
-utilization, collision, leakage, popularity, and tail-slice analysis.
+**Acceptance.** Aligned content+collaborative input must beat both content-only
+and collaborative-only tokenizers.
 
 ### RQ2 — Do interaction pairs improve RQ-VAE?
 
@@ -1365,12 +1146,8 @@ version uses next-item transitions and co-listens within a fixed training-only
 window with popularity-matched negatives. Add a contrastive pair term to
 RQ-VAE, tune its weight, and compare with matched RQ-VAE.
 
-**Acceptance.** Matched RQ-VAE without the pair term is the control. Promote a
-pair definition and loss weight only when downstream item Recall@100 improves
-beyond the band; pair separation or intrinsic SID gains alone are insufficient.
-Nulls or regressions require positive/negative-pair fixtures and loss-weight,
-pair-separation, collision/load, reconstruction, tail-item, and training-
-feasibility analysis.
+**Acceptance.** Compare every pair definition with matched RQ-VAE without the
+pair term. Select by item recall, not pair separation or intrinsic SID metrics.
 
 ## 10A. User-aware semantic-ID tokenization
 
@@ -1441,17 +1218,10 @@ checkpoints, then independently tune each semantic tokenizer on downstream
 recall. Compare all pair representations and the global content-only code on
 the identical frozen candidates and matched final vector dimensions.
 
-**Acceptance.** The global content-code scorer is the control. Promote a
-user-aware representation only when fixed-list reranked Recall@100 improves
-beyond the band on identical candidates; like AUC, SID metrics, and across-user
-code variation are diagnostics, not selection metrics. A simpler pair
-representation may win with non-inferior recall and a measurable materialization
-or serving-cost advantage. Tests must prove prefix-causal aggregates,
-out-of-fold training-pair vectors, and train-only tokenizer fitting. Nulls or
-regressions require missingness, feature/tower attribution, candidate slices,
-code variation, collision/load, and latency/cache analysis. If materializing
-user-candidate codes exceeds the approved resource budget, report the measured
-bottleneck and mark the RQ blocked rather than claiming a quality result.
+**Acceptance.** Compare all user-aware representations with global content
+codes on identical candidate lists. Select by reranked Recall@100; like AUC and
+SID metrics are diagnostic. Report materialization cost and mark infeasible
+variants as blocked.
 
 ## 11. Gryphon
 
@@ -1483,12 +1253,8 @@ add independently retrieved item candidates. Report candidate oracle, item
 recall, collision ordering, encoding/beam/reranking latency, memory, and
 parameters. Reference: [Gryphon](https://arxiv.org/abs/2606.08604).
 
-**Acceptance.** The stronger matched vanilla or collision-resolved GR arm is
-the control. Promote Gryphon only when item Recall@100 improves beyond the band,
-or is non-inferior with a measurable serving-latency or memory advantage;
-candidate oracle alone cannot establish a win. Nulls or regressions require
-candidate-oracle, target beam-survival, collision-ordering, item-loss-weight,
-capacity, and end-to-end cost analysis.
+**Acceptance.** Compare Gryphon with the stronger matched vanilla or
+collision-resolved GR control. Candidate oracle is diagnostic only.
 
 ### Dataset-size RQ — Does scale change Gryphon's gain?
 
@@ -1502,12 +1268,8 @@ rates. Compare within-size Gryphon-minus-vanilla deltas plus collision and beam
 diagnostics. This replaces the earlier assumption that Gryphon should simply
 start on 500M.
 
-**Acceptance.** Resolve Gryphon-minus-vanilla Recall@100 separately at 50M and
-500M using size-local bands. Claim a scale effect only when the difference
-between those two deltas exceeds the preapproved combined resolution; otherwise
-report no detectable interaction. Nulls, reversals, or unequal slice effects
-require size-local tokenizer and training checks plus collision, trie-branching,
-target-survival, candidate-oracle, latency, and memory analysis.
+**Acceptance.** Compare Gryphon's gain over vanilla GR at both sizes. Claim a
+scale effect only when the two gains differ beyond their combined resolution.
 
 ## 12. Diffusion over item content embeddings
 
@@ -1531,13 +1293,9 @@ direct embedding regression at matched capacity. Sweep a bounded number of
 denoising steps and samples, normalize outputs before retrieval, and report
 recall, target distance, duplicate rate, coverage, and end-to-end latency.
 
-**Acceptance.** Matched one-shot embedding regression is the control. Promote
-diffusion only for item Recall@100 improvement beyond the band, or non-inferior
-recall with a measurable coverage, duplicate-rate, or latency advantage.
-Target distance alone cannot select it. Nulls or regressions require denoising-
-trajectory, sample-collapse, popularity, target-distance, candidate-oracle,
-coverage, and end-to-end compute analysis; an over-budget method is reported as
-infeasible at the measured step/sample setting.
+**Acceptance.** Compare diffusion with matched one-shot regression. Select by
+item recall; coverage, duplicates, target distance, and latency describe the
+trade-off. Mark over-budget settings infeasible.
 
 ### RQ2 — Can a transformer predict continuous residuals step by step?
 
@@ -1568,13 +1326,9 @@ and one-shot regression under equal parameter, candidate, and declared
 inference-step budgets; normalize the final vector before nearest-neighbor
 retrieval and include every refinement/solver step in latency.
 
-**Acceptance.** The stronger of matched one-shot regression and diffusion is
-the control. Promote a residual/refinement family only for an item Recall@100
-gain beyond the band, or non-inferior recall with a measurable latency, memory,
-coverage, or duplicate-rate advantage. Partial-step target distance is a
-diagnostic, not the decision metric. Nulls or regressions require family-
-specific stability, partial-step error, collapse/divergence, candidate-oracle,
-and complete inference-cost analysis.
+**Acceptance.** Compare every residual family with the stronger of one-shot
+regression and diffusion. Select by item recall; partial-step error and cost are
+diagnostics and trade-off metrics.
 
 ## 13. Reinforcement learning for multi-step ranking
 
@@ -1603,13 +1357,9 @@ simulator; use IPS/DR and effective sample size for the former, and label the
 latter as simulator-only evidence. Until then this group is scientifically
 blocked, not merely waiting for a model class.
 
-**Acceptance.** This RQ remains blocked until logged slates and propensities or
-a validated action-conditional simulator satisfy the evaluation gate. After
-that gate, promote offline RL only when estimated multi-step value exceeds both
-behavior cloning and the supervised ranker beyond estimator uncertainty while
-one-step ranking quality is non-inferior. Report overlap, effective sample size,
-clipping sensitivity, IPS/DR disagreement, and policy shift; simulator results
-remain explicitly simulator-only and cannot establish an offline causal win.
+**Acceptance.** Block until logged propensities or a validated simulator exist.
+Then RL must beat both supervised controls in multi-step value without
+regressing one-step quality. Label simulator evidence as simulator-only.
 
 ## 14. Thinking over history
 
@@ -1637,12 +1387,8 @@ block without latent states. Report recall, state diversity/collapse, stepwise
 query change, and latency. This proposed definition requires plan approval, but
 the treatment itself is no longer unspecified.
 
-**Acceptance.** The latent-refinement model must beat both equal-parameter and
-equal-latency controls in Recall@100 beyond the band to support a “thinking”
-mechanism claim; non-inferiority alone is insufficient. An efficiency claim is
-allowed only with non-inferior recall and a measurable resource gain. Nulls or
-regressions require latent-state diversity/collapse, stepwise query-change,
-gradient/use, history-length, and matched-control analysis.
+**Acceptance.** A “thinking” claim requires beating both equal-parameter and
+equal-latency controls. Non-inferiority alone is insufficient.
 
 ## Remaining ideas
 
@@ -1656,15 +1402,9 @@ quantization, and give every feature family the same bounded downstream search
 over levels, per-level codebook sizes, and method-specific parameters. Select
 on item recall and report intrinsic SID metrics as diagnostics.
 
-**Acceptance.** The feature-free or content-only tokenizer is the control for
-each added feature family. A correct feature integration must be non-inferior
-in downstream item Recall@100; promote it only when recall improves beyond the
-band, because intrinsic SID improvements alone cannot select it. An in-band
-result resolves the RQ as no detectable benefit but does not justify retaining
-the extra feature by default. A regression is acceptance-ready only after
-missingness, normalization, leakage, feature-use, utilization, collision,
-subgroup, and materialization-cost analysis verifies that the feature was
-correctly active and explains the loss.
+**Acceptance.** Compare each feature with the feature-free or content-only
+tokenizer. A feature is usable only if non-inferior, and selected only for an
+item-recall gain; intrinsic SID metrics are diagnostic.
 
 ### Muon or another optimizer
 
@@ -1674,11 +1414,8 @@ correctly active and explains the loss.
 equal budget and compare convergence, final quality, time, and memory on that
 experiment's main size.
 
-**Acceptance.** The current tuned optimizer is the control. Replace it only for
-a final Recall@100 gain beyond the band, or non-inferior recall with a measurable
-time-to-best, total training-time, or peak-memory improvement, including tuning
-cost. Nulls or regressions require learning curves, search-boundary, seed
-stability, failure-rate, best-checkpoint, and step-versus-wall-clock analysis.
+**Acceptance.** Compare with the current tuned optimizer. A challenger may win
+with non-inferior recall and lower total time or memory, including tuning cost.
 
 ### DCNv2 with DenseNet deep part
 
@@ -1688,11 +1425,8 @@ fixed candidate set.
 **Implementation.** Use DenseNet for the deep branch, keep explicit cross
 features in DCNv2, and compare with a capacity-matched MLP ranker on 50M.
 
-**Acceptance.** The capacity-matched MLP is the control. Retain explicit DCNv2
-crosses only for a Recall@100 gain beyond the band, or non-inferior recall with
-a measurable latency or memory advantage. Nulls or regressions require
-candidate-oracle, calibration, feature-slice, cross-contribution, parameter-
-capacity, and cost analysis.
+**Acceptance.** Compare DCNv2 with a capacity-matched MLP. Retain explicit
+crosses only for better recall or a non-inferior efficiency win.
 
 ### DCNv2 plus a history transformer
 
@@ -1702,11 +1436,8 @@ explicit crosses.
 **Implementation.** Feed the selected history-transformer representation into
 the fixed DCNv2 ranker and compare with DCNv2 alone under the same candidates.
 
-**Acceptance.** DCNv2 without sequential history is the control. Add the
-history transformer only when Recall@100 improves beyond the band; additional
-compute without a quality gain is rejected. Nulls or regressions require
-history-length and order-shuffle slices, candidate oracle, representation-use,
-capacity, training-time, latency, and memory analysis.
+**Acceptance.** Compare with DCNv2 alone. Keep the history transformer only if
+Recall@100 improves; extra compute cannot be justified by non-inferiority.
 
 ### Transformer pretraining for ranking
 
@@ -1716,13 +1447,9 @@ representation.
 **Implementation.** Compare scratch, pretrained-and-fine-tuned, and
 pretrained-frozen history encoders with the same downstream ranker on 50M.
 
-**Acceptance.** Training the same encoder from scratch is the control. Promote
-pretrained-and-fine-tuned initialization only for a Recall@100 gain beyond the
-band. A pretrained variant may qualify as an efficiency trade-off with
-non-inferior recall and lower amortized total cost, including pretraining;
-frozen pretraining is an attribution arm, not the default winner. Nulls or
-regressions require representation-drift, domain-mismatch, optimization,
-convergence, checkpoint, and total-cost analysis.
+**Acceptance.** Compare fine-tuned and frozen pretraining with scratch. Frozen
+pretraining is an attribution arm; any efficiency claim includes pretraining
+cost.
 
 ## Ambiguities that still block plans
 

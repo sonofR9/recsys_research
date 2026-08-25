@@ -10,12 +10,11 @@ import pytest
 from experiments.g1_sasrec_item_ids_likes.analysis import aggregate_report
 
 from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_candidates import (
-    aggregate_boundary_candidates,
-    aggregate_local_candidates,
     bridge_candidates,
+    full_horizon_rerun_candidates,
     initial_candidates,
     make_horizon_correction,
-    recovery_candidates,
+    selection_initial_candidates,
 )
 from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_report import (
     AggregateRun,
@@ -23,9 +22,13 @@ from experiments.g1_sasrec_item_ids_likes.analysis.aggregate_report import (
     classify_aggregate_outcome,
     collect_report_bundle,
 )
+from experiments.g1_sasrec_item_ids_likes.launchers import verify_artifact
 
 
 METRICS = ("recall@100", "ndcg@100", "recall@10", "ndcg@10", "coverage@100")
+AGGREGATE_CONFIG = Path(
+    "experiments/g1_sasrec_item_ids_likes/configs/aggregate_variant.py"
+)
 
 
 def _run(candidate, validation: float, metrics: dict[str, float]) -> AggregateRun:
@@ -39,12 +42,64 @@ def _run(candidate, validation: float, metrics: dict[str, float]) -> AggregateRu
     )
 
 
-def test_empty_bundle_requests_the_parallel_twelve_run_initial_stage() -> None:
+def _write_current_horizon_artifact(
+    logs: Path,
+    candidate,
+    *,
+    stopped_epoch: int,
+    horizon_complete: bool,
+) -> Path:
+    directory = logs / candidate.run_name
+    directory.mkdir(parents=True)
+    assignments = [f"G1_AGGREGATE_RUN={candidate.run_name}"]
+    experiment = verify_artifact._config_experiment(
+        AGGREGATE_CONFIG, verify_artifact._config_assignments(assignments)
+    )
+    top_level, invariants = verify_artifact._expected_metadata(experiment)
+    best_epoch = min(10, stopped_epoch)
+    metadata = top_level | {
+        "training_semantics_revision": 2,
+        "max_epochs": 15,
+        "epochs_trained": stopped_epoch,
+        "stopped_epoch": stopped_epoch,
+        "best_epoch": best_epoch,
+        "early_stopped": stopped_epoch < 15,
+        "best_epoch_at_cap": False,
+        "selection_resolved": stopped_epoch == 15 and horizon_complete,
+        "lr_horizon_complete": horizon_complete,
+        "targets_per_epoch": 2,
+        "tokens_per_epoch": 3,
+        "optimizer_steps_per_epoch": 4,
+        "optimizer_steps": 4 * stopped_epoch,
+        "training_horizon": 2 * stopped_epoch,
+        "token_horizon": 3 * stopped_epoch,
+        "tokens_seen": 3 * stopped_epoch,
+        "validation_loss": 0.5,
+        "transfer_invariants": invariants,
+    }
+    (directory / "training_metadata.json").write_text(json.dumps(metadata))
+    metrics = {
+        "recall@100": 0.12,
+        "ndcg@100": 0.045,
+        "recall@10": 0.02,
+        "ndcg@10": 0.015,
+        "coverage@100": 0.6,
+        "num_users": 37018,
+    }
+    (directory / "final_metrics.json").write_text(json.dumps(metrics))
+    (directory / "sweep.log").write_text(
+        f"epoch {best_epoch - 1} finished "
+        "epoch/val_true.recall@100=0.12 epoch/val_true.ndcg@100=0.045\n"
+    )
+    return directory
+
+
+def test_empty_bundle_requests_the_selection_surface_with_exact_two_reruns() -> None:
     bundle = build_report_bundle([])
 
     assert bundle.evidence["claims_status"] == "pending"
     assert bundle.evidence["required_followups"] == [
-        candidate.run_name for candidate in initial_candidates()
+        candidate.run_name for candidate in selection_initial_candidates()
     ]
 
 
@@ -165,7 +220,7 @@ def test_partial_bridge_surface_requests_only_the_missing_selected_bridge() -> N
     assert bundle.evidence["required_followups"] == [bridges[-1].run_name]
 
 
-def test_corrected_initial_winner_still_requests_its_local_surface() -> None:
+def test_horizon_correction_cannot_replace_a_selection_surface_result() -> None:
     metrics = {
         "recall@100": 0.12,
         "ndcg@100": 0.045,
@@ -198,12 +253,13 @@ def test_corrected_initial_winner_still_requests_its_local_surface() -> None:
 
     bundle = build_report_bundle(runs)
 
-    assert bundle.evidence["required_followups"] == [
-        candidate.run_name for candidate in aggregate_local_candidates(source)
-    ]
+    assert bundle.evidence["selected_aggregate"]["run"] != corrected.run_name
+    assert aggregate_report.candidate_by_run(
+        bundle.evidence["selected_aggregate"]["run"]
+    ).correction == 0
 
 
-def test_initial_launcher_enqueues_the_exact_parallel_twelve(tmp_path: Path) -> None:
+def test_full_horizon_launcher_enqueues_the_exact_two(tmp_path: Path) -> None:
     queue = tmp_path / "queue.sh"
     queue.write_text(
         'enqueue() { printf "ENQUEUE %s %s\\n" "$1" "$2"; }\n'
@@ -217,7 +273,7 @@ def test_initial_launcher_enqueues_the_exact_parallel_twelve(tmp_path: Path) -> 
         ["bash", str(launcher)],
         env=os.environ
         | {
-            "G1_AGGREGATE_STAGE": "initial",
+            "G1_AGGREGATE_STAGE": "full_horizon",
             "G1_AGGREGATE_LOGS": str(tmp_path / "logs"),
             "G1_TRAINING_QUEUE_LIBRARY": str(queue),
         },
@@ -229,16 +285,111 @@ def test_initial_launcher_enqueues_the_exact_parallel_twelve(tmp_path: Path) -> 
     assert result.returncode == 0, result.stderr
     enqueued = [line for line in result.stdout.splitlines() if line.startswith("ENQUEUE")]
     assert [line.split()[1] for line in enqueued] == [
-        candidate.run_name for candidate in initial_candidates()
+        candidate.run_name for candidate in full_horizon_rerun_candidates()
     ]
     assert all(
         line.split()[2] == f"G1_AGGREGATE_RUN={candidate.run_name}"
-        for line, candidate in zip(enqueued, initial_candidates(), strict=True)
+        for line, candidate in zip(
+            enqueued, full_horizon_rerun_candidates(), strict=True
+        )
     )
     assert result.stdout.splitlines().count("DRAIN") == 1
 
 
-def test_recovery_launcher_enqueues_the_exact_approved_eight(tmp_path: Path) -> None:
+def test_launcher_refuses_to_replace_an_existing_artifact(tmp_path: Path) -> None:
+    queue = tmp_path / "queue.sh"
+    queue.write_text(
+        'enqueue() { printf "ENQUEUE %s %s\\n" "$1" "$2"; }\n'
+        'drain() { printf "DRAIN\\n"; }\n'
+    )
+    logs = tmp_path / "logs"
+    directory = logs / full_horizon_rerun_candidates()[0].run_name
+    directory.mkdir(parents=True)
+    marker = directory / "keep-me"
+    marker.write_text("immutable")
+    launcher = Path(
+        "experiments/g1_sasrec_item_ids_likes/launchers/aggregate_500m.sh"
+    )
+
+    result = subprocess.run(
+        ["bash", str(launcher)],
+        env=os.environ
+        | {
+            "G1_AGGREGATE_STAGE": "full_horizon",
+            "G1_AGGREGATE_LOGS": str(logs),
+            "G1_TRAINING_QUEUE_LIBRARY": str(queue),
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 2
+    assert "Refusing to replace or archive" in result.stderr
+    assert marker.read_text() == "immutable"
+    assert not (logs / "old").exists()
+    assert "ENQUEUE" not in result.stdout
+
+
+@pytest.mark.parametrize(
+    ("stopped_epoch", "horizon_complete", "accepted"),
+    [(14, True, False), (15, False, False), (15, True, True)],
+)
+def test_launcher_path_uses_strict_full_horizon_verification(
+    tmp_path: Path,
+    stopped_epoch: int,
+    horizon_complete: bool,
+    accepted: bool,
+) -> None:
+    queue = tmp_path / "queue.sh"
+    queue.write_text(
+        'enqueue() { printf "ENQUEUE %s %s\\n" "$1" "$2"; }\n'
+        'drain() { printf "DRAIN\\n"; }\n'
+    )
+    logs = tmp_path / "logs"
+    candidate = full_horizon_rerun_candidates()[0]
+    _write_current_horizon_artifact(
+        logs,
+        candidate,
+        stopped_epoch=stopped_epoch,
+        horizon_complete=horizon_complete,
+    )
+    launcher = Path(
+        "experiments/g1_sasrec_item_ids_likes/launchers/aggregate_500m.sh"
+    )
+
+    result = subprocess.run(
+        ["bash", str(launcher)],
+        env=os.environ
+        | {
+            "G1_AGGREGATE_STAGE": "full_horizon",
+            "G1_AGGREGATE_LOGS": str(logs),
+            "G1_TRAINING_QUEUE_LIBRARY": str(queue),
+        },
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    if accepted:
+        assert result.returncode == 0, result.stderr
+        assert f"skipped compatible {candidate.run_name}" in result.stdout
+        enqueued = [
+            line for line in result.stdout.splitlines() if line.startswith("ENQUEUE")
+        ]
+        assert [line.split()[1] for line in enqueued] == [
+            full_horizon_rerun_candidates()[1].run_name
+        ]
+    else:
+        assert result.returncode == 2
+        assert "Refusing to replace or archive" in result.stderr
+        assert "ENQUEUE" not in result.stdout
+
+
+@pytest.mark.parametrize("stage", ["initial", "recovery"])
+def test_historical_launcher_stages_are_read_only(
+    tmp_path: Path, stage: str
+) -> None:
     queue = tmp_path / "queue.sh"
     queue.write_text(
         'enqueue() { printf "ENQUEUE %s %s\\n" "$1" "$2"; }\n'
@@ -252,7 +403,7 @@ def test_recovery_launcher_enqueues_the_exact_approved_eight(tmp_path: Path) -> 
         ["bash", str(launcher)],
         env=os.environ
         | {
-            "G1_AGGREGATE_STAGE": "recovery",
+            "G1_AGGREGATE_STAGE": stage,
             "G1_AGGREGATE_LOGS": str(tmp_path / "logs"),
             "G1_TRAINING_QUEUE_LIBRARY": str(queue),
         },
@@ -261,20 +412,55 @@ def test_recovery_launcher_enqueues_the_exact_approved_eight(tmp_path: Path) -> 
         text=True,
     )
 
-    assert result.returncode == 0, result.stderr
-    enqueued = [line for line in result.stdout.splitlines() if line.startswith("ENQUEUE")]
-    assert [line.split()[1] for line in enqueued] == [
-        candidate.run_name for candidate in recovery_candidates()
-    ]
-    assert result.stdout.splitlines().count("DRAIN") == 1
+    assert result.returncode == 2
+    assert "historical audit-only" in result.stderr
+    assert "ENQUEUE" not in result.stdout
+    assert "DRAIN" not in result.stdout
 
 
-def _collect_with_unresolved_correction(
+@pytest.mark.parametrize(
+    ("stopped_epoch", "horizon_complete", "accepted"),
+    [(14, True, False), (15, False, False), (15, True, True)],
+)
+def test_report_collector_uses_strict_full_horizon_verification(
     tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-    source,
-    next_horizon: int,
-):
+    stopped_epoch: int,
+    horizon_complete: bool,
+    accepted: bool,
+) -> None:
+    candidate = full_horizon_rerun_candidates()[0]
+    _write_current_horizon_artifact(
+        tmp_path,
+        candidate,
+        stopped_epoch=stopped_epoch,
+        horizon_complete=horizon_complete,
+    )
+
+    bundle = collect_report_bundle(tmp_path)
+
+    required = bundle.evidence["required_followups"]
+    assert (candidate.run_name not in required) is accepted
+
+
+def test_collector_ignores_corrections_and_requests_only_two_full_h15_reruns(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    incomplete_recipes = {
+        (
+            candidate.num_layers,
+            candidate.embedding_lr,
+            candidate.deep_lr,
+        )
+        for candidate in full_horizon_rerun_candidates()
+    }
+    historical = initial_candidates()
+    corrections = [
+        make_horizon_correction(candidate, 18)
+        for candidate in historical
+        if candidate.family == "aggregate"
+    ]
+    for candidate in (*historical, *corrections):
+        (tmp_path / candidate.run_name).mkdir()
     metrics = {
         "recall@100": 0.12,
         "ndcg@100": 0.045,
@@ -282,229 +468,37 @@ def _collect_with_unresolved_correction(
         "ndcg@10": 0.015,
         "coverage@100": 0.6,
     }
-    for candidate in initial_candidates():
-        if (
-            candidate.family,
+    verified_corrections: list[str] = []
+
+    def verify_current(directory: Path, *_args) -> bool:
+        candidate = aggregate_report.candidate_by_run(directory.name)
+        if candidate.correction:
+            verified_corrections.append(candidate.run_name)
+        return candidate.family == "baseline"
+
+    def verify_historical(directory: Path, *_args) -> bool:
+        candidate = aggregate_report.candidate_by_run(directory.name)
+        return (
             candidate.num_layers,
             candidate.embedding_lr,
             candidate.deep_lr,
-        ) == (
-            source.family,
-            source.num_layers,
-            source.embedding_lr,
-            source.deep_lr,
-        ):
-            continue
-        (tmp_path / candidate.run_name).mkdir()
-    source_directory = tmp_path / source.run_name
-    source_directory.mkdir()
-    (source_directory / "training_metadata.json").write_text(
-        json.dumps({"next_lr_schedule_horizon_epochs": next_horizon})
-    )
+        ) not in incomplete_recipes
+
+    monkeypatch.setattr(aggregate_report, "verify_config", verify_current)
     monkeypatch.setattr(
         aggregate_report,
-        "verify_config",
-        lambda directory, *_: directory.name != source.run_name,
-    )
-    monkeypatch.setattr(
-        aggregate_report,
-        "verify_config_recipe",
-        lambda directory, *_: directory.name == source.run_name,
+        "verify_config_completed_historical_horizon",
+        verify_historical,
     )
     monkeypatch.setattr(
         aggregate_report,
         "_load_run",
         lambda _directory, candidate: _run(candidate, 0.1, metrics),
     )
-    return collect_report_bundle(tmp_path)
-
-
-def test_post_recovery_followup_is_the_exact_h27_c4(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    source = recovery_candidates()[0]
-    expected = make_horizon_correction(source, 27)
-
-    bundle = _collect_with_unresolved_correction(
-        tmp_path, monkeypatch, source, next_horizon=27
-    )
-
-    assert bundle.evidence["claims_status"] == "pending"
-    assert bundle.evidence["required_followups"] == [expected.run_name]
-
-
-def test_exhausted_c4_returns_explicit_approval_evidence(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    source = make_horizon_correction(recovery_candidates()[0], 27)
-
-    bundle = _collect_with_unresolved_correction(
-        tmp_path, monkeypatch, source, next_horizon=40
-    )
-
-    assert bundle.evidence["claims_status"] == "approval_required"
-    assert bundle.evidence["required_followups"] == []
-    assert bundle.evidence["approval_required"] == [
-        {
-            "run": source.run_name,
-            "reason": "four horizon corrections did not calibrate the run",
-        }
-    ]
-
-
-def test_exhausted_losing_6l_c4_does_not_block_clear_4l_winner(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    c3 = recovery_candidates()[0]
-    c4 = make_horizon_correction(c3, 27)
-    target_recipe = (
-        c3.family,
-        c3.num_layers,
-        c3.embedding_lr,
-        c3.deep_lr,
-    )
-    candidates = [
-        candidate
-        for candidate in initial_candidates()
-        if (
-            candidate.family,
-            candidate.num_layers,
-            candidate.embedding_lr,
-            candidate.deep_lr,
-        )
-        != target_recipe
-    ]
-    candidates.extend((c3, *bridge_candidates(0.012, selected_depth=4)))
-    for candidate in (*candidates, c4):
-        (tmp_path / candidate.run_name).mkdir()
-    (tmp_path / c4.run_name / "training_metadata.json").write_text(
-        json.dumps({"next_lr_schedule_horizon_epochs": 40})
-    )
-    metrics = {
-        "recall@100": 0.12,
-        "ndcg@100": 0.045,
-        "recall@10": 0.02,
-        "ndcg@10": 0.015,
-        "coverage@100": 0.6,
-    }
-
-    def validation(candidate) -> float:
-        if candidate.family == "baseline":
-            return 0.2 if candidate.deep_lr == 0.012 else 0.1
-        if candidate.family == "aggregate":
-            return (
-                0.3 + {4: 0.03, 6: 0.01, 8: 0.02}[candidate.num_layers]
-                if candidate.embedding_lr == 0.064
-                else 0.1
-            )
-        return 0.1
-
-    monkeypatch.setattr(
-        aggregate_report,
-        "verify_config",
-        lambda directory, *_: directory.name != c4.run_name,
-    )
-    monkeypatch.setattr(
-        aggregate_report,
-        "verify_config_recipe",
-        lambda directory, *_: directory.name == c4.run_name,
-    )
-    monkeypatch.setattr(
-        aggregate_report,
-        "_load_run",
-        lambda _directory, candidate: _run(candidate, validation(candidate), metrics),
-    )
 
     bundle = collect_report_bundle(tmp_path)
 
-    assert bundle.evidence["claims_status"] == "ready"
-    assert bundle.evidence["selected_depth"] == 4
-    assert bundle.evidence["required_followups"] == []
-
-
-def test_exhausted_selected_c4_overrides_its_valid_c3(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    c3 = recovery_candidates()[0]
-    c4 = make_horizon_correction(c3, 27)
-    target_initial = next(
-        candidate
-        for candidate in initial_candidates()
-        if candidate.family == "aggregate"
-        and candidate.num_layers == c3.num_layers
-        and candidate.embedding_lr == c3.embedding_lr
-        and candidate.deep_lr == c3.deep_lr
-    )
-    target_recipe = (
-        c3.family,
-        c3.num_layers,
-        c3.embedding_lr,
-        c3.deep_lr,
-    )
-    candidates = [
-        candidate
-        for candidate in initial_candidates()
-        if (
-            candidate.family,
-            candidate.num_layers,
-            candidate.embedding_lr,
-            candidate.deep_lr,
-        )
-        != target_recipe
+    assert bundle.evidence["required_followups"] == [
+        candidate.run_name for candidate in full_horizon_rerun_candidates()
     ]
-    candidates.extend(
-        (
-            c3,
-            *aggregate_local_candidates(target_initial),
-            *aggregate_boundary_candidates(target_initial),
-            *bridge_candidates(0.012, selected_depth=6),
-        )
-    )
-    for candidate in (*candidates, c4):
-        (tmp_path / candidate.run_name).mkdir()
-    (tmp_path / c4.run_name / "training_metadata.json").write_text(
-        json.dumps({"next_lr_schedule_horizon_epochs": 40})
-    )
-    metrics = {
-        "recall@100": 0.12,
-        "ndcg@100": 0.045,
-        "recall@10": 0.02,
-        "ndcg@10": 0.015,
-        "coverage@100": 0.6,
-    }
-
-    def validation(candidate) -> float:
-        if candidate.family == "baseline":
-            return 0.2 if candidate.deep_lr == 0.012 else 0.1
-        if candidate == c3:
-            return 0.5
-        if candidate.family == "aggregate" and candidate.embedding_lr == 0.064:
-            return 0.3
-        return 0.1
-
-    monkeypatch.setattr(
-        aggregate_report,
-        "verify_config",
-        lambda directory, *_: directory.name != c4.run_name,
-    )
-    monkeypatch.setattr(
-        aggregate_report,
-        "verify_config_recipe",
-        lambda directory, *_: directory.name == c4.run_name,
-    )
-    monkeypatch.setattr(
-        aggregate_report,
-        "_load_run",
-        lambda _directory, candidate: _run(candidate, validation(candidate), metrics),
-    )
-
-    bundle = collect_report_bundle(tmp_path)
-
-    assert bundle.evidence["claims_status"] == "approval_required"
-    assert bundle.evidence["required_followups"] == []
-    assert bundle.evidence["approval_required"] == [
-        {
-            "run": c4.run_name,
-            "reason": "four horizon corrections did not calibrate the run",
-        }
-    ]
+    assert verified_corrections == []

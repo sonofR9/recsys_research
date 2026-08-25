@@ -187,9 +187,9 @@ class AggregateCandidate:
             raise ValueError("unapproved full-H15 rerun identity")
         scheduled = self.family == "aggregate" or self.member == "scheduler"
         if scheduled != (self.horizon_epochs is not None):
-            raise ValueError("only scheduled candidates declare an adaptive horizon")
+            raise ValueError("only scheduled candidates declare a horizon")
         if self.horizon_epochs is not None and self.horizon_epochs < 1:
-            raise ValueError("adaptive horizons must be positive")
+            raise ValueError("schedule horizons must be positive")
         if self.horizon_chain and (
             self.horizon_epochs is None
             or len(self.horizon_chain) != self.correction + 1

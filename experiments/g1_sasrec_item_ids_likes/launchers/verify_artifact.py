@@ -323,15 +323,22 @@ def _valid_recipe_dynamic_metadata(metadata: dict[str, Any]) -> bool:
 _HORIZON_FREE_SHAPES = frozenset({"constant", "inverse_sqrt", "power"})
 
 
-def _spent_annealing_horizon(metadata: dict[str, Any]) -> int | None:
-    """The horizon of a schedule that anneals over one and reached its end."""
+def _valid_completed_annealing_horizon(metadata: dict[str, Any]) -> bool:
     schedule = metadata.get("transfer_invariants", {}).get("lr_schedule", {})
     if schedule.get("shape") in _HORIZON_FREE_SHAPES:
-        return None
-    horizon = metadata.get("lr_schedule_horizon_epochs") or metadata.get("num_epochs")
-    if not _positive_integer(horizon) or metadata["epochs_trained"] < horizon:
-        return None
-    return horizon
+        return False
+    horizon = metadata.get("lr_schedule_horizon_epochs")
+    steps_per_epoch = metadata.get("optimizer_steps_per_epoch")
+    return (
+        _positive_integer(horizon)
+        and horizon == metadata.get("num_epochs")
+        and metadata.get("epochs_trained") == horizon
+        and metadata.get("stopped_epoch") == horizon
+        and metadata.get("lr_horizon_complete") is True
+        and _positive_integer(steps_per_epoch)
+        and metadata.get("optimizer_steps") == steps_per_epoch * horizon
+        and metadata.get("best_epoch") <= horizon
+    )
 
 
 def _valid_dynamic_metadata(metadata: dict[str, Any]) -> bool:
@@ -340,9 +347,9 @@ def _valid_dynamic_metadata(metadata: dict[str, Any]) -> bool:
     invariants = metadata.get("transfer_invariants", {})
     if invariants.get("adaptive_schedule_early_stopping") is True:
         return _valid_adaptive_schedule_metadata(metadata)
-    horizon = _spent_annealing_horizon(metadata)
-    if horizon is not None:
-        return metadata["best_epoch"] <= horizon
+    schedule = invariants.get("lr_schedule", {})
+    if schedule.get("shape") not in _HORIZON_FREE_SHAPES:
+        return _valid_completed_annealing_horizon(metadata)
     return (
         metadata["stopped_epoch"] < metadata["max_epochs"]
         and metadata.get("early_stopped") is True
@@ -836,6 +843,65 @@ def verify_config_recipe(
     experiment = _config_experiment(config_path, assignments)
     return _verify_config_recipe_experiment(
         directory, experiment, experiment.run_name
+    )
+
+
+def verify_config_completed_historical_horizon(
+    directory: Path, config_path: Path, raw_assignments: list[str]
+) -> bool:
+    assignments = _config_assignments(raw_assignments)
+    experiment = _config_experiment(config_path, assignments)
+    if directory.name != experiment.run_name:
+        return False
+    expected_top_level, expected_invariants = _expected_metadata(experiment)
+    metrics_path = directory / "final_metrics.json"
+    metadata_path = directory / "training_metadata.json"
+    try:
+        metrics = _load_json(metrics_path)
+        metadata = _load_json(metadata_path)
+        if isinstance(metadata, dict):
+            metadata = _with_legacy_accumulation_defaults(metadata)
+        fresh = (
+            has_current_generation_semantics(metadata)
+            and metrics_path.stat().st_mtime_ns >= metadata_path.stat().st_mtime_ns
+        )
+    except (OSError, json.JSONDecodeError):
+        return False
+    if (
+        not fresh
+        or not isinstance(metadata, dict)
+        or not _valid_config_metrics(metrics, experiment)
+        or any(
+            metadata.get(name) != value
+            for name, value in expected_top_level.items()
+        )
+    ):
+        return False
+    actual_invariants = metadata.get("transfer_invariants")
+    if not isinstance(actual_invariants, dict):
+        return False
+    actual_invariants = dict(actual_invariants)
+    if actual_invariants.get("adaptive_schedule_early_stopping") is not True:
+        return False
+    actual_invariants["adaptive_schedule_early_stopping"] = False
+    if actual_invariants != expected_invariants:
+        return False
+    horizon = experiment.lr_schedule_horizon_epochs
+    steps_per_epoch = metadata.get("optimizer_steps_per_epoch")
+    return (
+        horizon == experiment.num_epochs == 15
+        and metadata.get("lr_schedule_horizon_epochs") == horizon
+        and metadata.get("num_epochs") == horizon
+        and metadata.get("max_epochs") == horizon
+        and metadata.get("epochs_trained") == horizon
+        and metadata.get("stopped_epoch") == horizon
+        and metadata.get("lr_horizon_complete") is True
+        and _positive_integer(metadata.get("best_epoch"))
+        and metadata["best_epoch"] <= horizon
+        and _positive_integer(steps_per_epoch)
+        and metadata.get("optimizer_steps") == steps_per_epoch * horizon
+        and _valid_recipe_dynamic_metadata(metadata)
+        and _valid_group_lr_traces(metadata, actual_invariants["lr_schedule"])
     )
 
 

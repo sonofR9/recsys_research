@@ -58,7 +58,7 @@ Research questions:
 
 ## 2 esasrec
 
-- [review] what is the metrics for esasrec on yambda? Use official implementation from the https://github.com/MTSWebServices/RecTools. If it is possible, report improvement from each pluggable change. <!-- work:g2-esasrec -->
+- [complete] what is the metrics for esasrec on yambda? Use official implementation from the https://github.com/MTSWebServices/RecTools. If it is possible, report improvement from each pluggable change. <!-- work:g2-esasrec -->
 
 ## 3 as 1 but adding pretained embedding
 
