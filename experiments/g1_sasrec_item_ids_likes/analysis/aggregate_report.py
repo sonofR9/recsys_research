@@ -289,20 +289,29 @@ def _render_reader(evidence: dict[str, Any]) -> str:
         "",
         "The standalone total uses the eleven one-factor bridges against the frozen baseline.",
         "",
-        "| metric | baseline | aggregate | aggregate gain | gain (%) | "
+        "| metric | baseline | aggregate | aggregate gain | "
         "summed standalone gain | interaction gap | interaction |",
-        "|---|---:|---:|---:|---:|---:|---:|---|",
+        "|---|---:|---:|---:|---:|---:|---|",
     ]
     for metric in METRICS:
         row = evidence["aggregated_improvement"][metric]
         lines.append(
-            f"| {metric} | {row['baseline']:.3f} | {row['aggregate']:.3f} | "
+            f"| {metric} | {row['baseline']:.3f} | {_reader_metric_cell(metric, row)} | "
             f"{row['aggregate_gain_points']:+.3f} | "
-            f"{row['aggregate_gain_percent']:+.2f}% | "
             f"{row['summed_standalone_gain_points']:+.3f} | "
             f"{row['interaction_gap']:+.3f} | {row['interaction']} |"
         )
     return "\n".join(lines) + "\n"
+
+
+def _reader_metric_cell(metric: str, row: dict[str, Any]) -> str:
+    value = f"{row['aggregate_gain_percent']:+.1f}% ({row['aggregate']:.3f})"
+    gain = row["aggregate_gain_points"]
+    if gain > _BANDS[metric]:
+        return f'<span style="color: green">{value}</span>'
+    if gain < -_BANDS[metric]:
+        return f'<span style="color: red">{value}</span>'
+    return value
 
 
 def classify_aggregate_outcome(

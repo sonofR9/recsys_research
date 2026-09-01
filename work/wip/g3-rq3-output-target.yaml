@@ -1,0 +1,12 @@
+version: 1
+id: g3-rq3-output-target
+title: Compare pretrained catalog prediction targets
+description: >-
+  Implement, tune, evaluate, and report all five approved catalog-output
+  representations with normalized frozen or trainable content on the selected
+  concatenated RQ2 input, with saved gradient, norm, logit, and
+  representation-drift diagnostics.
+blocked_by:
+  - g3-rq2-content-concat
+ideas_tags:
+  - g3-rq3-output-target

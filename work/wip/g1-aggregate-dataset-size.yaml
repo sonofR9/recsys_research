@@ -1,0 +1,10 @@
+version: 1
+id: g1-aggregate-dataset-size
+title: Measure the best G1 aggregate on native 50M and 500M
+description: >-
+  Implement the approved separate dataset-size study, reuse the verified native
+  500M aggregate evidence, train the size-matched native 50M baseline, bands,
+  bridges, and 4/6/8-layer aggregate, and report absolute metrics and uplift for
+  both sizes.
+blocked_by: []
+ideas_tags: []

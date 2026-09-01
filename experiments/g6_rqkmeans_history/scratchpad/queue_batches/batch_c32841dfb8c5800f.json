@@ -1,0 +1,65 @@
+{
+  "jobs": [
+    {
+      "id": "treatment_tuning:learned_sid_event_trial_15",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0039548599663025655,
+        "embedding_learning_rate": 0.00752173913531528,
+        "num_codes": 256,
+        "num_levels": 2,
+        "representation": "learned_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_event_trial_15_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_frozen_sid_event_trial_15",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.20422560647128077,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_event",
+        "representation_width": 128,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_frozen_sid_event_trial_15_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_learned_frozen_sid_event_trial_15",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.004193366561454768,
+        "embedding_learning_rate": 0.06908817999613777,
+        "num_codes": 512,
+        "num_levels": 4,
+        "representation": "item_learned_frozen_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_learned_frozen_sid_event_trial_15_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_tokens_trial_15",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0014681058188640741,
+        "embedding_learning_rate": 0.24819055372639812,
+        "num_codes": 256,
+        "num_levels": 3,
+        "representation": "learned_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_tokens_trial_15_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

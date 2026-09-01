@@ -1,4 +1,5 @@
 import json
+import logging
 import threading
 import time
 from itertools import accumulate
@@ -97,6 +98,69 @@ def test_concurrent_datasets_build_a_shared_cold_cache_once(
     assert len(datasets) == 2
     assert builds == 1
     assert maximum == 1
+
+
+def test_cache_provenance_logs_exact_path_for_build_and_load(
+    sample_parquet: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    cache = sample_parquet.parent / "provenance-cache"
+    caplog.set_level(logging.INFO, logger="dcn.data.sequence_dataset")
+
+    _dataset(sample_parquet, cache=cache)
+    assert f"Built 2 user sequences at {cache} in 1 bucket(s)" in caplog.text
+
+    caplog.clear()
+    _dataset(sample_parquet, cache=cache)
+    assert f"Loaded cached user sequences from {cache}" in caplog.text
+
+
+@pytest.mark.parametrize(
+    "window,kwargs",
+    [
+        ("whole", {}),
+        ("sliding", {"stride": 2 / 3}),
+        ("next_item", {}),
+        (
+            "bounded_prefix",
+            {"prefix_length_rule": "truncated", "prefix_cap": 2},
+        ),
+    ],
+)
+def test_event_count_matches_every_emitted_sequence_window(
+    sample_parquet: Path,
+    tmp_path: Path,
+    window: str,
+    kwargs: dict,
+) -> None:
+    dataset = _dataset(
+        sample_parquet,
+        cache=tmp_path / window,
+        window=window,
+        n_buckets=1,
+        **kwargs,
+    )
+
+    expected = sum(len(dataset[index]["timestamp"]) for index in range(len(dataset)))
+
+    assert dataset.event_count == expected
+
+
+def test_existing_sequence_cache_gains_an_exact_event_count_without_raw_input(
+    sample_parquet: Path,
+    tmp_path: Path,
+) -> None:
+    cache = tmp_path / "event-count-migration"
+    expected = _dataset(sample_parquet, cache=cache, n_buckets=1).event_count
+    metadata_path = cache / "metadata.json"
+    metadata = json.loads(metadata_path.read_text())
+    metadata.pop("event_count")
+    metadata_path.write_text(json.dumps(metadata))
+    sample_parquet.unlink()
+
+    migrated = _dataset(sample_parquet, cache=cache, n_buckets=1)
+
+    assert migrated.event_count == expected
+    assert json.loads(metadata_path.read_text())["event_count"] == expected
 
 
 def _write(path: Path, **columns: list) -> Path:
@@ -287,6 +351,141 @@ def test_next_item_windows_match_homework_history_target_chunks(tmp_path: Path) 
     ]
 
 
+class TestBoundedPrefixWindow:
+    def _prefixes(
+        self,
+        path: Path,
+        *,
+        max_seq_len: int,
+        prefix_cap: int,
+        prefix_length_rule: str,
+        cache: Path | None = None,
+    ) -> list[list[int]]:
+        dataset = _dataset(
+            path,
+            ["item_id"],
+            cache=cache or path.parent / f"{prefix_length_rule}_{prefix_cap}",
+            max_seq_len=max_seq_len,
+            window="bounded_prefix",
+            prefix_cap=prefix_cap,
+            prefix_length_rule=prefix_length_rule,
+            n_buckets=1,
+        )
+        return _item_sequences(dataset)
+
+    @pytest.mark.parametrize("prefix_cap", [8, 16])
+    def test_truncated_expansion_selects_latest_prefixes_up_to_the_cap(
+        self, tmp_path: Path, prefix_cap: int
+    ) -> None:
+        sequences = self._prefixes(
+            _write_history(tmp_path, 40),
+            max_seq_len=128,
+            prefix_cap=prefix_cap,
+            prefix_length_rule="truncated",
+        )
+
+        assert len(sequences) == prefix_cap
+        assert [sequence[-1] for sequence in sequences] == list(
+            range(39, 39 - prefix_cap, -1)
+        )
+        assert all(sequence == sorted(sequence) for sequence in sequences)
+        assert all(sequence[-1] not in sequence[:-1] for sequence in sequences)
+
+    def test_truncated_expansion_retains_at_most_the_latest_history(
+        self, tmp_path: Path
+    ) -> None:
+        sequences = self._prefixes(
+            _write_history(tmp_path, 10),
+            max_seq_len=4,
+            prefix_cap=3,
+            prefix_length_rule="truncated",
+        )
+
+        assert sequences == [
+            [5, 6, 7, 8, 9],
+            [4, 5, 6, 7, 8],
+            [3, 4, 5, 6, 7],
+        ]
+
+    @pytest.mark.parametrize("prefix_cap", [8, 16])
+    def test_required_expansion_selects_latest_full_length_prefixes(
+        self, tmp_path: Path, prefix_cap: int
+    ) -> None:
+        sequences = self._prefixes(
+            _write_history(tmp_path, 150),
+            max_seq_len=128,
+            prefix_cap=prefix_cap,
+            prefix_length_rule="required",
+        )
+
+        assert len(sequences) == prefix_cap
+        assert [sequence[-1] for sequence in sequences] == list(
+            range(149, 149 - prefix_cap, -1)
+        )
+        assert all(len(sequence) == 129 for sequence in sequences)
+        assert all(sequence == sorted(sequence) for sequence in sequences)
+        assert all(sequence[-1] not in sequence[:-1] for sequence in sequences)
+
+    def test_required_expansion_keeps_one_complete_short_history(
+        self, tmp_path: Path
+    ) -> None:
+        sequences = self._prefixes(
+            _write_history(tmp_path, 128),
+            max_seq_len=128,
+            prefix_cap=16,
+            prefix_length_rule="required",
+        )
+
+        assert sequences == [list(range(128))]
+
+    def test_cache_identity_includes_policy_length_rule_and_cap(
+        self, tmp_path: Path
+    ) -> None:
+        path = _write_history(tmp_path, 5)
+        cache = tmp_path / "shared_cache"
+
+        whole = _item_sequences(
+            _dataset(
+                path,
+                ["item_id"],
+                cache=cache,
+                max_seq_len=4,
+                window="whole",
+                n_buckets=1,
+            )
+        )
+        truncated = self._prefixes(
+            path,
+            cache=cache,
+            max_seq_len=4,
+            prefix_cap=2,
+            prefix_length_rule="truncated",
+        )
+        required = self._prefixes(
+            path,
+            cache=cache,
+            max_seq_len=4,
+            prefix_cap=2,
+            prefix_length_rule="required",
+        )
+        wider_cap = self._prefixes(
+            path,
+            cache=cache,
+            max_seq_len=4,
+            prefix_cap=3,
+            prefix_length_rule="truncated",
+        )
+
+        assert whole == [[1, 2, 3, 4]]
+        assert truncated == [[0, 1, 2, 3, 4], [0, 1, 2, 3]]
+        assert required == [[0, 1, 2, 3, 4]]
+        assert wider_cap == [
+            [0, 1, 2, 3, 4],
+            [0, 1, 2, 3],
+            [0, 1, 2],
+        ]
+
+
 class TestSlidingWindow:
     def test_matches_a_brute_force_reference_over_the_parameter_space(
         self, tmp_path: Path
@@ -377,6 +576,16 @@ class TestSlidingWindow:
             ({"window": "bogus"}, "window"),
             ({"window": "sliding", "stride": 0.0}, "stride"),
             ({"window": "sliding", "stride": 1.5}, "stride"),
+            ({"window": "bounded_prefix"}, "prefix_cap"),
+            (
+                {
+                    "window": "bounded_prefix",
+                    "prefix_cap": 8,
+                    "prefix_length_rule": "bogus",
+                },
+                "prefix_length_rule",
+            ),
+            ({"window": "bounded_prefix", "prefix_cap": 0}, "prefix_cap"),
         ],
     )
     def test_invalid_args_rejected(

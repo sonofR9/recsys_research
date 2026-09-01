@@ -125,6 +125,30 @@ class _MarkedLinear(nn.Module):
         self.linear = nn.Linear(4, 4)
 
 
+class _PretrainedModule(nn.Module):
+    preserve_declared_initialization = True
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.encoder = nn.Linear(4, 3)
+        with torch.no_grad():
+            self.encoder.weight.copy_(torch.arange(12).reshape(3, 4))
+            self.encoder.bias.copy_(torch.tensor([5.0, 6.0, 7.0]))
+
+
+def test_marked_pretrained_parameters_survive_standard_initialization() -> None:
+    pretrained = _PretrainedModule()
+    expected = deepcopy(pretrained.state_dict())
+    model = nn.Sequential(pretrained, nn.Linear(3, 2))
+
+    _initialize_standard_parameters(model, 0.02)
+
+    assert all(
+        torch.equal(value, expected[name])
+        for name, value in pretrained.state_dict().items()
+    )
+
+
 class _RunModel(nn.Module):
     def __init__(self, marked: bool) -> None:
         super().__init__()

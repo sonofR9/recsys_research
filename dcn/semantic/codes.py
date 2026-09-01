@@ -93,6 +93,16 @@ class SemanticCodes:
             codes_per_level=(*[num_codes] * codes.shape[1], int(ranks.max()) + 1),
         )
 
+    @classmethod
+    def without_collision_suffix(
+        cls, item_ids: torch.Tensor, codes: torch.Tensor, num_codes: int
+    ) -> SemanticCodes:
+        return cls(
+            item_ids=item_ids,
+            codes=codes,
+            codes_per_level=tuple([num_codes] * codes.shape[1]),
+        )
+
     @property
     def num_levels(self) -> int:
         return self.codes.shape[1]

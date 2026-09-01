@@ -1,0 +1,14 @@
+{
+  "approved_at": "2026-08-31",
+  "dataset_size": "native-500m",
+  "expected_run_totals": [130, 132, 134, 138, 140, 142],
+  "fixed_kmeans_max_iterations": 300,
+  "fixed_kmeans_tolerance": 0.0001,
+  "fixed_training_horizon": 26,
+  "maximum_runs": 262,
+  "plan_sha256": "3561064c58087cff75b0029c62eb477104b8bce51ff77b4868f3733d0b218910",
+  "representation_width": 128,
+  "schema": "g6-native500m-approval/v1",
+  "shared_codebook_sizes": [512, 2048, 8192],
+  "tokenizer_levels": [3, 4]
+}

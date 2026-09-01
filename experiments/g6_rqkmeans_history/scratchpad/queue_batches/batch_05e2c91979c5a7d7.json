@@ -1,0 +1,35 @@
+{
+  "jobs": [
+    {
+      "id": "treatment_tuning:item_learned_frozen_sid_event_trial_11",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.008686092009279228,
+        "embedding_learning_rate": 0.2282507260721797,
+        "num_codes": 512,
+        "num_levels": 4,
+        "representation": "item_learned_frozen_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_learned_frozen_sid_event_trial_11_native50m"
+    },
+    {
+      "id": "treatment_tuning:interleaved_item_sid_tokens_trial_11",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.01749204166313988,
+        "embedding_learning_rate": 0.22565156371188938,
+        "num_codes": 32,
+        "num_levels": 3,
+        "representation": "interleaved_item_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_interleaved_item_sid_tokens_trial_11_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

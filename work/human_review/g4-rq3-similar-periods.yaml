@@ -1,0 +1,9 @@
+version: 1
+id: g4-rq3-similar-periods
+title: G4 RQ3 behavior-similar periods
+description: >-
+  Implement, gate, tune, evaluate, and report the approved deterministic and
+  learned similar-period objectives on native Yambda-500M.
+blocked_by: []
+ideas_tags:
+  - g4-rq3-similar-periods

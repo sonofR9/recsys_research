@@ -1,0 +1,10 @@
+version: 1
+id: g3-baseline-native500m
+title: Tune and freeze the native-500M G3 baseline
+description: >-
+  Implement the versioned native-500M protocol and manifests, construct the
+  exact tied two-layer G1-best-minus-depth control without MuTransfer or muP,
+  tune its nine best-known-LR-anchored cells, and freeze the selected baseline
+  artifact before any G3 treatment runs.
+blocked_by: []
+ideas_tags: []

@@ -1,0 +1,11 @@
+version: 1
+id: g6-rq3-no-collision-tokenizer
+title: Tune RQ-KMeans without collision resolution
+description: >-
+  Execute the equal-budget paired native-500M tokenizer search without the
+  collision suffix, compare independently selected systems, and freeze the
+  terminal G6 tokenizer and collision policy.
+blocked_by:
+  - g6-rq2-collision-tokenizer
+ideas_tags:
+  - g6-rq3-no-collision-tokenizer

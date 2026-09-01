@@ -9,6 +9,8 @@ from typing import Callable
 
 import pytest
 
+from utils.training_queue import service as training_queue_service
+
 
 SERVICE = (
     Path(__file__).resolve().parents[2]
@@ -1011,3 +1013,158 @@ printf '%s\n' "$?"
     assert not run.exists()
     assert (archived / "marker").read_text() == "preserved"
     assert (archived_again / "marker").read_text() == "newer"
+
+
+def test_atomic_batch_is_complete_and_sealed_before_dispatch(
+    tmp_path: Path,
+) -> None:
+    state = tmp_path / "service"
+    environment = _queue_environment(tmp_path, state)
+    specification = tmp_path / "batch.json"
+    specification.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "jobs": [
+                    {
+                        "script": "experiment.py",
+                        "run": f"atomic-{index}",
+                        "data_group": "atomic-data",
+                        "environment": [f"VARIANT=atomic-{index}"],
+                    }
+                    for index in range(10)
+                ],
+            }
+        )
+    )
+    try:
+        _service(
+            state,
+            "start",
+            environment=environment,
+            working_directory=tmp_path,
+        )
+        submitted = _service(state, "submit-batch", str(specification))
+        batch_id = submitted.stdout.strip()
+        batch = json.loads((state / "batches" / f"{batch_id}.json").read_text())
+
+        assert batch["sealed"] is True
+        assert batch["atomic_submission"] is True
+        assert len(batch["jobs"]) == 10
+        found = _service(state, "find-batch", str(specification))
+        assert found.stdout.strip() == batch_id
+        rejected_seal = _service(
+            state, "seal-batch", batch_id, check=False
+        )
+        assert rejected_seal.returncode == 2
+        _service(state, "wait-batch", batch_id)
+        status = json.loads(_service(state, "status", "--json").stdout)
+        assert status["completed"] == 10
+    finally:
+        _service(state, "stop", check=False)
+
+
+def test_interrupted_atomic_batch_is_recovered_on_exact_retry(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = training_queue_service.ServicePaths(tmp_path / "service")
+    paths.create()
+    specification = tmp_path / "batch.json"
+    specification.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "jobs": [
+                    {
+                        "script": "experiment.py",
+                        "run": f"recover-{index}",
+                        "data_group": "atomic-data",
+                        "environment": [f"VARIANT=recover-{index}"],
+                    }
+                    for index in range(3)
+                ],
+            }
+        )
+    )
+    monkeypatch.setattr(training_queue_service, "_require_running", lambda _: 1)
+    original_atomic_json = training_queue_service._atomic_json
+    failed = False
+
+    def fail_first_pending(path: Path, value: dict[str, object]) -> None:
+        nonlocal failed
+        if path.parent == paths.pending and not failed:
+            failed = True
+            raise OSError("injected atomic submission interruption")
+        original_atomic_json(path, value)
+
+    monkeypatch.setattr(training_queue_service, "_atomic_json", fail_first_pending)
+    with pytest.raises(OSError, match="injected atomic submission"):
+        training_queue_service._submit_atomic_batch(paths, specification)
+
+    orphan = json.loads(next(paths.batches.glob("*.json")).read_text())
+    assert orphan["sealed"] is False
+    monkeypatch.setattr(training_queue_service, "_atomic_json", original_atomic_json)
+    assert training_queue_service._submit_atomic_batch(paths, specification) == 0
+
+    batches = [json.loads(path.read_text()) for path in paths.batches.glob("*.json")]
+    assert len(batches) == 1
+    assert batches[0]["sealed"] is True
+    assert len(batches[0]["jobs"]) == 3
+    assert len(list(paths.pending.glob("*.json"))) == 3
+
+
+def test_exact_retry_recovers_batch_id_after_seal_response_is_lost(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    paths = training_queue_service.ServicePaths(tmp_path / "service")
+    paths.create()
+    specification = tmp_path / "batch.json"
+    specification.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "jobs": [
+                    {
+                        "script": "experiment.py",
+                        "run": f"sealed-{index}",
+                        "data_group": "atomic-data",
+                        "environment": [f"VARIANT=sealed-{index}"],
+                    }
+                    for index in range(2)
+                ],
+            }
+        )
+    )
+    monkeypatch.setattr(training_queue_service, "_require_running", lambda _: 1)
+    original_atomic_json = training_queue_service._atomic_json
+    response_lost = False
+
+    def lose_response_after_seal(path: Path, value: dict[str, object]) -> None:
+        nonlocal response_lost
+        original_atomic_json(path, value)
+        if (
+            path.parent == paths.batches
+            and value.get("atomic_submission") is True
+            and value.get("sealed") is True
+            and not response_lost
+        ):
+            response_lost = True
+            raise OSError("injected lost submit response")
+
+    monkeypatch.setattr(training_queue_service, "_atomic_json", lose_response_after_seal)
+    with pytest.raises(OSError, match="lost submit response"):
+        training_queue_service._submit_atomic_batch(paths, specification)
+    batch_id = next(paths.batches.glob("*.json")).stem
+    monkeypatch.setattr(training_queue_service, "_atomic_json", original_atomic_json)
+
+    assert (
+        training_queue_service._submit_atomic_batch(
+            paths, specification, existing_only=True
+        )
+        == 0
+    )
+    assert training_queue_service._submit_atomic_batch(paths, specification) == 0
+    assert capsys.readouterr().out.splitlines() == [batch_id, batch_id]
+    assert len(list(paths.batches.glob("*.json"))) == 1

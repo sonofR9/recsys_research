@@ -32,8 +32,16 @@
 - Implementation and focused checks:
 - Queue batches and dependencies:
 - Evidence and report tables to produce:
-- Expected result and conditions that require debugging or another sweep:
+- Execution failures, unresolved LR boundaries, or incomplete runs that require
+  a retry or additional sweep:
 - Independent review criteria:
+
+## Acceptance criteria
+
+- Copy the user's criteria almost verbatim, preserving words such as `probably`,
+  `should`, `at minimum`, and `must`:
+- If the user did not provide criteria, propose the expected result and exact
+  comparison in the same short, direct style:
 
 ## Approval
 

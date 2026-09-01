@@ -1,0 +1,14 @@
+{
+  "after_seconds": 0.041666039964184165,
+  "before_seconds": 0.44867109204642475,
+  "device": "NVIDIA A100-SXM4-80GB",
+  "environment": {
+    "MKL_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1"
+  },
+  "operation": "rq2 full-event candidate lookup",
+  "queries": 4999,
+  "speedup": 10.7694226213868,
+  "verification": "Candidate lookup changed only from per-query CUDA scalar reads to four batched device-to-host copies; focused target tests compare exact outputs."
+}

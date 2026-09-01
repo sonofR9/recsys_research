@@ -4,13 +4,11 @@ import argparse
 import os
 import re
 import stat
-import subprocess
 import sys
 import tempfile
-import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Protocol, Sequence
+from typing import Sequence
 
 import yaml
 
@@ -18,9 +16,7 @@ import yaml
 REPOSITORY_ROOT = Path(__file__).parents[1]
 DEFAULT_WORK_ROOT = REPOSITORY_ROOT / "work"
 DEFAULT_IDEAS = REPOSITORY_ROOT / "experiments" / "ideas.md"
-REMINDER = "there are unfinished tasks, finish them please"
 STATUSES = ("not_started", "wip", "blocked", "human_review", "done")
-REMINDER_STATUSES = frozenset(("not_started", "wip"))
 IDEAS_STATUS = {
     "not_started": "not_started",
     "wip": "wip",
@@ -44,151 +40,6 @@ class Task:
     blocked_by: tuple[str, ...]
     ideas_tags: tuple[str, ...]
     path: Path
-
-
-class Notifier(Protocol):
-    def notify(self, message: str) -> None: ...
-
-
-class StdoutNotifier:
-    def notify(self, message: str) -> None:
-        print(message, flush=True)
-
-
-@dataclass(frozen=True)
-class TmuxNotifier:
-    pane: str
-
-    @dataclass(frozen=True)
-    class Composer:
-        text: str
-        submission_key: str
-
-    def _has_codex_descendant(self, pane_pid: int) -> bool:
-        process_rows = subprocess.run(
-            ["ps", "-eo", "pid=,ppid=,comm=,args="],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.splitlines()
-        processes: dict[int, tuple[int, str, str]] = {}
-        for row in process_rows:
-            columns = row.split(maxsplit=3)
-            if len(columns) != 4:
-                continue
-            try:
-                process_id, parent_id = (int(columns[0]), int(columns[1]))
-            except ValueError:
-                continue
-            processes[process_id] = (parent_id, columns[2], columns[3])
-
-        descendants = {pane_pid}
-        while True:
-            discovered = {
-                process_id
-                for process_id, (parent_id, _, _) in processes.items()
-                if parent_id in descendants
-            }
-            expanded = descendants | discovered
-            if expanded == descendants:
-                break
-            descendants = expanded
-        for process_id in descendants:
-            process = processes.get(process_id)
-            if process is None:
-                continue
-            _, command, arguments = process
-            argument_names = {Path(argument).name for argument in arguments.split()}
-            if command == "codex" or (command == "node" and "codex" in argument_names):
-                return True
-        return False
-
-    def _composer(self) -> Composer | None:
-        pane = subprocess.run(
-            ["tmux", "capture-pane", "-p", "-J", "-t", self.pane],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout
-        pane_lines = pane.splitlines()
-        composer_indexes = [
-            index
-            for index, line in enumerate(pane_lines)
-            if line.lstrip().startswith("›")
-        ]
-        if not composer_indexes:
-            return None
-        composer_index = composer_indexes[-1]
-        composer_line = pane_lines[composer_index].lstrip()
-        text = composer_line.removeprefix("›").strip()
-        if text == "Implement {feature}":
-            text = ""
-        recent_ui = " ".join(pane_lines[max(0, composer_index - 12) : composer_index])
-        queue_required = (
-            "Working (" in recent_ui and "esc to interrupt" in recent_ui
-        ) or "tab to queue message" in recent_ui.lower()
-        return self.Composer(
-            text=text,
-            submission_key="Tab" if queue_required else "Enter",
-        )
-
-    def _send_keys(self, *keys: str) -> None:
-        subprocess.run(
-            ["tmux", "send-keys", "-t", self.pane, *keys],
-            check=True,
-        )
-
-    def _wait_for_message(self, message: str, *, present: bool) -> bool:
-        for _ in range(10):
-            composer = self._composer()
-            message_is_present = composer is not None and composer.text == message
-            if message_is_present == present:
-                return True
-            time.sleep(0.1)
-        return False
-
-    def notify(self, message: str) -> None:
-        pane_state = subprocess.run(
-            [
-                "tmux",
-                "display-message",
-                "-p",
-                "-t",
-                self.pane,
-                "#{pane_dead} #{pane_current_command} #{pane_pid}",
-            ],
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
-        state_parts = pane_state.split()
-        if len(state_parts) != 3 or state_parts[0] != "0":
-            raise WorkflowError(
-                f"tmux target {self.pane} is not an active Codex pane: {pane_state}"
-            )
-        command, pane_pid_text = state_parts[1:]
-        try:
-            pane_pid = int(pane_pid_text)
-        except ValueError as error:
-            raise WorkflowError(f"invalid tmux pane pid: {pane_pid_text}") from error
-        if command not in {"codex", "node"} or not self._has_codex_descendant(
-            pane_pid
-        ):
-            raise WorkflowError(f"tmux target {self.pane} is not a Codex process")
-        composer = self._composer()
-        if composer is None or composer.text:
-            return
-        self._send_keys("-l", message)
-        if not self._wait_for_message(message, present=True):
-            raise WorkflowError("tmux reminder insertion could not be verified")
-        submission_keys = [composer.submission_key] * 2
-        if composer.submission_key == "Tab":
-            submission_keys.append("Enter")
-        for submission_key in submission_keys:
-            self._send_keys(submission_key)
-            if self._wait_for_message(message, present=False):
-                return
-        raise WorkflowError("tmux reminder remained in the composer after submission")
 
 
 def _string_list(value: object, *, field: str, path: Path) -> tuple[str, ...]:
@@ -338,13 +189,6 @@ def synchronize_ideas(tasks: Sequence[Task], ideas_path: Path) -> None:
     os.replace(temporary_path, ideas_path)
 
 
-def run_cycle(work_root: Path, ideas_path: Path, notifier: Notifier) -> None:
-    tasks = load_tasks(work_root)
-    synchronize_ideas(tasks, ideas_path)
-    if any(task.status in REMINDER_STATUSES for task in tasks):
-        notifier.notify(REMINDER)
-
-
 def _add_paths(parser: argparse.ArgumentParser, *, ideas: bool) -> None:
     parser.add_argument("--work-root", type=Path, default=DEFAULT_WORK_ROOT)
     if ideas:
@@ -361,14 +205,6 @@ def _parse_arguments(arguments: Sequence[str] | None) -> argparse.Namespace:
     sync = subparsers.add_parser("sync")
     _add_paths(sync, ideas=True)
 
-    monitor = subparsers.add_parser("monitor")
-    _add_paths(monitor, ideas=True)
-    monitor.add_argument("--interval-seconds", type=float, default=1800)
-    monitor.add_argument("--once", action="store_true")
-    monitor.add_argument("--max-cycles", type=int)
-    notification = monitor.add_mutually_exclusive_group(required=True)
-    notification.add_argument("--notify-stdout", action="store_true")
-    notification.add_argument("--tmux-pane")
     return parser.parse_args(arguments)
 
 
@@ -381,33 +217,7 @@ def main(arguments: Sequence[str] | None = None) -> int:
         if options.command == "sync":
             synchronize_ideas(load_tasks(options.work_root), options.ideas)
             return 0
-        if options.interval_seconds <= 0:
-            raise WorkflowError("interval must be positive")
-        if options.max_cycles is not None and options.max_cycles <= 0:
-            raise WorkflowError("max cycles must be positive")
-        notifier: Notifier = (
-            StdoutNotifier()
-            if options.notify_stdout
-            else TmuxNotifier(options.tmux_pane)
-        )
-        completed_cycles = 0
-        while True:
-            cycle_error: OSError | subprocess.SubprocessError | WorkflowError | None = None
-            try:
-                run_cycle(options.work_root, options.ideas, notifier)
-            except (OSError, subprocess.SubprocessError, WorkflowError) as error:
-                cycle_error = error
-                print(f"work monitor cycle failed: {error}", file=sys.stderr, flush=True)
-            completed_cycles += 1
-            if options.once:
-                return 2 if cycle_error is not None else 0
-            if (
-                options.max_cycles is not None
-                and completed_cycles >= options.max_cycles
-            ):
-                return 2 if cycle_error is not None else 0
-            time.sleep(options.interval_seconds)
-    except (OSError, subprocess.SubprocessError, WorkflowError) as error:
+    except (OSError, WorkflowError) as error:
         print(error, file=sys.stderr)
         return 2
 

@@ -1,0 +1,121 @@
+{
+  "jobs": [
+    {
+      "id": "original_control_tuning:original_g1_control_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.014156402651459801,
+        "embedding_learning_rate": 0.00013777207352979145,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_original_g1_control_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_event_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.00012530392272454445,
+        "embedding_learning_rate": 0.1813421381667464,
+        "num_codes": 256,
+        "num_levels": 3,
+        "representation": "learned_sid_event",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_event_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_frozen_sid_event_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0006848356142975813,
+        "embedding_learning_rate": 0.00010979364093619366,
+        "num_codes": 256,
+        "num_levels": 2,
+        "representation": "item_frozen_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_frozen_sid_event_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_learned_frozen_sid_event_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.014239399330015364,
+        "embedding_learning_rate": 0.0011837835724269267,
+        "num_codes": 32,
+        "num_levels": 3,
+        "representation": "item_learned_frozen_sid_event",
+        "representation_width": 128,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_learned_frozen_sid_event_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_tokens_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.00012591650211872573,
+        "embedding_learning_rate": 0.24032806128522546,
+        "num_codes": 64,
+        "num_levels": 4,
+        "representation": "learned_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_tokens_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_frozen_sid_tokens_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.08186409468367138,
+        "embedding_learning_rate": 0.13011742496763526,
+        "num_codes": 256,
+        "num_levels": 4,
+        "representation": "learned_frozen_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_frozen_sid_tokens_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:frozen_sid_tokens_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.004586500161494628,
+        "embedding_learning_rate": 0.0001567793335084273,
+        "num_codes": 128,
+        "num_levels": 3,
+        "representation": "frozen_sid_tokens",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_frozen_sid_tokens_trial_08_native50m"
+    },
+    {
+      "id": "treatment_tuning:interleaved_item_sid_tokens_trial_08",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.11961422162304701,
+        "embedding_learning_rate": 0.0071638342906669575,
+        "num_codes": 512,
+        "num_levels": 2,
+        "representation": "interleaved_item_sid_tokens",
+        "representation_width": 128,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_interleaved_item_sid_tokens_trial_08_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

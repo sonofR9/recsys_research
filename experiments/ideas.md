@@ -1,5 +1,9 @@
 # Experiment ideas
 
+## Prompt template
+
+Lets implement g<> rq<>, run necessary runs, analyze them and write the report. Make sure to read ideas and their understanding. Also at the end check that all acceptance criterias are met. If not, continue working until they are met.
+
 ## Reading the numbers
 
 Report every metric to three decimals. Each experiment uses empirical resolution
@@ -35,7 +39,7 @@ tune mixture and negative count.
 list every selected parameter, and record the chosen complete configuration as
 the baseline for later experiment groups.
 1.8 Treat the 50M-versus-500M comparison as a separately approved dataset-size
-study. Train both sizes in the same baseline-style native-dataset regime, but
+research question within its experiment group. Train both sizes in the same baseline-style native-dataset regime, but
 never repeat 50M to match 500M targets, tokens, steps, or epochs and never reuse
 one size's empirical bands for the other. Validate every epoch, stop early when
 validation stops improving, restore the best epoch, and use that best epoch for
@@ -44,37 +48,45 @@ endpoint.
 
 Research questions:
 
-- [done] rq1 Does utransfer work? <!-- work:g1-rq1 -->
-- [wip] rq2 What is the best combination for the transformer in terms of metrics (take a look at rqs below)? <!-- work:g1-rq2 -->
+- [wip] rq1 Does utransfer work? <!-- work:g1-rq1 -->
+- [complete] rq2 What is the best combination for the transformer in terms of metrics (take a look at rqs below)? <!-- work:g1-rq2 -->
 - [wip] rq3 What is the best combination for the transformer in terms of balance between metrics and performance (take a look at rqs below)? <!-- work:g1-rq3 -->
-- [done] rq4 Does swiglu help? <!-- work:g1-rq4 -->
-- [done] rq5 Which lr scheduler works the best? <!-- work:g1-rq5 -->
-- [done] rq6 Does lr warmup help? <!-- work:g1-rq6 -->
-- [done] rq7 Which one is better: rope, alibi, position embeddings or their combinations? Also you must include variants with position embeddings calculated from the end (so the last event will be always first). It sounds like a good idea to include the same thing for the rope too. <!-- work:g1-rq7 -->
-- [done] rq8 How dim affects metrics? And what about num layers, max sequence length, number of heads, groupped query attention, shared window length, normalization kind and place, existance of bos token, may be cls token, ffn ratio? Each dependance should be in separate table. If scaling does not work, it needs a very thorough analysis of why. <!-- work:g1-rq8 -->
-- [done] rq9 Is there a variant of timestamp delta embedding which improves metrics? Here interesting to check plain timestamp delta, log timestamp delta and other variants. Some of them you can try to apply in rope. Also it can be a great idea to make bins with timestamp deltas. Please come up with more variants which can help. May be combinations of this variants are better. May be some of the timestamps embeddings should be concatenated. And so on. <!-- work:g1-rq9 -->
-- [done] rq10 Does adding additional separate embeddings on each layer help (like in latest versions of gemma)? <!-- work:g1-rq10 -->
-- [done] rq11 Does a corrected uniform/streaming global-q mixture beat its independently tuned source families? <!-- work:g1-rq11 -->
+- [complete] rq4 Does swiglu help? <!-- work:g1-rq4 -->
+- [complete] rq5 Which lr scheduler works the best? <!-- work:g1-rq5 -->
+- [complete] rq6 Does lr warmup help? <!-- work:g1-rq6 -->
+- [wip] rq7 Which one is better: rope, alibi, position embeddings or their combinations? Also you must include variants with position embeddings calculated from the end (so the last event will be always first). It sounds like a good idea to include the same thing for the rope too. <!-- work:g1-rq7 -->
+- [complete] rq8 How dim affects metrics? And what about num layers, max sequence length, number of heads, groupped query attention, shared window length, normalization kind and place, existance of bos token, may be cls token, ffn ratio? Each dependance should be in separate table. If scaling does not work, it needs a very thorough analysis of why. <!-- work:g1-rq8 -->
+- [complete] rq9 Is there a variant of timestamp delta embedding which improves metrics? Here interesting to check plain timestamp delta, log timestamp delta and other variants. Some of them you can try to apply in rope. Also it can be a great idea to make bins with timestamp deltas. Please come up with more variants which can help. May be combinations of this variants are better. May be some of the timestamps embeddings should be concatenated. And so on. <!-- work:g1-rq9 -->
+- [complete] rq10 Does adding additional separate embeddings on each layer help (like in latest versions of gemma)? <!-- work:g1-rq10 -->
+- [complete] rq11 Does a corrected uniform/streaming global-q mixture beat its independently tuned source families? <!-- work:g1-rq11 -->
+- [complete] rq12 Which decoder-only query-token layout works best: no CLS token, one CLS token at the end, or the autoregressive `[item1, CLS, item2, CLS, ...]` layout with one shared CLS token? <!-- work:g1-rq12 -->
+- [complete] rq13 Does bounded prefix expansion improve an encoder-decoder candidate generator? Compare no expansion; the latest 8 and 16 truncated prefix examples per user which retain the last 128 events and may be shorter than 128; and the latest 8 and 16 prefixes per user which have at least 128 preceding events and retain the last 128, with exactly one whole-history example when the user's complete history is shorter than 128. <!-- work:g1-rq13 -->
+- [complete] rq14 In a decoder-decoder candidate generator with four CLS tokens at the end of the first causal decoder, should the four tokens be shared or distinct, and should the second decoder cross-attend only their states or both their states and the complete history states? <!-- work:g1-rq14 -->
+- [wip] rq15 For the decoder-decoder model with four distinct CLS tokens and the CLS-only or CLS-plus-history memory selected in RQ14, which training method works best: joint downstream-only training from scratch, first-decoder NTP pretraining followed by joint downstream-only fine-tuning, or joint training from scratch with an auxiliary first-decoder NTP loss? Include pretraining in total training cost. <!-- work:g1-rq15 -->
+
+For RQ12-RQ15, report final candidate-generation metrics and training-efficiency
+metrics in separate tables. Reuse compatible completed native-500M evidence;
+do not rerun an existing arm solely to populate the new organization.
 
 ## 2 esasrec
 
-- [complete] what is the metrics for esasrec on yambda? Use official implementation from the https://github.com/MTSWebServices/RecTools. If it is possible, report improvement from each pluggable change. <!-- work:g2-esasrec -->
+- [complete] rq1 What is the metrics for eSASRec on Yambda? Use the official implementation from https://github.com/MTSWebServices/RecTools. If possible, report the improvement from each pluggable change. <!-- work:g2-esasrec -->
 
 ## 3 as 1 but adding pretained embedding
 
-- [not_started] rq1 how replacing item id with pretrained embedding affects metrics?
-- [not_started] rq2 how concatenating pretrained embedding to item id embedding affects metrics?
-- [not_started] rq3 With concatenated item-ID and pretrained embeddings as the input, what is better to predict: item-ID embedding, pretrained embedding, or their concatenation?
-- [not_started] rq4 Does adding other features (album ids, artist ids) improve the metrics?
-- [not_started] rq_size Does dataset size change the selected pretrained-embedding treatment's improvement over the learned item-ID baseline? Train both on native 50M and native 500M.
+- [wip] rq1 how replacing item id with pretrained embedding affects metrics? <!-- work:g3-rq1-content-input -->
+- [wip] rq2 how concatenating pretrained embedding to item id embedding affects metrics? <!-- work:g3-rq2-content-concat -->
+- [wip] rq3 With concatenated item-ID and pretrained embeddings as the input, what is better to predict: item-ID embedding, pretrained embedding, or their concatenation? <!-- work:g3-rq3-output-target -->
+- [wip] rq4 Does adding other features (album ids, artist ids) improve the metrics? <!-- work:g3-rq4-metadata -->
+- [wip] rq5 Does conditioning the item-ID/content mixture on training frequency improve tail retrieval without reducing aggregate quality? <!-- work:g3-rq5-frequency-gate -->
 
 ## 4 as 1 but predicting future items during training
 
 Allow predicting future items during training too
 
-- [not_started] rq1 Does predicting any item from the future (in 24 hours window) help? Pinner former style.
-- [not_started] rq2 What if predicting any item in some other window? Like within next 10 items?
-- [not_started] rq3 What if predict similar hours-days for the user (train separate model to classify if users behaviour will be similar during some other hours/days and use only them as future items)? If it is too hard to implement/ it will run too long, don't try it.
+- [review] rq1 Does predicting any item from the future (in 24 hours window) help? Pinner former style. <!-- work:g4-rq1-future-24h -->
+- [review] rq2 What if predicting any item in some other window? Like within next 10 items? <!-- work:g4-rq2-next10 -->
+- [review] rq3 What if predict similar hours-days for the user (train separate model to classify if users behaviour will be similar during some other hours/days and use only them as future items)? If it is too hard to implement/ it will run too long, don't try it. <!-- work:g4-rq3-similar-periods -->
 
 ## 5 as 1 over likes and listens, the action its own token
 
@@ -84,19 +96,22 @@ Report both likes and listens.
 - [not_started] rq2 Does predicting both likes and listens help to listens or likes (compared to the model which only trained on likes/ listens)?
 - [not_started] rq3 Do you need separate token like `<action>` before action and `<item>` before item?
 - [not_started] rq4 How metrics will be affected if you will interleave the actions in the following manner: sometimes will be `<want like>item_id<want listen>item_id item_id <like prob, listen_prob><want like>item_id`. The idea is that during serving we want likes => we need to tell the model to predict next like. But it may be beneficial for the model to sometimes predict like prob etc. And it must not if it is like or not.
+  A `<want listen>` target may be either listen-only or liked, because a liked
+  item also counts as listened.
   Also compare an offline-only sequence of item events without `<want ...>`
   tokens: include `is_like` and listen percentage in each event and predict the
   next item together with its like probability and listen percentage.
 - [not_started] rq4.1 How should we aggregate those action tokens? May be we can make some sort of encoder on top of concatenate(action token, item_id) so that history want become longer? Bpe would do it anyways.
 - [not_started] rq4.2 Do we need to include loss on predicting both next item and interaction type or not?
 - [not_started] rq4.3 may be something else here needs ablation?
+- [not_started] rq5 Which model is best for likes prediction when both likes and listens are available in history?
 
 ## 6 as 1 RQ-KMeans semantic ids in the history
 
 Tune semantic-ID parameters on the downstream recommendation task, including
-number of levels and every level's codebook size. For a catalog of about `2^20`
-items, no level may exceed `2^13` symbols including collision-resolution
-symbols.
+the number of levels and one shared codebook size used at every level. For a
+catalog of about `2^20` items, no level may exceed `2^13` symbols including
+collision-resolution symbols.
 
 Here you should report metrics in both sids (recalls etc.), items as well as sids metrics themself. For sid metrics report:
 
@@ -105,7 +120,7 @@ Here you should report metrics in both sids (recalls etc.), items as well as sid
 - load balance on each level p95
 - intra code similarity
 
-- [not_started] rq0 What is the best way to describe history:
+- [wip] rq0 What is the best way to describe history: <!-- work:g6-rq0-semantic-history -->
   1. each history item as one token in sequence from concatenation of sids trainable embeddings + emeddings for "sid_0,sid_1" etc. and some projection to model dim on top of that?
   2. concatenation of item id + sids embeddings (codebooks vectors)?
   3. concatenation of item id + sids trainable embedding as in 1 and codebook vector?
@@ -114,10 +129,9 @@ Here you should report metrics in both sids (recalls etc.), items as well as sid
   6. as in 4 but sids are untrainable (uses codebook)?
   7. history will have interleaved item id and sid (item_id_0,sid_1_item_id_0, sid_2_item_id_0, ...)?
    (you should tune sids hyperparameters for each variant separately)
-- [not_started] rq1 What is the best variant of initalizing sid embeddings in the model? With content from quantization/ random?
-- [not_started] rq2 What number of levels, per-level codebook sizes, and other RQ-KMeans parameters work best with a collision-resolution token?
-- [not_started] rq3 What number of levels, per-level codebook sizes, and other RQ-KMeans parameters work best without a collision-resolution token?
-- [not_started] rq_size Does dataset size change the selected SID-history treatment's improvement over item-ID history? Fit native tokenizers and train both models on native 50M and native 500M.
+- [wip] rq1 What is the best variant of initalizing sid embeddings in the model? With content from quantization/ random? <!-- work:g6-rq1-sid-initialization -->
+- [wip] rq2 What number of levels, per-level codebook sizes, and other RQ-KMeans parameters work best with a collision-resolution token? <!-- work:g6-rq2-collision-tokenizer -->
+- [wip] rq3 What number of levels, per-level codebook sizes, and other RQ-KMeans parameters work best without a collision-resolution token? <!-- work:g6-rq3-no-collision-tokenizer -->
 
 ## 7 semantic id generator
 
@@ -175,9 +189,6 @@ over its combined history-and-target stream. Bidirectional attention over only
 the history would be a separate prefix-LM architecture, not this decoder-only
 control.
 
-Dataset-size question:
-
-- [not_started] rq_size Does dataset size change the selected semantic-ID generator's improvement over its item-ID retrieval baseline? Fit native tokenizers and train both models on native 50M and native 500M.
 
 
 ## 8 item id in the encoder-decoder sid model
@@ -185,11 +196,10 @@ Dataset-size question:
 Tune semantic-ID parameters on this joint downstream task under the same
 `2^13` per-level limit for a catalog of about `2^20` items.
 
-- [not_started] rq1 What if we add separate item-ID and SID decoders? Also test a separate sequential architecture which first generates the SID and then predicts the item ID.
+- [not_started] rq1 What if we add separate item-ID and SID decoders? Also test a separate sequential architecture which first generates the SID and then predicts the item ID, with variants that mask or randomly replace some teacher-forced SID tokens before the item-ID prediction.
 - [not_started] rq2 Test combinations of item-head logQ and the best SID correction from G7; include SID correction only if it was beneficial in G7.
-- [not_started] rq3 Which head is better for the final ranking?
-- [not_started] rq4 What if we replace regular decoder-only causal SASRec with an encoder-decoder whose decoder predicts exactly one token, the next item ID?
-- [not_started] rq5 What if forward-order and reverse-order SID decoders are trained in parallel, with and without an additional item-ID head?
+- [not_started] rq3 Which head is better for the final generation?
+- [not_started] rq4 What if forward-order and reverse-order SID decoders are trained in parallel, with and without an additional item-ID head?
 
 ## 9 semantic ids improvement
 
@@ -198,26 +208,27 @@ reconstruction or intrinsic SID metrics. Keep every level at or below `2^13`
 symbols, including collision-resolution symbols, for a catalog of about `2^20`
 items.
 
-rqkmeans
-rqvae
-plum and modifications: codebooks larger at the beginning as in original PLUM;
-the reverse schedule with smaller codebooks at the beginning; and a schedule
-which is small at the start and end and largest in the middle
-r3vae
-variable lengh (bpe) and modifications
-built-in into the model (diger)
-collision token?
-Purely Semantic Indexing for LLM-based Generative Recommendation and Retrieval
+- [not_started] rq1 What is the best RQ-KMeans semantic-ID configuration?
+- [not_started] rq2 Does RQ-VAE improve over RQ-KMeans?
+- [not_started] rq3 Does PLUM or a PLUM modification help? Compare codebooks
+  larger at the beginning as in original PLUM; the reverse schedule with
+  smaller codebooks at the beginning; and a schedule which is small at the
+  start and end and largest in the middle.
+- [not_started] rq4 Does R3-VAE help?
+- [not_started] rq5 Do variable-length BPE SIDs and their modifications help?
+- [not_started] rq6 Does a tokenizer built into the model, as in DIGER, help?
+- [not_started] rq7 Does a collision token help?
+- [not_started] rq8 Does Purely Semantic Indexing for LLM-based Generative Recommendation and Retrieval improve collision resolution?
 
 ## 10 semantic ids with collaborative info
 
 Tune semantic-ID parameters on this downstream recommendation task under the
 same `2^13` per-level limit for a catalog of about `2^20` items.
 
-qarm-like (with encoder and pairs)?
-pairs and rqvae?
+- [not_started] rq1 Does QARM-like content/collaborative alignment help?
+- [not_started] rq2 Do interaction pairs improve RQ-VAE?
 
-## 10A user-aware semantic-ID tokenization
+## 10A user-aware semantic-ID tokenization pre research
 
 Tune semantic-ID parameters on this downstream recommendation task under the
 same `2^13` per-level limit for a catalog of about `2^20` items.
@@ -233,36 +244,36 @@ same `2^13` per-level limit for a catalog of about `2^20` items.
 Tune semantic-ID parameters on Gryphon's downstream item-retrieval metric under
 the same `2^13` per-level limit for a catalog of about `2^20` items.
 
-...
+- [not_started] rq1 Does Gryphon improve item-level retrieval over matched generative-retrieval controls?
 
-- [not_started] rq_size Does dataset size change Gryphon's improvement over matched vanilla generative retrieval? Fit native tokenizers and train both systems on native 50M and native 500M.
 
 ## 12 diffusion
 
-generating audio embedding as in diffusion?
-generate audio embedding step by step in transformer. Somewhat like sid but give the model more degrease of freedom? And without necessary quentization?
+- [not_started] rq1 Can diffusion generate a useful item content/audio embedding for retrieval?
+- [not_started] rq2 Can a transformer generate a continuous item embedding through stepwise residual refinement?
 
 
 ## 13 rl
 
-- rl with ranking (multi step)
+- [not_started] rq1 Does multi-step reinforcement learning improve ranking?
 
 ## 14 thinking
 
-- thinking based on the history. For example like this: train likes only model and add listens between like as "thinking stage"
-- encoder-decoder sids thinking: during training some times drop some of the sids/ change them to the random ones, but increase the length of sids by repeating the same thing. For example like so: history -> sid_0, "flipped sid_1", sid_2, SID_END, sid_0, sid_1, sid_2, SID_END, END
-May be also include traces with reversed sids etc. (I mean first predict sid_2, sid_1 and so on) as an additional variant
+- [not_started] rq1 Does thinking based on history help? Compare variants that:
+  1. train for like prediction while placing intervening listens between likes as a thinking stage;
+  2. revise a corrupted SID draft, using masked or randomly replaced SID tokens, into the clean SID, for example `history -> sid_0, flipped_sid_1, sid_2, SID_END, sid_0, sid_1, sid_2, SID_END, END`; and
+  3. add forward/reverse SID traces, where the auxiliary trace predicts levels in reverse order.
 
 ## TODO
 
 sids construction:
 
-- additional features: first categorical only, then add counters etc.
-- muon etc?
-- additional training tasks (predicting counter etc.)
+- [not_started] rq1 Do additional features improve SID construction, starting with categorical features and then counters?
+- [not_started] rq2 Does Muon or another optimizer improve training?
+- [not_started] rq3 Do auxiliary training tasks, such as predicting counters, improve recommendation?
 
 ranking:
 
-- dcnv2 (with densenet as deep part)
-- add transformer on top of the history to the dcnv2
-- transformer with pretraining
+- [not_started] rq4 Does DCNv2 with DenseNet as its deep part improve fixed-candidate ranking?
+- [not_started] rq5 Does adding a history transformer to DCNv2 help?
+- [not_started] rq6 Does transformer pretraining improve ranking?

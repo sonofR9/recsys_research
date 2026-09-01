@@ -1,0 +1,11 @@
+version: 1
+id: g6-rq1-sid-initialization
+title: Compare random and content-informed SID initialization
+description: >-
+  Execute the approved paired native-500M initialization study on the strongest
+  applicable trainable-SID RQ0 representation, verify final quality and
+  convergence across four seeds, and publish the evidence and report.
+blocked_by:
+  - g6-rq0-semantic-history
+ideas_tags:
+  - g6-rq1-sid-initialization

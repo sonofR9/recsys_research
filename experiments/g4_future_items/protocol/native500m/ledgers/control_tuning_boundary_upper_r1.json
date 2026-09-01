@@ -1,0 +1,160 @@
+{
+  "base_stage": "control_tuning",
+  "control_manifest_sha256": "e2a8b1d27b7645ee764fe2292b39c9567f77c41739b7d71e3841c67d555d3c87",
+  "dataset_size": "500m",
+  "direction": "upper",
+  "entering_row": {
+    "id": "control_tuning:retry2:03",
+    "job": {
+      "dataloader": {
+        "batch_size": 512
+      },
+      "deep_learning_rate": 0.06540749135037535,
+      "embedding_learning_rate": 0.0468526465053628,
+      "loss": {
+        "valid_positive_mask_mode": "next_item_unique"
+      },
+      "lr_schedule_horizon_epochs": 15,
+      "objective": {
+        "id": "control_next_item"
+      },
+      "protocol": {
+        "retry_revision": 2,
+        "stage": "control_tuning",
+        "trial_id": 3
+      },
+      "run_name": "g4_control_trial_03_retry2_native500m",
+      "seed": 42
+    }
+  },
+  "entering_row_sha256": "0fc0a55e50f8c859033a40a8007dfd2a9dbf0df1bd280ee994f64d5a8afbc2a8",
+  "lineage": "native500m-v1",
+  "predecessor_evidence": {
+    "ledgers": [
+      {
+        "mtime_ns": 1788132661509725115,
+        "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/experiments/g4_future_items/protocol/native500m/ledgers/control_tuning_retry2.json",
+        "sha256": "64f4fd9ff59db2f82303d7f45ae67ea38cb44cd1bdd8ac36d34c94abe9992f40",
+        "size": 2527
+      }
+    ],
+    "runs": [
+      {
+        "job_contract": {
+          "mtime_ns": 1788133199777750050,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_01_retry2_native500m/g4_job.json",
+          "sha256": "da125d2e286abb4674ce5cd9296595f2102f509c05123d3ebab19d9d49642697",
+          "size": 23326
+        },
+        "sweep_log": {
+          "mtime_ns": 1788133583589767830,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_01_retry2_native500m/sweep.log",
+          "sha256": "bf86a673329f98022adae1302ff7e1767be29a92f7d1e1a314dfaf71c893cc24",
+          "size": 30968
+        },
+        "training_metadata": {
+          "mtime_ns": 1788133579884767658,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_01_retry2_native500m/training_metadata.json",
+          "sha256": "cbb508815f835b8fa79344f79806b57fc238311e40a5d9ee802a399e453e4498",
+          "size": 6058
+        }
+      },
+      {
+        "job_contract": {
+          "mtime_ns": 1788133260654752870,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_02_retry2_native500m/g4_job.json",
+          "sha256": "38a34c0116f85761f5cef6db4acb906ea599142c2a863c38544b6f56d844780d",
+          "size": 23326
+        },
+        "sweep_log": {
+          "mtime_ns": 1788133632588770100,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_02_retry2_native500m/sweep.log",
+          "sha256": "3a6f923fcfdabb4388d501e28b9ecb8e56f2aa71db677b5b1269c66dc21f8dab",
+          "size": 30967
+        },
+        "training_metadata": {
+          "mtime_ns": 1788133628707769920,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_02_retry2_native500m/training_metadata.json",
+          "sha256": "541c260232e00c072d1838773ecfab88a1abca78f8fe92bcb85628ef3e665de2",
+          "size": 6055
+        }
+      },
+      {
+        "job_contract": {
+          "mtime_ns": 1788133303227754842,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_03_retry2_native500m/g4_job.json",
+          "sha256": "f4c33af06418f7af8b8a0738dd4225c3c1a70bbe0851b6c25488725f92244a2a",
+          "size": 23325
+        },
+        "sweep_log": {
+          "mtime_ns": 1788133688039772669,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_03_retry2_native500m/sweep.log",
+          "sha256": "ff2a2ffe988a9ba06d2e55f00ef859fc519f56eb9afbdac566f5cf33ee40dc11",
+          "size": 30963
+        },
+        "training_metadata": {
+          "mtime_ns": 1788133679900772292,
+          "path": "/home/sashanovak/tmp_a100/ysda_recsys/competition/generated/logs/g4_control_trial_03_retry2_native500m/training_metadata.json",
+          "sha256": "10203c0f87994364e60c46c120d6d524aa2ad4a52c9cde52c1fe662beb871e77",
+          "size": 6049
+        }
+      }
+    ]
+  },
+  "round_number": 1,
+  "rows": [
+    {
+      "id": "control_tuning_boundary:upper:r1:01",
+      "job": {
+        "dataloader": {
+          "batch_size": 512
+        },
+        "deep_learning_rate": 0.1308149827007507,
+        "embedding_learning_rate": 0.0468526465053628,
+        "loss": {
+          "valid_positive_mask_mode": "next_item_unique"
+        },
+        "lr_schedule_horizon_epochs": 15,
+        "objective": {
+          "id": "control_next_item"
+        },
+        "protocol": {
+          "boundary_direction": "upper",
+          "boundary_round": 1,
+          "stage": "control_tuning",
+          "trial_id": 1
+        },
+        "run_name": "g4_control_boundary_upper_r1_trial_01_native500m",
+        "seed": 42
+      }
+    },
+    {
+      "id": "control_tuning_boundary:upper:r1:02",
+      "job": {
+        "dataloader": {
+          "batch_size": 512
+        },
+        "deep_learning_rate": 0.2616299654015014,
+        "embedding_learning_rate": 0.0468526465053628,
+        "loss": {
+          "valid_positive_mask_mode": "next_item_unique"
+        },
+        "lr_schedule_horizon_epochs": 15,
+        "objective": {
+          "id": "control_next_item"
+        },
+        "protocol": {
+          "boundary_direction": "upper",
+          "boundary_round": 1,
+          "stage": "control_tuning",
+          "trial_id": 2
+        },
+        "run_name": "g4_control_boundary_upper_r1_trial_02_native500m",
+        "seed": 42
+      }
+    }
+  ],
+  "sha256": "ea3ed48ca4c5ccd545cad1404278081f6de439088d84804a08e76ad75fe18088",
+  "stage": "control_tuning_boundary",
+  "version": 1
+}

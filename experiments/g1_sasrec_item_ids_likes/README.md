@@ -103,7 +103,7 @@ study](evidence/transfer_study.md).
 
 Treatment descriptions:
 
-- ReLU, GELU and SiLU use the same plain two-matrix FFN at width 171; ReGLU, GEGLU and SwiGLU use the activation-matched gated three-matrix FFN at parameter-matched width 114.
+- ReLU, GELU and SiLU use the same plain two-matrix FFN at width 192; ReGLU, GEGLU and SwiGLU use the activation-matched gated three-matrix FFN at parameter-matched width 114.
 - The new study matches internal FFN dropout at 0.1, fixes the embedding rate at 0.064, tunes the deep rate independently for every family and depth, and compares GELU with dropout-matched SwiGLU at 2, 4 and 8 layers.
 
 Implementation and evidence: [FFN implementations](../../dcn/nn/ffn.py), [activation/depth launcher](launchers/ffn/activation_depth_500m.sh), [generated table and ledger code](analysis/rq4_activation_depth.py), [complete tuning ledger](scratchpad/rq4_activation_depth_tuning_500m.md), and [protocol and exact evidence](evidence/rq4_activation_depth.md). SwiGLU follows [Shazeer (2020)](https://arxiv.org/abs/2002.05202).
@@ -427,9 +427,31 @@ Conclusion: On native 500M, several additive and binned time features materially
 
 ## RQ10 — Do separate item embeddings at every transformer layer help?
 
-The earlier matched native-500M sanity comparison is retained as two-layer context; it cannot select the four-layer treatment. The reinvestigation independently tunes the four-layer input/output-only control, direct addition, a zero-start concatenated DenseNet residual, and zero-start Gemma-style PLE.
+Both earlier native-500M comparisons are retained as historical two-layer
+context; neither selects the four-layer treatment. The reinvestigation
+independently tunes the four-layer input/output-only control, direct addition,
+a zero-start concatenated DenseNet residual, and zero-start Gemma-style PLE.
 
-### Earlier valid two-layer comparison
+### Original per-layer-table comparison
+
+| item embeddings | recall@100 | ndcg@100 |
+| --- | --- | --- |
+| **shared table** | 0.135 | 0.052 |
+| per-layer tables | <span style="color: red">-13% (0.117)</span> | <span style="color: red">-15% (0.044)</span> |
+
+Treatment descriptions:
+
+- Shared-table reuses the tokenizer's item embedding table at every transformer layer.
+- Per-layer tables add one separately learned item embedding lookup before each transformer block.
+
+Implementation: [variant](configs/variant.py), [table construction](../../dcn/config/generation.py#L382-L398), [lookup](../../dcn/models/sequence_retrieval.py#L43-L54), and [layer injection](../../dcn/nn/transformer.py#L579-L598).
+
+Historical conclusion: Separate per-layer item tables reduce recall by 13% and
+NDCG by 15%, both well beyond the thresholds. The simpler shared table is
+materially better in this run under independent tuning. The additional
+embedding parameters do not buy ranking quality here.
+
+### Later two-layer sanity comparison
 
 | item-feature path | recall@100 | ndcg@100 |
 | --- | ---: | ---: |
@@ -503,3 +525,219 @@ Treatment descriptions:
 Implementation and protocol: [approved plan](protocol/rq11_mixed_streaming_plan.md), [candidate manifest](protocol/rq11_mixed_streaming_manifest.json), [sampled-softmax implementation](../../dcn/nn/sampled_softmax.py), and [historical diagnostic evidence](evidence/rq11_negative_sampling.md).
 
 Conclusion: The corrected mixture does not beat the other tuned families. Its 0.136 recall and 0.052 NDCG are unresolved against uniform and streaming global-q; popularity catalog global-q has numerically highest recall and materially higher NDCG at 0.137 / 0.053, so the approved decision rule selects it over the mixture. The mixture does provide the highest coverage, 0.674, but that secondary gain does not offset the ranking result. At the mixture's selected secondary configuration, removing positive-logit correction reduces the best diagnostic to 0.128 recall / 0.049 NDCG, supporting full correction for that configuration.
+
+## RQ12 — Which decoder-only query-token layout works best?
+
+The frozen native-500M RQ8 artifacts pass exact configuration, dataset/cache,
+objective, evaluator, and workload compatibility checks. RQ12 therefore reuses
+the existing runs, as required, and standard item-state is the baseline.
+
+- Standard item-state uses the last valid item state as the candidate query.
+- End-only CLS appends one shared CLS token and uses its state as the query.
+- Interleaved CLS trains `[item1, CLS, item2, CLS, ...]` autoregressively, with
+  every CLS predicting the following item.
+
+### Candidate-generation quality
+
+| query objective | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| standard item-state | 0.135 | 0.051 | 0.028 | 0.022 | 0.728 |
+| **end-only CLS** | <span style="color: green">+11% (0.149)</span> | <span style="color: green">+19% (0.061)</span> | <span style="color: green">+34% (0.038)</span> | <span style="color: green">+38% (0.031)</span> | <span style="color: red">-39% (0.441)</span> |
+| interleaved CLS | -1% (0.133) | <span style="color: red">-2% (0.050)</span> | -6% (0.027) | <span style="color: red">-5% (0.021)</span> | <span style="color: red">-27% (0.532)</span> |
+
+### Training efficiency
+
+| query objective | examples/epoch | next-item targets/epoch | auxiliary NTP targets/epoch | input tokens/epoch | best epochs (seeds 42 / 43 / 44) | mean steady-state targets/s (epochs 2–20 train only) | mean time through selected checkpoint (train+validation), s | mean full-horizon logged train+validation, s | all required artifacts logged train+validation, s | all required artifacts observed wall (Prepared stage → Final metrics), s |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| standard item-state | 110731 | 7674702 | 0 | 7785433 | 16 / 15 / 20 | 443883.299 | 299.221 | 351.851 | 2464.376 | 2530.743 |
+| **end-only CLS** | 110731 | 7674702 | 0 | 7896164 | 18 / 17 / 19 | 418402.556 | 334.426 | 371.595 | 2229.807 | 2321.492 |
+| interleaved CLS | 110731 | 7674702 | 0 | 15570866 | 20 / 18 / 17 | 397248.880 | 358.135 | 390.720 | 2346.014 | 2786.721 |
+| **all query objectives** | — | — | — | — | — | — | — | — | 7040.198 | 7638.956 |
+
+Conclusion: End-only CLS is selected for ranking quality; its recall and NDCG gains exceed the native-500M bands.
+Standard item-state remains preferable when coverage is a hard requirement because end-only CLS reduces coverage from 0.728 to 0.441.
+Interleaved CLS is not selected: it doubles input tokens and does not improve ranking quality.
+No new RQ12 training was needed because all reported evidence came from compatible existing runs.
+
+Exact compatibility, efficiency definitions, artifact hashes, and the one
+observed timing anomaly are recorded in
+[`evidence/rq12_decoder_query_results.json`](evidence/rq12_decoder_query_results.json).
+
+## RQ13 — Does bounded prefix expansion improve an encoder-decoder?
+
+Each encoder-decoder example has one candidate target. Truncated expansion
+keeps the latest eligible prefixes even when they are shorter than 128 items;
+required-length expansion keeps only full-length prefixes, except that a user
+with a shorter complete history is retained once. All old comparisons are
+preserved below, with latest-4 and the fitted practical cap added as new rows.
+
+### Candidate-generation quality
+
+| architecture | prefix expansion | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| encoder-decoder | no expansion | 0.077 | 0.034 | 0.023 | 0.020 | 0.002 |
+| encoder-decoder | latest 8 truncated prefixes | <span style="color: green">+49% (0.116)</span> | <span style="color: green">+39% (0.047)</span> | <span style="color: green">+28% (0.029)</span> | <span style="color: green">+24% (0.024)</span> | +4399% (0.101) |
+| encoder-decoder | latest 16 truncated prefixes | <span style="color: green">+60% (0.124)</span> | <span style="color: green">+45% (0.049)</span> | <span style="color: green">+25% (0.028)</span> | <span style="color: green">+20% (0.024)</span> | <span style="color: green">+11229% (0.255)</span> |
+| encoder-decoder | latest 8 required-length prefixes | <span style="color: green">+20% (0.093)</span> | <span style="color: green">+17% (0.040)</span> | <span style="color: green">+21% (0.027)</span> | <span style="color: green">+15% (0.023)</span> | +630% (0.016) |
+| encoder-decoder | latest 16 required-length prefixes | <span style="color: green">+35% (0.105)</span> | <span style="color: green">+26% (0.043)</span> | <span style="color: green">+19% (0.027)</span> | <span style="color: green">+14% (0.022)</span> | +1789% (0.043) |
+| encoder-decoder | latest 4 truncated prefixes | <span style="color: green">+31% (0.101)</span> | <span style="color: green">+23% (0.042)</span> | <span style="color: green">+18% (0.027)</span> | <span style="color: green">+12% (0.022)</span> | +2399% (0.056) |
+| **encoder-decoder** | **latest 32 truncated prefixes (practical cap)** | **<span style="color: green">+62% (0.125)</span>** | **<span style="color: green">+40% (0.047)</span>** | **+11% (0.025)** | **+4% (0.020)** | **<span style="color: green">+14067% (0.319)</span>** |
+| regular decoder-only SASRec | none | <span style="color: green">+74% (0.135)</span> | <span style="color: green">+51% (0.051)</span> | <span style="color: green">+25% (0.028)</span> | <span style="color: green">+14% (0.022)</span> | <span style="color: green">+32263% (0.728)</span> |
+
+### Training efficiency
+
+| architecture | prefix expansion | original users/epoch | expanded examples/epoch | candidate targets/epoch | NTP targets/epoch | input tokens/epoch | selected checkpoint epoch | steady-state targets/s | time through selected checkpoint, s | all required training wall, s |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| regular decoder-only SASRec | none | — | 110731 | 0 | 7674702 | 7785433 | 16 / 15 / 20 | 443883.299 | 299.221 | 2530.743 |
+| encoder-decoder | no expansion | 75434 | 75434 | 75434 | 0 | 4530971 | 3 | 27944.238 | 8.221 | 193.083 |
+| encoder-decoder | latest 8 truncated prefixes | 75434 | 538703 | 538703 | 0 | 34702000 | 5 | 17623.327 | 110.530 | 1878.702 |
+| encoder-decoder | latest 16 truncated prefixes | 75434 | 996053 | 996053 | 0 | 66404954 | 7 | 17681.441 | 445.514 | 3438.630 |
+| encoder-decoder | latest 8 required-length prefixes | 75434 | 195575 | 195575 | 0 | 20029160 | 4 | 13752.554 | 59.690 | 1263.077 |
+| encoder-decoder | latest 16 required-length prefixes | 75434 | 325213 | 325213 | 0 | 36752462 | 5 | 24917.180 | 75.032 | 3069.423 |
+| encoder-decoder | latest 4 truncated prefixes | 75434 | 284334 | 284334 | 0 | 17771625 | 6 | 28575.979 | 59.835 | 842.029 |
+| **encoder-decoder** | **latest 32 truncated prefixes (practical cap)** | **75434** | **1772396** | **1772396** | **0** | **122550944** | **7** | **15137.767** | **799.969** | **8347.261** |
+
+Conclusion: More truncated prefixes consistently improve Recall@100, but the
+gain is already saturating: cap 32 reaches 0.12548, only 1.2% above cap 16,
+6.8% below regular decoder-only, and 15.3% below the requested 1.10× decoder
+target of 0.14815. The validation-only power fit puts that target at cap 138,
+outside the audited practical ceiling of 32; its cap-32 prediction is also
+model-dependent, so cap 32 is a boundary probe rather than evidence that the
+target can be reached.
+
+The expected decrease in selected epochs did not occur: caps 1, 4, 8, 16, and
+32 select epochs 3, 6, 5, 7, and 7. This is not a stalled larger-cap run. Cap
+16 reaches cap 8's selected validation quality at epoch 4, before cap 8's
+selected epoch 5, then continues to a higher peak. The extra prefixes therefore
+improve the attainable quality while increasing work per epoch and extending
+the useful part of the learning curve.
+
+The correctness audit reproduces prefix counts and latest-history slices and
+passes target-leakage, attention-mask, gradient-flow, candidate-loss,
+learning-curve, and LR-boundary checks. The remaining gap has a measured
+supervision-density explanation: cap 32 processes 122.6M input tokens for
+1.77M candidate targets per epoch, whereas decoder-only obtains 7.67M NTP
+targets from 7.79M input tokens. Required-length expansion is weaker because it
+retains substantially fewer intermediate transitions. Exact artifacts, the
+cap fit, sensitivity envelopes, and diagnostic crossings are recorded in
+[`evidence/rq13_prefix_expansion_results.json`](evidence/rq13_prefix_expansion_results.json)
+and
+[`evidence/rq13_prefix_expansion_correctness.json`](evidence/rq13_prefix_expansion_correctness.json).
+
+<!-- rq14-pretrained-generated:start -->
+## RQ14 — Should the second decoder attend distinct CLS tokens or history too?
+
+The current comparison initializes the first causal decoder from the RQ15-selected NTP checkpoint, then jointly fine-tunes both decoders with candidate loss only. The first decoder appends four shared or distinct query slots; the second decoder cross-attends either those four states or the complete history followed by them. The earlier candidate-only-from-scratch comparison is preserved separately because it measures a different training regime.
+
+### Historical candidate-only comparison
+
+### Candidate-generation quality
+
+| query tokens | cross-attention memory | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: |
+| **shared CLS** | **four CLS states** | **0.078** | **0.034** | **0.022** | **0.019** | **0.002** |
+| distinct CLS_0..3 | four CLS states | 0% (0.079) | <span style="color: green">+3% (0.035)</span> | +11% (0.025) | <span style="color: green">+10% (0.021)</span> | 0% (0.002) |
+| shared CLS | history + four CLS states | 0% (0.079) | -2% (0.034) | +9% (0.024) | +1% (0.020) | +36% (0.002) |
+| distinct CLS_0..3 | history + four CLS states | +1% (0.079) | +3% (0.035) | +1% (0.023) | +3% (0.020) | +43% (0.002) |
+
+### Training efficiency
+
+| query tokens | cross-attention memory | examples/epoch | candidate targets/epoch | NTP targets/epoch | input tokens/epoch | targets/s | best epoch | processed examples | processed candidate targets | time to checkpoint | total tuning wall |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **shared CLS** | **four CLS states** | **75,434** | **75,434** | **0** | **4,832,707** | **28,618** | **6** | **452,604** | **452,604** | **0:00:16** | **0:08:52** |
+| distinct CLS_0..3 | four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 28,660 | 4 | 301,736 | 301,736 | 0:00:12 | 0:06:37 |
+| shared CLS | history + four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 27,154 | 3 | 226,302 | 226,302 | 0:00:09 | 0:03:24 |
+| distinct CLS_0..3 | history + four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 27,263 | 4 | 301,736 | 301,736 | 0:00:12 | 0:03:22 |
+
+### NTP-pretrained quality (current decision)
+
+| query slots | second-decoder memory | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: |
+| **shared CLS** | **four CLS states** | **0.158** | **0.065** | **0.041** | **0.033** | **0.373** |
+| distinct CLS_0..3 | four CLS states | 0% (0.159) | 0% (0.065) | -1% (0.041) | -1% (0.033) | +5% (0.393) |
+| shared CLS | history + four CLS states | 0% (0.158) | +2% (0.066) | +1% (0.041) | +2% (0.034) | +2% (0.379) |
+| distinct CLS_0..3 | history + four CLS states | +1% (0.159) | <span style="color: green">+2% (0.066)</span> | +2% (0.042) | <span style="color: green">+3% (0.034)</span> | -1% (0.370) |
+
+### NTP-pretrained training efficiency
+
+| query slots | second-decoder memory | examples/epoch | candidate targets/epoch | NTP targets/epoch | input tokens/epoch | targets/s | best epoch | processed examples | processed candidate targets | time to checkpoint | 3-cell tuning GPU time |
+| :--- | :--- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| **shared CLS** | **four CLS states** | **75,434** | **75,434** | **0** | **4,832,707** | **18,200** | **15** | **1,131,510** | **1,131,510** | **0:01:07** | **0:04:12** |
+| distinct CLS_0..3 | four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 25,352 | 18 | 1,357,812 | 1,357,812 | 0:00:56 | 0:03:41 |
+| shared CLS | history + four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 17,505 | 20 | 1,508,680 | 1,508,680 | 0:01:28 | 0:04:17 |
+| distinct CLS_0..3 | history + four CLS states | 75,434 | 75,434 | 0 | 4,832,707 | 19,713 | 17 | 1,282,378 | 1,282,378 | 0:01:09 | 0:04:02 |
+
+### Acceptance criteria
+
+- The decoder which cross-attends both CLS tokens and history probably should be better.
+
+- Four separate class tokens should probably have better metrics than the same CLS token.
+
+- If the statements above do not hold true, first debug, and if everything is correct, explain why experimentally.
+
+### Analysis and conclusion
+
+All four expected effects point in the requested direction, but every Recall@100 difference is inside the native-500M 0.003 single-run band, so none is reported as a gain. All 16 individual CLS-state removals and both history-memory removals changed every evaluated user's query representation. Every lesion metric change remains inside the Recall@100 and NDCG@100 bands, so the extra states' marginal recommendation contribution is unresolved or redundant.
+
+The approved simplicity rule therefore selects shared CLS with CLS-only memory. Distinct CLS with history is numerically highest, but its advantage is unresolved. The pretrained comparison is the current RQ14 architecture decision pending user validation; the candidate-only table remains historical evidence, not the current selection regime.
+
+Implementation and evidence: [pretrained tuning ledger](scratchpad/rq14_pretrained_tuning_500m.md), [machine-readable result](evidence/rq14_pretrained_results.json), [correctness audit](evidence/rq14_pretrained_correctness.json), [lesion evidence](evidence/rq14_pretrained_lesion_results.json), and [bound lesion explanation](evidence/rq14_pretrained_lesion_explanation.json).
+<!-- rq14-pretrained-generated:end -->
+
+<!-- rq15-training-generated:start -->
+## RQ15 — For the decoder-decoder model with four distinct CLS tokens and the CLS-only or CLS-plus-history memory selected in RQ14, which training method works best: joint downstream-only training from scratch, first-decoder NTP pretraining followed by joint downstream-only fine-tuning, or joint training from scratch with an auxiliary first-decoder NTP loss? Include pretraining in total training cost.
+
+Joint scratch uses candidate loss only. Pretrain then fine-tune initializes the first decoder from dense NTP training and jointly fine-tunes both decoders without NTP loss. Auxiliary NTP jointly trains candidate and separately normalized NTP losses from scratch.
+
+Acceptance criterion: Adding a pretraining stage should at minimum decrease training time without losing quality, and will most probably improve the main metrics.
+
+### Candidate-generation quality
+
+| training method | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| joint scratch, candidate-only | 0.079 | 0.035 | 0.024 | 0.021 | 0.002 |
+| NTP pretraining, then candidate-only fine-tuning | <span style="color: green">+100% (0.159)</span> | <span style="color: green">+85% (0.065)</span> | <span style="color: green">+67% (0.041)</span> | <span style="color: green">+60% (0.033)</span> | <span style="color: green">+21243% (0.393)</span> |
+| joint scratch, candidate + auxiliary NTP | <span style="color: green">+23% (0.098)</span> | <span style="color: green">+21% (0.043)</span> | <span style="color: green">+18% (0.029)</span> | <span style="color: green">+19% (0.025)</span> | +592% (0.013) |
+
+### Training efficiency
+
+| training method | examples/epoch | input tokens/epoch | candidate targets/epoch | NTP targets/epoch | candidate targets/s | total targets/s | best epoch | processed examples | processed candidate targets | processed NTP targets | fine-tune time | pretraining horizon | cold-start time | total tuning wall |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| joint scratch, candidate-only | 75,434 | 4,832,707 | 75,434 | 0 | 24,980 | 24,980 | 4 | 301,736 | 301,736 | 0 | 0:00:12 | — | 0:00:12 | 0:20:18 |
+| NTP pretraining, then candidate-only fine-tuning | 110,731 pre + 75,434 fine | 7,785,433 pre + 4,832,707 fine | 75,434 | 0 | 25,352 | 25,352 | 18 | 3,572,432 | 1,357,812 | 153,494,040 | 0:00:56 | 0:05:58 | 0:06:53 | 1:09:31 |
+| joint scratch, candidate + auxiliary NTP | 75,434 | 4,832,707 | 75,434 | 4,455,537 | 6,206 | 372,753 | 4 | 301,736 | 301,736 | 17,822,148 | 0:00:50 | — | 0:00:50 | 1:11:23 |
+
+Analysis: every embedding LR was paired with the method's three deep LRs, with deterministic boundary probes where selection reached an edge. Selected embedding/deep LRs are scratch 0.016/0.003, pretrain/fine-tune 0.00025/0.00075, and auxiliary NTP 0.256/0.012. Pretraining raises full-user Recall@100 from 0.079426 to 0.158550 and NDCG@100 from 0.035255 to 0.065048. Its fine-tuning epoch 1 validation Recall@100 is 0.0978, already above scratch's selected 0.0791. Scratch and pretrained fine-tuning process the same candidate targets and input tokens per epoch; their candidate throughput differs by only 1.49%. The training-cost gap instead comes from selecting fine-tuning epoch 18 rather than scratch epoch 4, plus the complete 20-epoch NTP source horizon. That horizon costs 0:05:58, producing a 0:06:53 cold start versus 0:00:12 for scratch.
+
+Conclusion: the minimum acceptance criterion is not met, and the unexpected result has artifact-bound experimental evidence. The probable main-metric improvement was observed. Use NTP pretraining followed by candidate-only fine-tuning when candidate-generation quality is the objective. Under the approved cold-start accounting it is a quality/compute tradeoff, not a training-speed optimization. The validation-selected method is NTP pretraining, then candidate-only fine-tuning. Cold-start accounting includes the complete pretraining horizon.
+<!-- rq15-training-generated:end -->
+
+## Aggregated improvement
+
+The original two-layer model is compared with the validation-selected four-layer
+combination of all eleven promoted changes. Both use native Yambda-500M and
+full-catalog evaluation over 37,018 users. The aggregate completed its declared
+15-epoch cosine horizon and restored validation-best epoch 12.
+
+| metric | baseline | aggregate | aggregate gain | summed standalone gain | interaction gap | interaction |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| recall@100 | 0.118 | <span style="color: green">+31.5% (0.155)</span> | +0.037 | +0.023 | +0.014 | positive |
+| ndcg@100 | 0.045 | <span style="color: green">+42.7% (0.064)</span> | +0.019 | +0.010 | +0.009 | positive |
+| recall@10 | 0.023 | <span style="color: green">+74.6% (0.040)</span> | +0.017 | +0.011 | +0.006 | positive |
+| ndcg@10 | 0.019 | <span style="color: green">+76.4% (0.033)</span> | +0.014 | +0.008 | +0.006 | positive |
+| coverage@100 | 0.525 | <span style="color: red">-25.2% (0.393)</span> | -0.132 | -0.433 | +0.300 | positive |
+
+The baseline reconstructs the original GELU, pre-LayerNorm, learned-forward,
+two-layer model. The aggregate jointly uses SwiGLU, deep-only cosine scheduling,
+ALiBi with concatenated learned forward/reverse positions, post-LayerNorm,
+input/final RMSNorm, end-only CLS, binned time plus reverse timestamp RoPE,
+popularity global-q negatives, GQA, BOS, and four layers. The standalone total
+sums the eleven matched one-factor bridges against the frozen baseline.
+
+Conclusion: The trained combination materially improves Recall@100 by 0.037
+(31.5%) and NDCG@100 by 0.019 (42.7%). Both gains exceed the sums of their
+standalone bridges, giving positive interaction gaps of 0.014 and 0.009.
+Coverage@100 falls by 0.132, although the joint model loses substantially less
+coverage than the standalone bridge sum predicts. Select the four-layer
+aggregate as G1's maximum-quality configuration, with the coverage trade-off
+kept explicit.

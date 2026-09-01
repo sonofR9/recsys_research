@@ -1,0 +1,13 @@
+version: 1
+id: g3-rq4-metadata
+title: Add artist and album representations
+description: >-
+  Implement, tune, evaluate, and report artist-only, album-only, and combined
+  metadata features independently from the original tied learned-ID baseline,
+  with multi-value mean pooling and one history/catalog-shared metadata encoder,
+  on native Yambda-500M. Combine metadata with other methods only at final
+  aggregate closure.
+blocked_by:
+  - g3-baseline-native500m
+ideas_tags:
+  - g3-rq4-metadata

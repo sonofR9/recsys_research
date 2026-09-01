@@ -94,6 +94,7 @@ def _cpu_varlen_attention(
     cumulative_lens: torch.Tensor,
     attention_window: int | None = None,
     softmax_scale: float | None = None,
+    is_causal: bool = True,
 ) -> torch.Tensor:
     if attention_window is not None:
         _warn_cpu_attention_once()
@@ -107,7 +108,11 @@ def _cpu_varlen_attention(
             sequence_v = v[start:end].transpose(0, 1).unsqueeze(0)
             positions = torch.arange(end - start, device=q.device)
             distance = positions[:, None] - positions[None, :]
-            allowed = (distance >= 0) & (distance < attention_window)
+            allowed = (
+                (distance >= 0) & (distance < attention_window)
+                if is_causal
+                else distance.abs() < attention_window
+            )
             attention = F.scaled_dot_product_attention(
                 sequence_q,
                 sequence_k,
@@ -123,7 +128,7 @@ def _cpu_varlen_attention(
         v,
         cumulative_lens,
         cumulative_lens,
-        is_causal=True,
+        is_causal=is_causal,
         softmax_scale=softmax_scale,
     )
 
@@ -343,6 +348,7 @@ class TransformerBlock(_AttentionBlock):
         norm_place: NormPlace = "pre",
         attention_window: int | None = None,
         softmax_scale: float | None = None,
+        is_causal: bool = True,
     ) -> None:
         super().__init__(
             dim, nhead, num_kv_heads, ffn_factory, dropout, norm, norm_place
@@ -351,6 +357,7 @@ class TransformerBlock(_AttentionBlock):
         self.rope = rope
         self.attention_window = attention_window
         self.softmax_scale = softmax_scale
+        self.is_causal = is_causal
         self.alibi_slopes = (
             nn.Buffer(self._get_alibi_slopes(n_heads=nhead)) if use_alibi else None
         )
@@ -390,6 +397,7 @@ class TransformerBlock(_AttentionBlock):
                 cumulative_lens,
                 self.attention_window,
                 self.softmax_scale,
+                self.is_causal,
             )
         else:
             _assert_flash_dtype(q.dtype)
@@ -405,11 +413,14 @@ class TransformerBlock(_AttentionBlock):
                 max_seqlen_q=max_seqlen,
                 max_seqlen_k=max_seqlen,
                 dropout_p=self._dropout_p,
-                causal=True,
+                causal=self.is_causal,
                 window_size=(
                     (-1, -1)
                     if self.attention_window is None
-                    else (self.attention_window - 1, 0)
+                    else (
+                        self.attention_window - 1,
+                        0 if self.is_causal else self.attention_window - 1,
+                    )
                 ),
                 alibi_slopes=self.alibi_slopes,
                 softmax_scale=self.softmax_scale,
@@ -433,11 +444,13 @@ class CrossAttentionBlock(_AttentionBlock):
         dropout: float,
         norm: NormKind = "rms",
         norm_place: NormPlace = "pre",
+        softmax_scale: float | None = None,
     ) -> None:
         super().__init__(
             dim, nhead, num_kv_heads, ffn_factory, dropout, norm, norm_place
         )
         self.memory_norm = _NORMS[norm](dim)
+        self.softmax_scale = softmax_scale
 
     def forward(
         self,
@@ -455,7 +468,13 @@ class CrossAttentionBlock(_AttentionBlock):
 
         if config.cpu_attention:
             attention_out = _cpu_varlen_cross_attention(
-                q, k, v, cumulative_lens_q, cumulative_lens_kv, is_causal=False
+                q,
+                k,
+                v,
+                cumulative_lens_q,
+                cumulative_lens_kv,
+                is_causal=False,
+                softmax_scale=self.softmax_scale,
             )
         else:
             _assert_flash_dtype(q.dtype)
@@ -469,6 +488,7 @@ class CrossAttentionBlock(_AttentionBlock):
                 max_seqlen_k=_max_seqlen(cumulative_lens_kv),
                 dropout_p=self._dropout_p,
                 causal=False,
+                softmax_scale=self.softmax_scale,
             )
         return self._combine(residual, attention_out)
 

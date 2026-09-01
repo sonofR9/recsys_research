@@ -44,6 +44,8 @@ from dcn.eval import (
     build_catalog_batch,
     build_interaction_sets,
 )
+from dcn.eval.ranking_evidence import write_ranking_evidence
+from dcn.eval.true_metric import build_item_frequencies
 from dcn.models import (
     ActionTokenizer,
     BosTokenizer,
@@ -63,6 +65,7 @@ from dcn.models import (
     TokenPredictionLoss,
     TwoTowerLoss,
 )
+from dcn.models.history_tokens import item_encoder_dim
 from dcn.nn import (
     ConcatenatedItemFeatureResidual,
     DirectAddItemFeature,
@@ -118,9 +121,10 @@ PerLayerItemFeatures = Literal["none", "direct_add", "concat_residual", "gemma_p
 
 def _declared_initialization_parameter_ids(model: nn.Module) -> set[int]:
     return {
-        id(module.position_embeddings.weight)
+        id(parameter)
         for module in model.modules()
         if getattr(module, "preserve_declared_initialization", False)
+        for parameter in module.parameters()
     }
 
 
@@ -323,6 +327,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
     dense_random_negative_scores: bool = False
     random_negative_fraction: float = 0.5
     initializer_std: float | None = None
+    final_ranking_evidence_group: str | None = None
 
     def create_validation_callback(self) -> ValidationCallback:
         return _PeriodicFinalValidationCallback(
@@ -415,12 +420,18 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             self.min_seq_len,
             self.window,
             self.stride,
+            self.prefix_length_rule if self.window == "bounded_prefix" else None,
+            self.prefix_cap if self.window == "bounded_prefix" else None,
             str(self.row_filter_for_split("train")),
             self.bos,
             self.effective_cls_token_mode,
             self.item_id_column,
+            *self.training_count_architecture_invariants(),
         )
         return self._shared_runner_data("training-counts", key, self._training_counts)
+
+    def training_count_architecture_invariants(self) -> tuple[object, ...]:
+        return ()
 
     def _training_counts(self) -> tuple[int, int]:
         dataset = self.sequence_train_loader.dataset
@@ -430,14 +441,19 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
         for index in range(len(dataset)):
             length = len(dataset[index]["int_columns"][self.item_id_column])
             targets += max(0, length - first_positive)
-            input_length = length + self.bos
+            input_length = length * self.history_tokens_per_event + self.bos
             if self.effective_cls_token_mode == "interleaved":
                 tokens += input_length + length
             else:
                 tokens += input_length + int(
-                    self.effective_cls_token_mode == "end_only" and input_length >= 2
+                    self.effective_cls_token_mode == "end_only"
+                    and length + self.bos >= 2
                 )
         return targets, tokens
+
+    @property
+    def history_tokens_per_event(self) -> int:
+        return 1
 
     @cached_property
     def _offline_item_probabilities(self) -> torch.Tensor:
@@ -494,7 +510,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
                 catalog_size=self.catalog_size,
                 first_item_id=1,
                 num_negatives=random_count,
-                item_encoder=self.base_model.item_embedding,
+                item_encoder=self.base_model.encode_item_ids,
                 probabilities=(
                     random_proposal_probabilities
                     if self.negative_sampling == "random_offline_logq"
@@ -669,7 +685,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             )
 
     @cached_property
-    def item_embedding(self) -> nn.Embedding:
+    def item_embedding(self) -> nn.Module:
         return nn.Embedding(
             self.catalog_size,
             (
@@ -678,6 +694,18 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
                 else self.item_embedding_dim
             ),
         )
+
+    @cached_property
+    def catalog_item_encoder(self) -> nn.Module:
+        return self.item_embedding
+
+    @property
+    def history_item_encoding_dim(self) -> int:
+        return item_encoder_dim(self.item_embedding)
+
+    @property
+    def catalog_item_encoding_dim(self) -> int:
+        return item_encoder_dim(self.catalog_item_encoder)
 
     @property
     def effective_per_layer_item_features(self) -> PerLayerItemFeatures:
@@ -724,9 +752,9 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
     def create_input_projection(self) -> nn.Linear | None:
         return (
             None
-            if self.item_embedding.embedding_dim == self.model_dim
+            if self.history_item_encoding_dim == self.model_dim
             else nn.Linear(
-                self.item_embedding.embedding_dim, self.model_dim, bias=False
+                self.history_item_encoding_dim, self.model_dim, bias=False
             )
         )
 
@@ -746,9 +774,9 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
         return self._with_bos(tokenizer)
 
     def create_query_projection(self) -> nn.Linear | None:
-        if self.item_embedding.embedding_dim == self.model_dim:
+        if self.catalog_item_encoding_dim == self.model_dim:
             return None
-        return nn.Linear(self.model_dim, self.item_embedding.embedding_dim, bias=False)
+        return nn.Linear(self.model_dim, self.catalog_item_encoding_dim, bias=False)
 
     def _create_model(self) -> SequenceRetrievalModel:
         tokenizer = self.create_tokenizer()
@@ -761,6 +789,11 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             tokenizer=tokenizer,
             sequence_model=sequence_model,
             item_embedding=self.item_embedding,
+            catalog_item_encoder=(
+                None
+                if self.catalog_item_encoder is self.item_embedding
+                else self.catalog_item_encoder
+            ),
             item_id_column=self.item_id_column,
             query_projection=query_projection,
             cls_token_mode=self.effective_cls_token_mode,
@@ -844,6 +877,21 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             user_chunk=1024,
             exclude_seen=self.exclude_seen_from_evaluation,
             every_n_epochs=self.eval_every_n_epochs,
+            **self.true_metric_options(),
+        )
+
+    def true_metric_options(self) -> dict[str, Any]:
+        if self.final_ranking_evidence_group is None:
+            return {}
+        return {"train_item_frequencies": self.training_item_frequencies}
+
+    @cached_property
+    def training_item_frequencies(self) -> dict[int, int]:
+        train_days, _ = self.train_and_validation_days
+        return build_item_frequencies(
+            [self.dataset_manager.day_to_path[day] for day in train_days],
+            item_id_column=self.item_id_column,
+            row_filter=self.row_filter_for_split("train"),
         )
 
     def extra_callbacks(self, train_days: list[int], val_days: list[int]) -> list[Any]:
@@ -884,6 +932,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
         schedule_steps = getattr(runner, "lr_schedule_total_steps", None)
         steps_per_epoch = getattr(runner, "steps_per_epoch", None)
         lr_schedule = self.callbacks.lr_schedule
+        architecture_metadata = self.generation_architecture_metadata()
         metadata = {
             "training_semantics_revision": GENERATION_TRAINING_SEMANTICS_REVISION,
             "dataset_size": getattr(self, "size", None),
@@ -938,7 +987,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             "num_workers": self.dataloader.num_workers,
             "prefetch_factor": self.dataloader.prefetch_factor,
             "model_dim": self.model_dim,
-            "item_embedding_dim": self.item_embedding.embedding_dim,
+            "item_embedding_dim": self.history_item_encoding_dim,
             "embedding_learning_rate": self.embedding_learning_rate,
             "deep_learning_rate": self.deep_learning_rate,
             "weight_decay": self.weight_decay,
@@ -960,6 +1009,7 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
             ),
             "optimizer_steps": runner.global_step,
             "validation_loss": validation_loss,
+            **architecture_metadata,
             "transfer_invariants": {
                 "experiment_class": type(self).__name__,
                 "mup_base_dim": getattr(self, "mup_base_dim", None),
@@ -988,12 +1038,13 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
                 ),
                 "effective_batch_size": self.dataloader.effective_batch_size,
                 "model_dim": self.model_dim,
-                "item_embedding_dim": self.item_embedding.embedding_dim,
+                "item_embedding_dim": self.history_item_encoding_dim,
                 "max_seq_len": self.max_seq_len,
                 "window": self.window,
                 "bos": self.bos,
                 "cls_token": self.effective_cls_token_mode != "none",
                 "cls_token_mode": self.effective_cls_token_mode,
+                **architecture_metadata,
                 "timestamp_delta": self.timestamp_delta,
                 "timestamp_combination": self.timestamp_combination,
                 "timestamp_num_bins": self.timestamp_num_bins,
@@ -1100,16 +1151,54 @@ class GenerationExperiment(SampledSoftmaxExperiment, HistoryGenerationExperiment
         ):
             logger.warning("No epoch scored; reporting the weights on hand")
 
-        metrics = self.true_metric.score(max_users=None)
+        ranking_evidence = None
+        top_item_rankings = None
+        if self.final_ranking_evidence_group is None:
+            metrics = self.true_metric.score(max_users=None)
+        elif self._requires_final_top_item_rankings():
+            scored = self.true_metric.score_with_evidence_and_rankings(max_users=None)
+            if scored is None:
+                metrics = None
+            else:
+                metrics, ranking_evidence, top_item_rankings = scored
+        else:
+            scored = self.true_metric.score_with_evidence(max_users=None)
+            if scored is None:
+                metrics = None
+            else:
+                metrics, ranking_evidence = scored
         if metrics is None:
             logger.warning("No user could be scored; skipping the final report")
             return
 
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(json.dumps(metrics, indent=2, sort_keys=True))
+        if ranking_evidence is not None:
+            group = self.final_ranking_evidence_group
+            assert group is not None
+            write_ranking_evidence(
+                ranking_evidence,
+                context_path=(
+                    global_config.logs_path / ".ranking-evidence" / group / "context.pt"
+                ),
+                ranking_path=destination.with_name("ranking_evidence.pt"),
+            )
+        if top_item_rankings is not None:
+            self._write_final_top_item_rankings(top_item_rankings)
         # Spelled out as well as filed: the run's wandb session logs per epoch
         # and is over by the time this is measured.
         logger.info("Final metrics (%s) -> %s", metrics, destination)
+
+    def _requires_final_top_item_rankings(self) -> bool:
+        return False
+
+    def _write_final_top_item_rankings(
+        self, rankings: dict[int, tuple[int, ...]]
+    ) -> None:
+        raise NotImplementedError
+
+    def generation_architecture_metadata(self) -> dict[str, object]:
+        return {}
 
 
 @dataclass
@@ -1166,12 +1255,12 @@ class MuTransferGenerationExperiment(GenerationExperiment):
         return narrower._create_model()
 
     def create_input_projection(self) -> nn.Linear:
-        return nn.Linear(self.item_embedding.embedding_dim, self.model_dim, bias=False)
+        return nn.Linear(self.history_item_encoding_dim, self.model_dim, bias=False)
 
     def create_query_projection(self) -> nn.Linear:
         return mup.MuReadout(
             self.model_dim,
-            self.item_embedding.embedding_dim,
+            self.catalog_item_encoding_dim,
             bias=False,
             readout_zero_init=True,
         )
@@ -1187,6 +1276,9 @@ class MuTransferGenerationExperiment(GenerationExperiment):
             ),
         )
 
+    def apply_post_mup_initialization(self, model: nn.Module) -> None:
+        pass
+
     @cached_property
     def base_model(self) -> SequenceRetrievalModel:
         model = self._model_at_width(
@@ -1197,6 +1289,7 @@ class MuTransferGenerationExperiment(GenerationExperiment):
         mup.set_base_shapes(model, base, delta=delta)
         if self.initializer_std is not None:
             _initialize_mup_parameters(model, self.initializer_std)
+        self.apply_post_mup_initialization(model)
         head_dim = self.transformer.dim // self.transformer.nhead
         base_head_dim = self.mup_base_dim // self.transformer.nhead
         for layer in model.sequence_model.layers:

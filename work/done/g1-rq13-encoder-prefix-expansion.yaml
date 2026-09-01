@@ -1,0 +1,11 @@
+version: 1
+id: g1-rq13-encoder-prefix-expansion
+title: Compare bounded encoder-decoder prefix expansion
+description: >-
+  Compare one example per user with the latest 8 and 16 truncated prefixes
+  which retain at most 128 events, and the latest 8 and 16 prefixes with at
+  least 128 preceding events which retain exactly 128. Emit one whole-history
+  example for users whose complete history is shorter than 128.
+blocked_by: []
+ideas_tags:
+  - g1-rq13

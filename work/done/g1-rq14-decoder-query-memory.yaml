@@ -1,0 +1,11 @@
+version: 1
+id: g1-rq14-decoder-query-memory
+title: Compare decoder-decoder query memory
+description: >-
+  Compare shared and distinct four-CLS query slots crossed with second-decoder
+  attention to CLS states only or CLS plus first-decoder history states under
+  the RQ15-selected NTP-pretrained candidate-only fine-tuning method on native
+  Yambda-500M. Preserve the earlier candidate-only comparison separately.
+blocked_by: []
+ideas_tags:
+  - g1-rq14

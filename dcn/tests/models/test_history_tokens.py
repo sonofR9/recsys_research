@@ -6,9 +6,11 @@ import torch
 from dcn.models.history_tokens import (
     ActionTokenizer,
     BosTokenizer,
+    EndQuerySlots,
     ItemTokenizer,
     SemanticIdTokenizer,
     TimestampDeltaTokenizer,
+    TokenizedHistory,
 )
 from dcn.models.sequence_targets import NextItemTargets
 from dcn.nn.semantic_embedding import SemanticIdEmbedding
@@ -149,6 +151,173 @@ class TestBosTokenizer:
         tokens = tokenizer(packed_batch([1, 2, 3, 4], [3, 1]))
 
         assert torch.equal(tokens.embeddings[0], tokens.embeddings[4])
+
+
+class TestEndQuerySlots:
+    @staticmethod
+    def _tokens() -> TokenizedHistory:
+        return ItemTokenizer(_embedding(), item_id_column=ITEM_COLUMN)(
+            packed_batch([1, 2, 3, 4, 5], [2, 3])
+        )
+
+    @pytest.mark.parametrize("shared", [True, False])
+    def test_each_history_gains_four_end_query_slots(self, shared: bool) -> None:
+        slots = EndQuerySlots(dim=4, num_slots=4, shared=shared)
+        with torch.no_grad():
+            slots.embeddings.copy_(
+                torch.arange(slots.embeddings.numel()).reshape_as(slots.embeddings)
+            )
+
+        tokens = slots(self._tokens())
+
+        assert tokens.cumulative_lens.tolist() == [0, 6, 13]
+        assert tokens.is_target.tolist() == [
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            False,
+        ]
+        assert tokens.is_query.tolist() == [
+            False,
+            False,
+            True,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            True,
+            True,
+            True,
+            True,
+        ]
+        first_slots = tokens.embeddings[2:6]
+        second_slots = tokens.embeddings[9:13]
+        assert torch.equal(first_slots, second_slots)
+        assert torch.equal(first_slots, slots.embeddings.expand(4, -1))
+        if shared:
+            assert torch.equal(first_slots[0], first_slots[1])
+        else:
+            assert not torch.equal(first_slots[0], first_slots[1])
+
+    @pytest.mark.parametrize(
+        ("include_history", "expected_lengths", "expected_rows", "expected_mask"),
+        [
+            (False, [4, 4], [2, 3, 4, 5, 9, 10, 11, 12], [True] * 8),
+            (
+                True,
+                [6, 7],
+                list(range(13)),
+                [
+                    False,
+                    False,
+                    True,
+                    True,
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    True,
+                    True,
+                    True,
+                    True,
+                ],
+            ),
+        ],
+    )
+    def test_memory_preserves_packed_order_lengths_and_query_mask(
+        self,
+        include_history: bool,
+        expected_lengths: list[int],
+        expected_rows: list[int],
+        expected_mask: list[bool],
+    ) -> None:
+        slots = EndQuerySlots(dim=4, num_slots=4, shared=False)
+        tokens = slots(self._tokens())
+        hidden = torch.arange(13, dtype=torch.float32).unsqueeze(1).expand(-1, 4)
+
+        memory = slots.extract_memory(hidden, tokens, include_history=include_history)
+
+        assert memory.cumulative_lens.diff().tolist() == expected_lengths
+        assert memory.embeddings[:, 0].tolist() == expected_rows
+        assert memory.is_query.tolist() == expected_mask
+
+    def test_every_distinct_slot_receives_gradient(self) -> None:
+        slots = EndQuerySlots(dim=4, num_slots=4, shared=False)
+
+        tokens = slots(self._tokens())
+        slots.extract_memory(
+            tokens.embeddings, tokens, include_history=False
+        ).embeddings.square().sum().backward()
+
+        assert slots.embeddings.grad is not None
+        assert slots.embeddings.grad.abs().sum(dim=1).gt(0).tolist() == [True] * 4
+
+    def test_memory_can_retain_an_ordered_subset_of_query_slots(self) -> None:
+        slots = EndQuerySlots(dim=4, num_slots=4, shared=False)
+        tokens = slots(self._tokens())
+        hidden = torch.arange(13, dtype=torch.float32).unsqueeze(1).expand(-1, 4)
+
+        memory = slots.extract_memory(
+            hidden,
+            tokens,
+            include_history=True,
+            retained_query_slots=(0, 2, 3),
+        )
+
+        assert memory.cumulative_lens.diff().tolist() == [5, 6]
+        assert memory.embeddings[:, 0].tolist() == [
+            0,
+            1,
+            2,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11,
+            12,
+        ]
+        assert memory.is_query.tolist() == [
+            False,
+            False,
+            True,
+            True,
+            True,
+            False,
+            False,
+            False,
+            True,
+            True,
+            True,
+        ]
+
+    @pytest.mark.parametrize("retained", [(), (0, 0), (-1,), (4,)])
+    def test_memory_rejects_invalid_query_slot_subsets(
+        self, retained: tuple[int, ...]
+    ) -> None:
+        slots = EndQuerySlots(dim=4, num_slots=4, shared=False)
+        tokens = slots(self._tokens())
+
+        with pytest.raises(ValueError, match="retained query slots"):
+            slots.extract_memory(
+                tokens.embeddings,
+                tokens,
+                include_history=False,
+                retained_query_slots=retained,
+            )
 
 
 class TestActionTokenizer:

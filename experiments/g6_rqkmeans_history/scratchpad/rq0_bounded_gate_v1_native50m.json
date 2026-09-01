@@ -1,0 +1,100 @@
+{
+  "jobs": [
+    {
+      "id": "bounded_gate_tuning:max_scale_000",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.256,
+        "frozen_event_width": 128,
+        "learned_residual_max_scale": 0.0,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 32,
+        "source_manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493",
+        "source_selection_sha256": "09b4ece7d5535f0ffc45a0b72e2d3b9993e5c44660139e0c3da1df516cd4fce4",
+        "source_treatment_job_id": "remediation_tuning:learned_sid_residual_trial_02",
+        "source_treatment_run_name": "g6_rq0_remediation_v3_learned_sid_residual_trial_02_native50m",
+        "validation_batch_size": 8192
+      }
+    },
+    {
+      "id": "bounded_gate_tuning:max_scale_010",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.256,
+        "frozen_event_width": 128,
+        "learned_residual_max_scale": 0.01,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 32,
+        "source_manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493",
+        "source_selection_sha256": "09b4ece7d5535f0ffc45a0b72e2d3b9993e5c44660139e0c3da1df516cd4fce4",
+        "source_treatment_job_id": "remediation_tuning:learned_sid_residual_trial_02",
+        "source_treatment_run_name": "g6_rq0_remediation_v3_learned_sid_residual_trial_02_native50m",
+        "validation_batch_size": 8192
+      }
+    },
+    {
+      "id": "bounded_gate_tuning:max_scale_025",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.256,
+        "frozen_event_width": 128,
+        "learned_residual_max_scale": 0.025,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 32,
+        "source_manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493",
+        "source_selection_sha256": "09b4ece7d5535f0ffc45a0b72e2d3b9993e5c44660139e0c3da1df516cd4fce4",
+        "source_treatment_job_id": "remediation_tuning:learned_sid_residual_trial_02",
+        "source_treatment_run_name": "g6_rq0_remediation_v3_learned_sid_residual_trial_02_native50m",
+        "validation_batch_size": 8192
+      }
+    },
+    {
+      "id": "bounded_gate_tuning:max_scale_050",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.256,
+        "frozen_event_width": 128,
+        "learned_residual_max_scale": 0.05,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 32,
+        "source_manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493",
+        "source_selection_sha256": "09b4ece7d5535f0ffc45a0b72e2d3b9993e5c44660139e0c3da1df516cd4fce4",
+        "source_treatment_job_id": "remediation_tuning:learned_sid_residual_trial_02",
+        "source_treatment_run_name": "g6_rq0_remediation_v3_learned_sid_residual_trial_02_native50m",
+        "validation_batch_size": 8192
+      }
+    },
+    {
+      "id": "bounded_gate_tuning:max_scale_100",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.256,
+        "frozen_event_width": 128,
+        "learned_residual_max_scale": 0.1,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 32,
+        "source_manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493",
+        "source_selection_sha256": "09b4ece7d5535f0ffc45a0b72e2d3b9993e5c44660139e0c3da1df516cd4fce4",
+        "source_treatment_job_id": "remediation_tuning:learned_sid_residual_trial_02",
+        "source_treatment_run_name": "g6_rq0_remediation_v3_learned_sid_residual_trial_02_native50m",
+        "validation_batch_size": 8192
+      }
+    }
+  ],
+  "manifest_sha256": "eec983acb2ef0c3d14a9f3182c6af1f0a24415ea03644dcb9a394a329162249d"
+}

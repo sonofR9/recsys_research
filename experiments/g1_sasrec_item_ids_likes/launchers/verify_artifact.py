@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import nullcontext
 from dataclasses import asdict
 from functools import cache
 import json
@@ -17,6 +18,8 @@ from dcn.training_metadata import (
     TIMESTAMP_BIN_SEMANTICS_REVISION,
     has_current_generation_semantics,
 )
+from utils.global_config import config as global_config
+from utils.report_file_facts import report_file_fact_scope
 
 
 TUNING_KEYS = {
@@ -50,6 +53,9 @@ TUNING_KEYS = {
 
 CONFIG_KEYS = TUNING_KEYS | {
     "G1_AGGREGATE_RUN",
+    "G1_FIXED26_CALIBRATION_RUN",
+    "G1_FIXED26_CALIBRATION_MANIFEST_SHA256",
+    "G1_FIXED26_CALIBRATION_RECIPE_SHA256",
     "G1_HOMEWORK_LOGQ_DATASET_SIZE",
     "G1_HOMEWORK_LOGQ_DEEP_LR",
     "G1_HOMEWORK_LOGQ_EMBEDDING_LR",
@@ -80,6 +86,12 @@ CONFIG_KEYS = TUNING_KEYS | {
     "G1_RQ8_RUN",
     "G1_RQ10_RUN",
     "G1_RQ11_RUN",
+    "G1_RQ14_PRETRAINED_RUN",
+    "G1_RQ14_LESION_RUN",
+    "G1_RQ15_FIRST_STAGE_CHECKPOINT",
+    "G1_RQ15_RUN",
+    "G1_RQ15_SOURCE_RUN",
+    "G1_QUERY_RUN",
 }
 
 COMPLETE = "complete"
@@ -93,6 +105,7 @@ def _normalized(value: Any) -> Any:
 
 def _expected_metadata(experiment: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     item_embedding_dim = experiment.item_embedding_dim or experiment.model_dim
+    architecture_metadata = experiment.generation_architecture_metadata()
     top_level = {
         "dataset_size": experiment.size,
         "seed": experiment.seed,
@@ -116,6 +129,7 @@ def _expected_metadata(experiment: Any) -> tuple[dict[str, Any], dict[str, Any]]
         "runtime_compile": experiment.runtime.compile,
         "gradient_clip_norm": experiment.runtime.gradient_clip_norm,
         "negative_sampling": experiment.negative_sampling,
+        **architecture_metadata,
         **(
             {
                 "lr_schedule_horizon_epochs": (
@@ -154,6 +168,7 @@ def _expected_metadata(experiment: Any) -> tuple[dict[str, Any], dict[str, Any]]
         "bos": experiment.bos,
         "cls_token": experiment.effective_cls_token_mode != "none",
         "cls_token_mode": experiment.effective_cls_token_mode,
+        **architecture_metadata,
         "timestamp_delta": experiment.timestamp_delta,
         "timestamp_combination": experiment.timestamp_combination,
         "timestamp_num_bins": experiment.timestamp_num_bins,
@@ -223,6 +238,19 @@ def _expected_metadata(experiment: Any) -> tuple[dict[str, Any], dict[str, Any]]
             TIMESTAMP_BIN_SEMANTICS_REVISION
         )
     return _normalized(top_level), _normalized(invariants)
+
+
+def _report_expected_metadata(
+    experiment: Any,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    base_path = getattr(experiment, "base_path", None)
+    scope = (
+        nullcontext()
+        if base_path is None
+        else report_file_fact_scope(Path(base_path))
+    )
+    with scope:
+        return _expected_metadata(experiment)
 
 
 def _load_json(path: Path) -> Any:
@@ -627,7 +655,7 @@ def _verify_tuning(
     expected_name = expected_directory_name or experiment.run_name
     if directory.name != expected_name:
         return False
-    expected_top_level, expected_invariants = _expected_metadata(experiment)
+    expected_top_level, expected_invariants = _report_expected_metadata(experiment)
 
     metrics_path = directory / "final_metrics.json"
     metadata_path = directory / "training_metadata.json"
@@ -686,7 +714,9 @@ def _config_assignments(raw_assignments: list[str]) -> dict[str, str]:
 
 
 def _config_experiment(config_path: Path, assignments: dict[str, str]) -> Any:
-    return _isolated_experiment(config_path, assignments)
+    experiment = _isolated_experiment(config_path, assignments)
+    global_config.initialize(Path(experiment.base_path))
+    return experiment
 
 
 @cache
@@ -702,11 +732,16 @@ def _modules_from(directory: Path) -> dict[str, Any]:
         if module_file is None:
             continue
         try:
-            if _canonical_path(os.fspath(module_file)).is_relative_to(directory):
+            if _module_is_from(os.fspath(module_file), os.fspath(directory)):
                 modules[name] = module
         except (OSError, RuntimeError, TypeError):
             continue
     return modules
+
+
+@cache
+def _module_is_from(module_file: str, directory: str) -> bool:
+    return _canonical_path(module_file).is_relative_to(Path(directory))
 
 
 def _unbind_modules(modules: dict[str, Any]) -> None:
@@ -779,7 +814,7 @@ def _config_artifact_metadata(
 ) -> dict[str, Any] | None:
     if directory.name != expected_run_name:
         return None
-    expected_top_level, expected_invariants = _expected_metadata(experiment)
+    expected_top_level, expected_invariants = _report_expected_metadata(experiment)
 
     metrics_path = directory / "final_metrics.json"
     metadata_path = directory / "training_metadata.json"

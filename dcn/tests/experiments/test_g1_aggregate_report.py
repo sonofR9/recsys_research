@@ -164,7 +164,11 @@ def test_complete_bundle_selects_depth_and_uses_unrounded_bridge_arithmetic() ->
     assert "interaction gap" in bundle.reader_markdown
     assert "eleven one-factor bridges" in bundle.reader_markdown
     assert "Outcome: **positive**" in bundle.reader_markdown
-    assert "| recall@100 | 0.120 | 0.140 | +0.020 |" in bundle.reader_markdown
+    assert "gain (%)" not in bundle.reader_markdown
+    assert (
+        '| recall@100 | 0.120 | <span style="color: green">'
+        "+16.7% (0.140)</span> | +0.020 |" in bundle.reader_markdown
+    )
     assert "| aggregate |" in bundle.tuning_markdown
 
 

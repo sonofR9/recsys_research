@@ -1,0 +1,20 @@
+{
+  "jobs": [
+    {
+      "id": "treatment_tuning:interleaved_item_sid_tokens_trial_15",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.02577067347103442,
+        "embedding_learning_rate": 0.1112374677516869,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "interleaved_item_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_interleaved_item_sid_tokens_trial_15_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

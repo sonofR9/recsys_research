@@ -1,0 +1,8 @@
+{
+  "dataset_size": "native-500m",
+  "kind": "g4_native500m_rq1_rq2_conclusion_validation",
+  "message_sha256": "da0fd6b46d4bb41f96bc9c01a4e975c3260eae4130f158d12e68f11ebe892f6a",
+  "schema_version": 1,
+  "scope": "RQ1/RQ2 inferior; control retained",
+  "status": "validated"
+}

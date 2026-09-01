@@ -5,7 +5,7 @@
 The study runs on native Yambda-500M with all 37,018 evaluation users. It fixes
 the item and model width at 64, the μP base/delta widths at 16/32, embedding LR
 at 0.064, batch size at 1280, FFN dropout at 0.1, and every non-FFN model and
-data setting. Plain ReLU/GELU/SiLU FFNs use width 171 and two matrix paths;
+data setting. Plain ReLU/GELU/SiLU FFNs use width 192 and two matrix paths;
 gated ReGLU/GEGLU/SwiGLU FFNs use width 114 and three matrix paths, giving the
 same 342 matrix-width units per block. Gated arms explicitly enable internal
 FFN dropout, including the dropout-matched SwiGLU treatment.
@@ -32,7 +32,7 @@ The only reused artifacts are pinned exactly:
 - `g1_rqtune_rqfinal_ffn_gelu171_e0p064_d0p012_b1280_cap40_ts2_r3_500m`
 - `g1_rqtune_rqfinal_ffn_gelu171_e0p064_d0p024_b1280_cap40_ts2_r3_500m`
 
-Three historical GELU-171 directories with other embedding rates or training
+Three historical GELU-192 directories with other embedding rates or training
 semantics remain preserved in raw storage and are intentionally ineligible for
 this comparison.
 
@@ -40,15 +40,15 @@ this comparison.
 
 | family | layers | width | selected deep LR | best/horizon epoch | validation recall@100 | final recall@100 | final ndcg@100 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| ReLU | 2 | 171 | 0.012 | 14/20 | 0.1325 | 0.13233067 | 0.05023974 |
-| GELU | 2 | 171 | 0.024 | 17/20 | 0.1340 | 0.13427003 | 0.05105975 |
-| SiLU | 2 | 171 | 0.024 | 16/20 | 0.1319 | 0.13191499 | 0.05035384 |
+| ReLU | 2 | 192 | 0.012 | 14/20 | 0.1325 | 0.13233067 | 0.05023974 |
+| GELU | 2 | 192 | 0.024 | 17/20 | 0.1340 | 0.13427003 | 0.05105975 |
+| SiLU | 2 | 192 | 0.024 | 16/20 | 0.1319 | 0.13191499 | 0.05035384 |
 | ReGLU | 2 | 114 | 0.024 | 16/20 | 0.1335 | 0.13470000 | 0.05201588 |
 | GEGLU | 2 | 114 | 0.012 | 16/20 | 0.1364 | 0.13663160 | 0.05265796 |
 | SwiGLU | 2 | 114 | 0.012 | 13/20 | 0.1350 | 0.13651727 | 0.05210109 |
-| GELU | 4 | 171 | 0.024 | 15/20 | 0.1355 | 0.13514309 | 0.05176993 |
+| GELU | 4 | 192 | 0.024 | 15/20 | 0.1355 | 0.13514309 | 0.05176993 |
 | SwiGLU | 4 | 114 | 0.012 | 12/20 | 0.1353 | 0.13613964 | 0.05187004 |
-| GELU | 8 | 171 | 0.024 | 14/20 | 0.1359 | 0.13731112 | 0.05271434 |
+| GELU | 8 | 192 | 0.024 | 14/20 | 0.1359 | 0.13731112 | 0.05271434 |
 | SwiGLU | 8 | 114 | 0.012 | 12/20 | 0.1386 | 0.13923155 | 0.05414733 |
 
 ## Comparisons

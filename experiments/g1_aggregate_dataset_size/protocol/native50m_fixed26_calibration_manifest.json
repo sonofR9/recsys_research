@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "stage": "native50m_shared_fixed26_calibration",
+  "dataset_size": "50m",
+  "batch_size": 512,
+  "embedding_learning_rate": 0.003261002414691765,
+  "deep_learning_rate": 0.025343654763668278,
+  "num_epochs": 26,
+  "early_stopping": false,
+  "restore_best_weights": true,
+  "recipe_sha256": "3fb86ffa05cd645f860e66293c24f809cc323967064cf4d2383dd2cbab2b185b",
+  "experiment_fingerprint_sha256": "d8be81c58294c777c2ece7c3c778f8591328f885ba5844865a3181317bfad2cc",
+  "source_control": {
+    "run_name": "g1_aggregate_dataset_size_baseline_none_l2_b512_s42_e0p003261002414691765_d0p025343654763668278_hnone_batch_lr_calibration_ts2_r1_50m",
+    "artifact_sha256": {
+      "training_metadata.json": "fe330a0e00141787de45faa60b9bfa8afb14fcf796279ba8283634d5ba9b39fd",
+      "final_metrics.json": "6fbafdb72a3d2e143be5de69ec90f983e78b7253dc26a3bf7c1881846d1e1406",
+      "sweep.log": "10ea037da81b9463bcc2618ed6b7d81009a8c3f49bf0f741a5cde0f6b1b8fdd2"
+    }
+  },
+  "jobs": [
+    {"id": "native50m_shared_fixed26_calibration:seed_42", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_42_native50m", "seed": 42},
+    {"id": "native50m_shared_fixed26_calibration:seed_43", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_43_native50m", "seed": 43},
+    {"id": "native50m_shared_fixed26_calibration:seed_44", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_44_native50m", "seed": 44},
+    {"id": "native50m_shared_fixed26_calibration:seed_45", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_45_native50m", "seed": 45},
+    {"id": "native50m_shared_fixed26_calibration:seed_46", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_46_native50m", "seed": 46},
+    {"id": "native50m_shared_fixed26_calibration:seed_47", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_47_native50m", "seed": 47},
+    {"id": "native50m_shared_fixed26_calibration:seed_48", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_48_native50m", "seed": 48},
+    {"id": "native50m_shared_fixed26_calibration:seed_49", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_49_native50m", "seed": 49},
+    {"id": "native50m_shared_fixed26_calibration:seed_50", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_50_native50m", "seed": 50},
+    {"id": "native50m_shared_fixed26_calibration:seed_51", "run_name": "g1_shared_calibration_fixed26_mup_control_seed_51_native50m", "seed": 51}
+  ]
+}

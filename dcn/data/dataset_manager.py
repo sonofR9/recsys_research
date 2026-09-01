@@ -12,6 +12,7 @@ from data.preprocessing import COUNTERS_COLUMN, preprocess_counters
 from data.split_by_day import split_main_parquet_by_day
 from neuralrec.utils.stateful import Stateful
 from utils.locks import hold
+from utils.report_file_facts import current_report_file_facts
 
 from .dataset import EventDataset, collate_event_batch
 
@@ -96,8 +97,18 @@ class DatasetManager(Stateful):
             f"Metadata file not found: {self.metadata_file}"
         )
 
-        with open(self.metadata_file, "r", encoding="utf-8") as f:
-            metadata: Any = yaml.safe_load(f)
+        def load() -> Any:
+            with open(self.metadata_file, "r", encoding="utf-8") as stream:
+                return yaml.safe_load(stream)
+
+        facts = current_report_file_facts()
+        metadata = (
+            load()
+            if facts is None
+            else facts.load_or_compute(
+                "dataset_manager_metadata", (self.metadata_file,), load
+            )
+        )
 
         assert metadata is not None, "Metadata file is empty"
         for key in (

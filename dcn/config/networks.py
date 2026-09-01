@@ -228,7 +228,9 @@ def _ffn_factory(transformer: TransformerConfig) -> FFNFactory:
     return lambda dim: ffn(dim, transformer.ffn_intermediate_dim, dropout)
 
 
-def _causal_blocks(transformer: TransformerConfig) -> list[TransformerBlock]:
+def _transformer_blocks(
+    transformer: TransformerConfig, *, is_causal: bool = True
+) -> list[TransformerBlock]:
     ffn_factory = _ffn_factory(transformer)
     head_dim = transformer.dim // transformer.nhead
     return [
@@ -251,6 +253,7 @@ def _causal_blocks(transformer: TransformerConfig) -> list[TransformerBlock]:
             norm=transformer.norm,
             norm_place=transformer.norm_place,
             attention_window=transformer.attention_window,
+            is_causal=is_causal,
         )
         for _ in range(transformer.num_layers)
     ]
@@ -260,6 +263,17 @@ def build_causal_transformer(
     transformer: TransformerConfig, *, max_seq_len: int
 ) -> TransformerEncoder:
     """SASRec-shaped stack: causal, and positioned however the config says."""
+    return build_transformer_encoder(
+        transformer, max_seq_len=max_seq_len, is_causal=True
+    )
+
+
+def build_transformer_encoder(
+    transformer: TransformerConfig,
+    *,
+    max_seq_len: int,
+    is_causal: bool = True,
+) -> TransformerEncoder:
     dim = transformer.dim
     learned = transformer.learned_positions
     learned_orders = (
@@ -338,7 +352,7 @@ def build_causal_transformer(
             )
         ]
     return TransformerEncoder(
-        blocks=_causal_blocks(transformer),
+        blocks=_transformer_blocks(transformer, is_causal=is_causal),
         final_norm=make_norm(dim, transformer.final_norm),
         input_norm=make_norm(dim, transformer.input_norm),
         position_inputs=position_inputs,
@@ -353,7 +367,7 @@ def build_transformer_decoder(
     """The same stack with a cross-attention layer to a memory after each block."""
     dim = transformer.dim
     return TransformerDecoder(
-        self_attention_blocks=_causal_blocks(transformer),
+        self_attention_blocks=_transformer_blocks(transformer),
         cross_attention_blocks=[
             CrossAttentionBlock(
                 dim=dim,

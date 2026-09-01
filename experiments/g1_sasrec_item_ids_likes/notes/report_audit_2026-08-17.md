@@ -99,7 +99,7 @@ reported.
 
 ## 6. RQ4's GELU-vs-SwiGLU tie is an early-stopping artifact
 
-The selected widths are 171 (GELU) and 32 (SwiGLU) — 5.3× width and 3.4× FFN
+The selected widths are 192 (GELU) and 32 (SwiGLU) — 5.3× width and 3.4× FFN
 parameters, which is the reader's objection and it is directionally right. The
 more important number is that the gap is 31,702 parameters, 0.31% of a
 10.13M-parameter model, so "SwiGLU needs a narrower FFN" is not a

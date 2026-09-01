@@ -1,0 +1,15 @@
+{
+  "jobs": [
+    {
+      "id": "primary_control_tuning:best_g1_control_trial_19",
+      "parameters": {
+        "batch_size": 1024,
+        "deep_learning_rate": 0.11080839177643309,
+        "embedding_learning_rate": 0.03601892831714923,
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_trial_19_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

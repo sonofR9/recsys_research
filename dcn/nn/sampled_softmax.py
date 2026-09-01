@@ -36,7 +36,7 @@ class RandomCatalogNegatives(nn.Module):
         self,
         catalog_size: int,
         num_negatives: int,
-        item_encoder: nn.Module,
+        item_encoder: nn.Module | Callable[[torch.Tensor], torch.Tensor],
         first_item_id: int = 0,
         probabilities: torch.Tensor | None = None,
         dense_scores: bool = False,
@@ -47,9 +47,7 @@ class RandomCatalogNegatives(nn.Module):
             raise ValueError(
                 f"first_item_id must be in [0, {catalog_size}), got {first_item_id}"
             )
-        if dense_scores:
-            if type(item_encoder) is not nn.Embedding:
-                raise TypeError("dense scores require a plain nn.Embedding")
+        if dense_scores and isinstance(item_encoder, nn.Embedding):
             if (
                 item_encoder.padding_idx is not None
                 or item_encoder.max_norm is not None
@@ -99,7 +97,9 @@ class RandomCatalogNegatives(nn.Module):
     def logits(self, query_repr: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         ids = self._sample_ids(query_repr.shape[0], query_repr.device)
         if self.training and self.dense_scores:
-            scores = F.linear(query_repr, self.item_encoder.weight).gather(1, ids)
+            catalog_ids = torch.arange(self.catalog_size, device=query_repr.device)
+            catalog_repr = self.item_encoder(catalog_ids)
+            scores = F.linear(query_repr, catalog_repr).gather(1, ids)
         else:
             scores = self._direct_scores(query_repr, ids)
         return scores, ids
@@ -188,7 +188,14 @@ class InBatchSampledSoftmaxLoss(nn.Module, ABC):
         positive_item_ids: torch.Tensor,
         group_sizes: torch.Tensor,
         negatives: tuple[torch.Tensor, torch.Tensor] | None = None,
+        acceptable_positive_ids: torch.Tensor | None = None,
+        acceptable_positive_offsets: torch.Tensor | None = None,
     ) -> torch.Tensor:
+        self._validate_acceptable_positives(
+            query_repr,
+            acceptable_positive_ids,
+            acceptable_positive_offsets,
+        )
         if self.training:
             self._observe(positive_item_ids)
 
@@ -227,6 +234,16 @@ class InBatchSampledSoftmaxLoss(nn.Module, ABC):
                 scores = scores.masked_fill(
                     ids == positive_item_ids.unsqueeze(1), -torch.inf
                 )
+            if acceptable_positive_ids is not None:
+                assert acceptable_positive_offsets is not None
+                scores = scores.masked_fill(
+                    self._acceptable_positive_mask(
+                        ids,
+                        acceptable_positive_ids,
+                        acceptable_positive_offsets,
+                    ),
+                    -torch.inf,
+                )
             return scores
 
         negative_scores = [adjust_scores(in_batch_scores, neg_ids, True)]
@@ -236,6 +253,56 @@ class InBatchSampledSoftmaxLoss(nn.Module, ABC):
                 adjust_scores(random_scores, random_ids, self.correct_random_negatives)
             )
         return torch.cat([pos_score.unsqueeze(1), *negative_scores], dim=1)
+
+    @staticmethod
+    def _validate_acceptable_positives(
+        query_repr: torch.Tensor,
+        ids: torch.Tensor | None,
+        offsets: torch.Tensor | None,
+    ) -> None:
+        if (ids is None) != (offsets is None):
+            raise ValueError("acceptable positive ids and offsets must be set together")
+        if ids is None:
+            return
+        assert offsets is not None
+        if ids.ndim != 1 or offsets.ndim != 1:
+            raise ValueError(
+                "acceptable positive ids and offsets must be one-dimensional"
+            )
+        if offsets.shape[0] != query_repr.shape[0] + 1:
+            raise ValueError("acceptable positive offsets must delimit every query")
+        if offsets.device != ids.device or ids.device != query_repr.device:
+            raise ValueError("acceptable positives must share the query device")
+        if int(offsets[0]) != 0 or int(offsets[-1]) != ids.shape[0]:
+            raise ValueError("acceptable positive offsets must span every id")
+        if bool((offsets[1:] < offsets[:-1]).any()):
+            raise ValueError("acceptable positive offsets must be nondecreasing")
+
+    @staticmethod
+    def _acceptable_positive_mask(
+        candidate_ids: torch.Tensor,
+        acceptable_ids: torch.Tensor,
+        offsets: torch.Tensor,
+    ) -> torch.Tensor:
+        if candidate_ids.numel() == 0 or acceptable_ids.numel() == 0:
+            return torch.zeros_like(candidate_ids, dtype=torch.bool)
+        if bool((candidate_ids < 0).any()) or bool((acceptable_ids < 0).any()):
+            raise ValueError("acceptable-positive masking requires non-negative ids")
+        counts = offsets.diff()
+        acceptable_rows = torch.arange(
+            candidate_ids.shape[0], device=candidate_ids.device
+        ).repeat_interleave(counts)
+        stride = torch.maximum(candidate_ids.max(), acceptable_ids.max()) + 1
+        acceptable_keys = torch.sort(acceptable_rows * stride + acceptable_ids).values
+        candidate_rows = torch.arange(
+            candidate_ids.shape[0], device=candidate_ids.device
+        ).unsqueeze(1)
+        candidate_keys = candidate_rows * stride + candidate_ids
+        positions = torch.searchsorted(acceptable_keys, candidate_keys.flatten())
+        bounded = positions.clamp_max(acceptable_keys.shape[0] - 1)
+        return (acceptable_keys[bounded] == candidate_keys.flatten()).view_as(
+            candidate_ids
+        )
 
     def _in_batch_scores(
         self,
@@ -281,6 +348,8 @@ class InBatchSampledSoftmaxLoss(nn.Module, ABC):
         positive_item_ids: torch.Tensor,
         group_sizes: torch.Tensor,
         negatives: tuple[torch.Tensor, torch.Tensor] | None = None,
+        acceptable_positive_ids: torch.Tensor | None = None,
+        acceptable_positive_offsets: torch.Tensor | None = None,
     ) -> torch.Tensor:
         return self.loss_from_logits(
             self.logits(
@@ -289,6 +358,8 @@ class InBatchSampledSoftmaxLoss(nn.Module, ABC):
                 positive_item_ids,
                 group_sizes,
                 negatives,
+                acceptable_positive_ids,
+                acceptable_positive_offsets,
             )
         )
 

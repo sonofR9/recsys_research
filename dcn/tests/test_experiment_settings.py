@@ -16,6 +16,10 @@ from dcn.config.generation import (
     TigerExperiment,
     TimeWindowGenerationExperiment,
 )
+from dcn.config.query_retrieval import (
+    CrossAttentionGenerationExperiment,
+    MuTransferCrossAttentionGenerationExperiment,
+)
 from dcn.config.ranking import (
     HomeworkRankingExperiment,
     RankingExperiment,
@@ -38,6 +42,8 @@ GENERATION = (
     TigerExperiment,
     CombinedSemanticGenerationExperiment,
     RqVaeGenerationExperiment,
+    CrossAttentionGenerationExperiment,
+    MuTransferCrossAttentionGenerationExperiment,
 )
 
 

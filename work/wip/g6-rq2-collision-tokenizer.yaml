@@ -1,0 +1,11 @@
+version: 1
+id: g6-rq2-collision-tokenizer
+title: Tune RQ-KMeans with collision resolution
+description: >-
+  Execute the approved native-500M paired tokenizer search with the
+  deterministic collision suffix and compare the selected setup with the
+  frozen RQ0 tokenizer.
+blocked_by:
+  - g6-rq1-sid-initialization
+ideas_tags:
+  - g6-rq2-collision-tokenizer

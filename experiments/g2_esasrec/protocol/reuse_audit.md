@@ -43,7 +43,7 @@
 - Do not port the branch's SwiGLU change. Current mainline already supports
   explicitly enabled gated-FFN dropout and tests it across ReGLU, GEGLU, and
   SwiGLU. New G2 SwiGLU widths are `{512, 1024, 1536}`, all divisible by 32;
-  width 171 remains only in the unchanged G1 control.
+  width 192 remains only in the unchanged G1 control.
 - Replace the full-softmax ablation with the approved gBCE/sampled-softmax
   matrix.
 - Replace every 500M launcher, tuning table, rate-tail task, reader table, and

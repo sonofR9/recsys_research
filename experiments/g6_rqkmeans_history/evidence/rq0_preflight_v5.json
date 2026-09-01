@@ -1,0 +1,205 @@
+{
+  "implementation_sha256": "605e4db98aa40d805bd4d17993f37844323f15995e821a2e59658d7fff689c92",
+  "overhead": {
+    "worst_layout": {
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "sid_full_catalog_metrics": {
+        "base_metrics_equal": true,
+        "baseline_incremental_peak_memory_gb": 0.0645594596862793,
+        "baseline_seconds": 0.01827455300372094,
+        "catalog_items": 33148,
+        "latency_ratio": 2.2882655486020695,
+        "levels": 4,
+        "semantic_incremental_peak_memory_gb": 0.06536436080932617,
+        "semantic_seconds": 0.04181703005451709,
+        "users": 3414
+      },
+      "tokenization": {
+        "baseline": {
+          "incremental_peak_memory_gb": 0.011378765106201172,
+          "median_milliseconds": 1.6440435429103673,
+          "output_tokens": 13056
+        },
+        "batch_size": 128,
+        "events_per_sequence": 101,
+        "latency_ratio": 1.2375058564596737,
+        "semantic": {
+          "incremental_peak_memory_gb": 0.07474470138549805,
+          "median_milliseconds": 2.0345135126262903,
+          "output_tokens": 77696
+        }
+      }
+    }
+  },
+  "schema_version": 2,
+  "selection": {
+    "feasible_training_batches": [
+      128,
+      256,
+      512,
+      1024,
+      1280
+    ],
+    "validation_batch_size": 8192
+  },
+  "training": {
+    "1024": {
+      "batch_size": 1024,
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "events_per_sequence": 101,
+      "fits": true,
+      "incremental_peak_memory_gb": 27.73221254348755,
+      "physical_tokens": 622592,
+      "step_seconds": 1.3939436810323969
+    },
+    "128": {
+      "batch_size": 128,
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "events_per_sequence": 101,
+      "fits": true,
+      "incremental_peak_memory_gb": 3.477327346801758,
+      "physical_tokens": 77824,
+      "step_seconds": 0.8880294529953972
+    },
+    "1280": {
+      "batch_size": 1280,
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "events_per_sequence": 101,
+      "fits": true,
+      "incremental_peak_memory_gb": 34.66218042373657,
+      "physical_tokens": 778240,
+      "step_seconds": 1.4872714719967917
+    },
+    "256": {
+      "batch_size": 256,
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "events_per_sequence": 101,
+      "fits": true,
+      "incremental_peak_memory_gb": 6.942310810089111,
+      "physical_tokens": 155648,
+      "step_seconds": 1.2162329599959776
+    },
+    "512": {
+      "batch_size": 512,
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "events_per_sequence": 101,
+      "fits": true,
+      "incremental_peak_memory_gb": 13.872277736663818,
+      "physical_tokens": 311296,
+      "step_seconds": 0.985327209928073
+    }
+  },
+  "validation": {
+    "worst_layout": {
+      "compute_capability": [
+        8,
+        0
+      ],
+      "device_name": "NVIDIA A100-SXM4-80GB",
+      "probes": [
+        {
+          "batch_size": 128,
+          "fits": true,
+          "incremental_peak_memory_gb": 0.20472478866577148,
+          "physical_tokens": 77824,
+          "seconds": 0.6367787920171395
+        },
+        {
+          "batch_size": 256,
+          "fits": true,
+          "incremental_peak_memory_gb": 0.39349985122680664,
+          "physical_tokens": 155648,
+          "seconds": 0.02902410295791924
+        },
+        {
+          "batch_size": 512,
+          "fits": true,
+          "incremental_peak_memory_gb": 0.786919116973877,
+          "physical_tokens": 311296,
+          "seconds": 0.04431841801851988
+        },
+        {
+          "batch_size": 1024,
+          "fits": true,
+          "incremental_peak_memory_gb": 1.5737576484680176,
+          "physical_tokens": 622592,
+          "seconds": 0.07692462601698935
+        },
+        {
+          "batch_size": 2048,
+          "fits": true,
+          "incremental_peak_memory_gb": 3.147434711456299,
+          "physical_tokens": 1245184,
+          "seconds": 0.15171588596422225
+        },
+        {
+          "batch_size": 4096,
+          "fits": true,
+          "incremental_peak_memory_gb": 6.294788837432861,
+          "physical_tokens": 2490368,
+          "seconds": 0.3125247019343078
+        },
+        {
+          "batch_size": 8192,
+          "fits": true,
+          "incremental_peak_memory_gb": 12.589497089385986,
+          "physical_tokens": 4980736,
+          "seconds": 0.6283964309841394
+        }
+      ]
+    }
+  },
+  "workload": {
+    "backbone": "best_g1",
+    "base_levels": 4,
+    "bos_tokens": 1,
+    "catalog_item_ids_sha256": "aef5e631abfeb0f952d0a91ae19e5aa0364524cf605b806b13c86b460966af40",
+    "catalog_items": 33148,
+    "codes_per_base_level": 512,
+    "collision_suffix_levels": 1,
+    "compile": false,
+    "dataset_cache_key": "0fb0a01c70e1",
+    "dataset_size": "native-50m",
+    "deep_learning_rate": 0.01,
+    "dtype": "bfloat16",
+    "embedding_learning_rate": 0.01,
+    "end_cls_tokens": 1,
+    "events_per_sequence": 101,
+    "ffn": "swiglu",
+    "ffn_width": 192,
+    "model_dim": 64,
+    "negative_count": 2048,
+    "optimizer": "MuAdam",
+    "representation": "interleaved_item_sid_tokens",
+    "representation_width": 128,
+    "semantic_codebooks_sha256": "1612834ba127fc7981c7d0b94ea0047aeceb8ffb4e06157f920a98728b8613f0",
+    "semantic_codes_sha256": "8f0744c3a462167dbab8d03d76f1b35945dc54258ea4a3f7bd01b30d7f764b70",
+    "tokens_per_event": 6,
+    "torch_version": "2.5.1+cu124",
+    "transformer_layers": 4
+  }
+}

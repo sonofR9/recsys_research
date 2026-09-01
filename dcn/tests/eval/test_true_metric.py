@@ -93,6 +93,69 @@ class TestEvaluateTrueNdcg:
         )
         assert per_user == pytest.approx(whole)
 
+    def test_can_return_each_relevant_items_rank_without_changing_metrics(self):
+        query, user_ids, items, item_ids, relevance, seen = _rigged_inputs()
+
+        metrics, ranks = evaluate_true_ndcg(
+            query,
+            user_ids,
+            items,
+            item_ids,
+            relevance,
+            seen,
+            ks=[1, 2],
+            return_relevant_ranks=True,
+        )
+
+        assert metrics == pytest.approx(
+            evaluate_true_ndcg(
+                query, user_ids, items, item_ids, relevance, seen, ks=[1, 2]
+            )
+        )
+        assert ranks.tolist() == [1, 2, 1]
+
+    def test_can_return_ranks_and_top_items_from_the_same_pass(self):
+        query, user_ids, items, item_ids, relevance, seen = _rigged_inputs()
+
+        metrics, details = evaluate_true_ndcg(
+            query,
+            user_ids,
+            items,
+            item_ids,
+            relevance,
+            seen,
+            ks=[1, 2],
+            return_ranking_details=True,
+        )
+
+        assert metrics == pytest.approx(
+            evaluate_true_ndcg(
+                query, user_ids, items, item_ids, relevance, seen, ks=[1, 2]
+            )
+        )
+        assert details.relevant_ranks.tolist() == [1, 2, 1]
+        assert details.top_item_ids.tolist() == [
+            [10, 30],
+            [20, 30],
+            [30, 20],
+        ]
+
+    def test_ranking_detail_modes_are_mutually_exclusive(self):
+        query, user_ids, items, item_ids, relevance, seen = _rigged_inputs()
+
+        with pytest.raises(ValueError, match="mutually exclusive"):
+            evaluate_true_ndcg(
+                query,
+                user_ids,
+                items,
+                item_ids,
+                relevance,
+                seen,
+                ks=[1],
+                return_relevant_ranks=True,
+                return_ranking_details=True,
+            )
+
 
 class TestCoverage:
     def test_full_catalog_covered(self):
@@ -133,6 +196,34 @@ class TestCappedRecallMetric:
         )
         assert out["recall@1"] == pytest.approx(0.5)
         assert out["capped_recall@1"] == pytest.approx(1.0)
+
+
+class TestSemanticIdRecall:
+    def test_wrong_item_with_the_target_prefix_is_a_prefix_hit_only(self):
+        out = evaluate_true_ndcg(
+            query_repr=torch.tensor([[1.0]]),
+            query_user_ids=torch.tensor([0]),
+            item_repr=torch.tensor([[3.0], [2.0], [1.0]]),
+            item_ids=torch.tensor([10, 20, 30]),
+            relevance={0: {30}},
+            train_seen={},
+            ks=[1, 2, 3],
+            item_semantic_codes=torch.tensor([[0, 0], [1, 1], [1, 0]]),
+        )
+
+        assert out["sid_prefix_recall@1_l1"] == 0.0
+        assert out["sid_prefix_recall@2_l1"] == 1.0
+        assert out["sid_exact_recall@2"] == 0.0
+        assert out["sid_exact_recall@3"] == 1.0
+        assert out["sid_prefix_recall@3_l2"] == 1.0
+
+    def test_semantic_metrics_are_absent_without_codes(self):
+        query, user_ids, items, item_ids, relevance, seen = _rigged_inputs()
+        out = evaluate_true_ndcg(
+            query, user_ids, items, item_ids, relevance, seen, ks=[1]
+        )
+
+        assert not any(name.startswith("sid_") for name in out)
 
 
 class TestUserSubsampling:

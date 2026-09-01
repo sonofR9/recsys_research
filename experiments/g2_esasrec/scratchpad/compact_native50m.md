@@ -4,7 +4,7 @@
 
 | variant | layer | loss | FFN width | gBCE t | uniform | logQ | params | epoch s | train s | wall s | targets/s | peak GB | recall@100 | ndcg@100 | coverage@100 |
 | :--- | :--- | :--- | ---: | ---: | ---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: | :---: | :---: | ---: |
-| control | G1 control | sampled softmax | 171 | — | — | — | 2222956.000 | 1.383 | 28.527 | 29.886 | 438511.859 | 1.741 | +0.000% (0.115) | +0.000% (0.043) | +0.000% (0.691) |
+| control | G1 control | sampled softmax | 192 | — | — | — | 2222956.000 | 1.383 | 28.527 | 29.886 | 438511.859 | 1.741 | +0.000% (0.115) | +0.000% (0.043) | +0.000% (0.691) |
 | ligr sampled softmax | LiGR | sampled softmax | 1024 | — | — | — | 10876416.000 | 2.359 | 38.685 | 40.544 | 257052.624 | 6.608 | <span style="color: green">+18.262% (0.136)</span> | <span style="color: green">+22.138% (0.053)</span> | <span style="color: red">-30.178% (0.483)</span> |
 | official rectools | RecTools LiGR | sampled softmax | — | — | — | — | — | — | — | 454.131 | — | — | <span style="color: red">-3.968% (0.111)</span> | <span style="color: green">+9.445% (0.047)</span> | <span style="color: red">-74.376% (0.177)</span> |
 
@@ -58,7 +58,7 @@
 
 | variant | layer | loss | FFN width | gBCE t | uniform | logQ | params | epoch s | train s | wall s | targets/s | peak GB | recall@100 | ndcg@100 | coverage@100 |
 | :--- | :--- | :--- | ---: | ---: | ---: | :--- | ---: | ---: | ---: | ---: | ---: | ---: | :---: | :---: | ---: |
-| control | G1 control | sampled softmax | 171 | — | — | — | 2222956.000 | 1.383 | 28.527 | 29.886 | 438511.859 | 1.741 | +0.000% (0.115) | +0.000% (0.043) | +0.000% (0.691) |
+| control | G1 control | sampled softmax | 192 | — | — | — | 2222956.000 | 1.383 | 28.527 | 29.886 | 438511.859 | 1.741 | +0.000% (0.115) | +0.000% (0.043) | +0.000% (0.691) |
 | ligr sampled softmax | LiGR | sampled softmax | 1024 | — | — | — | 10876416.000 | 2.359 | 38.685 | 40.544 | 257052.624 | 6.608 | <span style="color: green">+18.262% (0.136)</span> | <span style="color: green">+22.138% (0.053)</span> | <span style="color: red">-30.178% (0.483)</span> |
 
 | candidate | qualification | selection | rationale |

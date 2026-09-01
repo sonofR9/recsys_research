@@ -1,0 +1,33 @@
+{
+  "bands": {
+    "capped_recall@10": 0.003,
+    "capped_recall@100": 0.002,
+    "capped_recall@50": 0.003,
+    "coverage@10": 0.02,
+    "coverage@100": 0.03,
+    "coverage@50": 0.03,
+    "mrr@10": 0.003,
+    "mrr@100": 0.003,
+    "mrr@50": 0.004,
+    "ndcg@10": 0.002,
+    "ndcg@100": 0.002,
+    "ndcg@50": 0.002,
+    "recall@10": 0.003,
+    "recall@100": 0.002,
+    "recall@50": 0.003
+  },
+  "dataset_size": "native-50m",
+  "rounding": "sample standard deviation rounded upward to one significant digit",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ]
+}

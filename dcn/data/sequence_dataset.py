@@ -5,6 +5,7 @@ import os
 import re
 import shutil
 from collections.abc import Iterator
+from functools import cached_property
 from pathlib import Path
 from typing import Literal
 
@@ -19,6 +20,8 @@ from .packed import to_cumulative_lens
 from utils.locks import hold
 
 logger = logging.getLogger(__name__)
+
+SYNTHETIC_OCCURRENCE_POSITION_COLUMN = "_g4_occurrence_position"
 
 _GROUPING_COPIES = 4
 
@@ -44,26 +47,46 @@ class SequenceDataset(Dataset):
         timestamp_column: str = "timestamp",
         max_seq_len: int = 100,
         min_seq_len: int = 2,
-        window: Literal["whole", "sliding", "next_item"] = "whole",
+        window: Literal[
+            "whole", "sliding", "next_item", "bounded_prefix"
+        ] = "whole",
         stride: float = 1.0,
+        prefix_length_rule: Literal["truncated", "required"] = "truncated",
+        prefix_cap: int | None = None,
         emit_user_column: bool = False,
         row_filter: pl.Expr | None = None,
         n_buckets: int | None = None,
         invalidate_cache: bool = False,
     ):
-        if window not in ("whole", "sliding", "next_item"):
+        if window not in ("whole", "sliding", "next_item", "bounded_prefix"):
             raise ValueError(
-                "window must be 'whole', 'sliding', or 'next_item', "
+                "window must be 'whole', 'sliding', 'next_item', or "
+                "'bounded_prefix', "
                 f"got {window!r}"
             )
         if window == "sliding" and not 0 < stride <= 1:
             raise ValueError(
                 f"sliding window requires 0 < stride <= 1, got stride={stride}"
             )
+        if prefix_length_rule not in ("truncated", "required"):
+            raise ValueError(
+                "prefix_length_rule must be 'truncated' or 'required', "
+                f"got {prefix_length_rule!r}"
+            )
+        if window == "bounded_prefix" and (prefix_cap is None or prefix_cap < 1):
+            raise ValueError(
+                "bounded_prefix window requires a positive prefix_cap, "
+                f"got {prefix_cap!r}"
+            )
 
         # Polars cannot both group by a key and aggregate it per event, so the
         # user column is stripped here and re-broadcast in __getitem__.
         self.columns = [name for name in columns if name != user_column]
+        self.occurrence_position_column = (
+            SYNTHETIC_OCCURRENCE_POSITION_COLUMN
+            if SYNTHETIC_OCCURRENCE_POSITION_COLUMN in self.columns
+            else None
+        )
         self.emit_user_column = emit_user_column or user_column in columns
         self.row_filter = row_filter
         self.user_column = user_column
@@ -72,6 +95,8 @@ class SequenceDataset(Dataset):
         self.min_seq_len = min_seq_len
         self.window = window
         self.stride = stride
+        self.prefix_length_rule = prefix_length_rule
+        self.prefix_cap = prefix_cap
         self._stride_events = max(1, round(max_seq_len * stride))
 
         self._cache_dir = Path(cache_dir)
@@ -91,6 +116,14 @@ class SequenceDataset(Dataset):
             "stride": stride,
             "row_filter": None if row_filter is None else str(row_filter),
             "n_buckets": n_buckets,
+            **(
+                {
+                    "prefix_length_rule": prefix_length_rule,
+                    "prefix_cap": prefix_cap,
+                }
+                if window == "bounded_prefix"
+                else {}
+            ),
         }
         cache_lock = self._cache_dir.with_name(f"{self._cache_dir.name}.lock")
         with hold(cache_lock, "sequence cache"):
@@ -102,8 +135,9 @@ class SequenceDataset(Dataset):
                     [Path(f) for f in parquet_files], params, n_buckets
                 )
                 logger.info(
-                    "Built %s user sequences in %s bucket(s) from %s parquet file(s)",
+                    "Built %s user sequences at %s in %s bucket(s) from %s parquet file(s)",
                     sum(metadata["bucket_lengths"]),
+                    self._cache_dir,
                     len(metadata["bucket_files"]),
                     len(parquet_files),
                 )
@@ -111,6 +145,7 @@ class SequenceDataset(Dataset):
                 logger.info("Loaded cached user sequences from %s", self._cache_dir)
 
         self.bucket_lengths: list[int] = metadata["bucket_lengths"]
+        self.event_count: int = metadata["event_count"]
         self._bucket_paths = [
             self._buckets_dir / name for name in metadata["bucket_files"]
         ]
@@ -120,6 +155,15 @@ class SequenceDataset(Dataset):
         )
         self._loaded_bucket_index: int | None = None
         self._loaded_bucket: pl.DataFrame | None = None
+
+    @cached_property
+    def original_user_count(self) -> int:
+        return sum(
+            pl.read_parquet(path, columns=[self.user_column])[
+                self.user_column
+            ].n_unique()
+            for path in self._bucket_paths
+        )
 
     def _load_cached_metadata(self, params: dict) -> dict | None:
         if not self._metadata_file.exists():
@@ -142,6 +186,11 @@ class SequenceDataset(Dataset):
                     )
                     temporary.touch()
                     temporary.replace(self._completion_file)
+        if "event_count" not in metadata:
+            metadata["event_count"] = self._count_bucket_events(
+                metadata["bucket_files"]
+            )
+            self._write_metadata(metadata)
         return metadata
 
     def _build_cache(
@@ -165,24 +214,28 @@ class SequenceDataset(Dataset):
         self._buckets_dir.mkdir(parents=True)
 
         self._spill_into_bucket_shards(parquet_files, shards_dir, n_buckets)
-        bucket_files, bucket_lengths = self._group_buckets(shards_dir)
+        bucket_files, bucket_lengths, event_count = self._group_buckets(shards_dir)
         shutil.rmtree(shards_dir, ignore_errors=True)
 
+        source_columns = [
+            column
+            for column in self.columns
+            if column != self.occurrence_position_column
+        ]
         buckets = bucket_columns_by_dtype(
-            pl.read_parquet_schema(parquet_files[0]), self.columns
+            pl.read_parquet_schema(parquet_files[0]), source_columns
         )
+        if self.occurrence_position_column is not None:
+            buckets.int_names.append(self.occurrence_position_column)
         metadata = {
             "params": params,
             "bucket_files": bucket_files,
             "bucket_lengths": bucket_lengths,
+            "event_count": event_count,
             "int_columns": buckets.int_names,
             "float_columns": buckets.float_names,
         }
-        temporary_metadata = self._metadata_file.with_suffix(
-            f".{os.getpid()}.tmp"
-        )
-        temporary_metadata.write_text(json.dumps(metadata))
-        temporary_metadata.replace(self._metadata_file)
+        self._write_metadata(metadata)
         temporary_completion = self._completion_file.with_suffix(
             f".{os.getpid()}.tmp"
         )
@@ -190,10 +243,39 @@ class SequenceDataset(Dataset):
         temporary_completion.replace(self._completion_file)
         return metadata
 
+    def _write_metadata(self, metadata: dict) -> None:
+        temporary_metadata = self._metadata_file.with_suffix(
+            f".{os.getpid()}.tmp"
+        )
+        temporary_metadata.write_text(json.dumps(metadata))
+        temporary_metadata.replace(self._metadata_file)
+
+    def _count_bucket_events(self, bucket_files: list[str]) -> int:
+        return sum(
+            int(
+                pl.scan_parquet(self._buckets_dir / name)
+                .select(pl.col(self.timestamp_column).list.len().sum())
+                .collect()
+                .item()
+                or 0
+            )
+            for name in bucket_files
+        )
+
     @property
     def _emitted_columns(self) -> list[str]:
         return list(
-            dict.fromkeys([self.user_column, self.timestamp_column, *self.columns])
+            dict.fromkeys(
+                [
+                    self.user_column,
+                    self.timestamp_column,
+                    *[
+                        column
+                        for column in self.columns
+                        if column != self.occurrence_position_column
+                    ],
+                ]
+            )
         )
 
     @property
@@ -209,6 +291,10 @@ class SequenceDataset(Dataset):
         total = sample.estimated_size() * len(parquet_files)
         if self.window == "sliding":
             total *= math.ceil(self.max_seq_len / self._stride_events)
+        elif self.window == "bounded_prefix":
+            prefix_cap = self.prefix_cap
+            assert prefix_cap is not None
+            total *= prefix_cap
         return total
 
     def _spill_into_bucket_shards(
@@ -228,11 +314,14 @@ class SequenceDataset(Dataset):
                 bucket_dir.mkdir(parents=True, exist_ok=True)
                 partition.write_parquet(bucket_dir / f"part_{file_index:05d}.parquet")
 
-    def _group_buckets(self, shards_dir: Path) -> tuple[list[str], list[int]]:
+    def _group_buckets(
+        self, shards_dir: Path
+    ) -> tuple[list[str], list[int], int]:
         bucket_files: list[str] = []
         bucket_lengths: list[int] = []
+        event_count = 0
         if not shards_dir.exists():
-            return bucket_files, bucket_lengths
+            return bucket_files, bucket_lengths, event_count
         for bucket_dir in sorted(shards_dir.iterdir()):
             # Named by input-file position, so the sorted concat restores the order
             # the stable sort breaks timestamp ties by.
@@ -244,19 +333,33 @@ class SequenceDataset(Dataset):
             grouped.write_parquet(self._buckets_dir / file_name)
             bucket_files.append(file_name)
             bucket_lengths.append(len(grouped))
-        return bucket_files, bucket_lengths
+            event_count += int(grouped[self.timestamp_column].list.len().sum() or 0)
+        return bucket_files, bucket_lengths, event_count
 
     def _build_time_sorted_user_sequences(self, df: pl.DataFrame) -> pl.DataFrame:
+        source_columns = [
+            column
+            for column in self.columns
+            if column != self.occurrence_position_column
+        ]
         events = df.select(
             pl.col(self.user_column),
             pl.col(self.timestamp_column).cast(pl.Int64),
-            *[pl.col(c) for c in self.columns],
+            *[pl.col(c) for c in source_columns],
         ).sort([self.user_column, self.timestamp_column], maintain_order=True)
+        if self.occurrence_position_column is not None:
+            events = events.with_columns(
+                pl.int_range(pl.len())
+                .over(self.user_column)
+                .alias(self.occurrence_position_column)
+            )
 
         if self.window == "sliding":
             return self._group_into_sliding_windows(events)
         if self.window == "next_item":
             return self._group_into_next_item_windows(events)
+        if self.window == "bounded_prefix":
+            return self._group_into_bounded_prefix_windows(events)
 
         list_columns = [self.timestamp_column, *self.columns]
         return (
@@ -286,6 +389,52 @@ class SequenceDataset(Dataset):
             .filter(pl.col(self.timestamp_column).list.len() >= self.min_seq_len)
             .sort([self.user_column, "_window"], maintain_order=True)
             .drop("_window")
+        )
+
+    def _group_into_bounded_prefix_windows(
+        self, events: pl.DataFrame
+    ) -> pl.DataFrame:
+        prefix_cap = self.prefix_cap
+        assert prefix_cap is not None
+        position = pl.int_range(pl.len()).over(self.user_column)
+        user_length = pl.len().over(self.user_column).cast(pl.Int64)
+        latest_target = user_length - 1
+
+        if self.prefix_length_rule == "truncated":
+            earliest_target = pl.max_horizontal(1, user_length - prefix_cap)
+        else:
+            earliest_target = (
+                pl.when(latest_target < self.max_seq_len)
+                .then(latest_target)
+                .otherwise(
+                    pl.max_horizontal(
+                        self.max_seq_len, user_length - prefix_cap
+                    )
+                )
+            )
+
+        first_target = pl.max_horizontal(position, earliest_target)
+        last_target = pl.min_horizontal(
+            position + self.max_seq_len, latest_target
+        )
+        list_columns = [self.timestamp_column, *self.columns]
+
+        return (
+            events.with_columns(
+                pl.int_ranges(first_target, last_target + 1).alias("_target")
+            )
+            .explode("_target")
+            .drop_nulls("_target")
+            .group_by([self.user_column, "_target"], maintain_order=True)
+            .agg(pl.col(self.timestamp_column), *[pl.col(c) for c in self.columns])
+            .filter(pl.col(self.timestamp_column).list.len() >= self.min_seq_len)
+            .sort(
+                [self.user_column, "_target"],
+                descending=[False, True],
+                maintain_order=True,
+            )
+            .drop("_target")
+            .select(self.user_column, *list_columns)
         )
 
     def _group_into_sliding_windows(self, events: pl.DataFrame) -> pl.DataFrame:

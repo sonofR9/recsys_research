@@ -22,6 +22,7 @@ def _write_metadata(
     adaptive_schedule_early_stopping: bool = False,
     cls_token_mode: str = "none",
     transformer: TransformerConfig | None = None,
+    item_encoder: torch.nn.Module | None = None,
 ) -> dict:
     global_config.initialize(tmp_path)
     experiment = GenerationExperiment(
@@ -36,7 +37,9 @@ def _write_metadata(
         window="next_item" if cls_token_mode != "none" else "sliding",
         **({} if transformer is None else {"transformer": transformer}),
     )
-    experiment.__dict__["item_embedding"] = torch.nn.Embedding(5, 64)
+    experiment.__dict__["item_embedding"] = (
+        torch.nn.Embedding(5, 64) if item_encoder is None else item_encoder
+    )
     experiment.__dict__["training_targets_per_epoch"] = 10
     experiment.__dict__["training_tokens_per_epoch"] = 20
     best_weights = BestWeights(metric_name="recall@100", metric_prefix="epoch/val_true")
@@ -66,6 +69,25 @@ def _write_metadata(
 
     path = tmp_path / "logs" / experiment.run_name / "training_metadata.json"
     return json.loads(path.read_text())
+
+
+def test_training_metadata_accepts_a_non_embedding_history_encoder(tmp_path) -> None:
+    item_encoder = torch.nn.Sequential(
+        torch.nn.Embedding(5, 7),
+        torch.nn.Linear(7, 11, bias=False),
+    )
+    item_encoder.out_dim = 11
+
+    metadata = _write_metadata(
+        tmp_path,
+        stopped_epoch_index=4,
+        best_epoch_index=1,
+        early_stopped=True,
+        item_encoder=item_encoder,
+    )
+
+    assert metadata["item_embedding_dim"] == 11
+    assert metadata["transfer_invariants"]["item_embedding_dim"] == 11
 
 
 @pytest.mark.parametrize("cls_token_mode", ["end_only", "interleaved"])

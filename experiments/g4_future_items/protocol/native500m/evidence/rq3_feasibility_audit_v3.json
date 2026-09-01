@@ -1,0 +1,39 @@
+{
+  "acceptance_rule": "If it is too hard to implement or it will run too long, don't try it.",
+  "conclusion": "stop before selector search",
+  "dataset_size": "native-500m",
+  "decision_basis": {
+    "reason": "The approved classifier requires a population-sized in-memory fit and has no external-memory fit path.",
+    "user_validated_stop": true
+  },
+  "environment": {
+    "classifier": "sklearn.ensemble.HistGradientBoostingClassifier",
+    "sklearn_version": "1.6.1"
+  },
+  "implementation_sources": [
+    {
+      "identity": "repo:generated/g4_native500m_source_snapshots/1ecad55976aa523225d4a28730befd8e66e9371780717ec682bcfa4bb0458f81/experiments/g4_future_items/launchers/run_selectors.py",
+      "sha256": "38be93005ffc010cb1534fcf998ed0ebfdac65a92838e875c48125eb13873f9e",
+      "size": 91339
+    },
+    {
+      "identity": "python:sklearn.ensemble._hist_gradient_boosting.gradient_boosting",
+      "sha256": "69407a81fd513f0eaa4c75cab2b23c8842a4ee41433b37fae8b3eacf7b711d15",
+      "size": 93712
+    },
+    {
+      "identity": "python:sklearn.ensemble._hist_gradient_boosting.binning",
+      "sha256": "279aba55b68326850bb43e5b8bc1a4d6832b5959b0147f3623361d34cd0b905b",
+      "size": 13938
+    }
+  ],
+  "kind": "g4_native500m_rq3_feasibility_audit",
+  "method": "Static exact-source audit of the approved sklearn 1.6.1 fit path; no absolute memory or runtime projection is claimed.",
+  "schema_version": 3,
+  "structural_findings": {
+    "external_memory_fit": false,
+    "fit_accepts_complete_feature_matrix": true,
+    "fit_materializes_complete_binned_matrix": true,
+    "row_state_scaling": "linear"
+  }
+}

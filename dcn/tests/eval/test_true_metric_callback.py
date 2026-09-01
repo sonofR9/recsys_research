@@ -6,7 +6,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from dcn.data import SequenceDataset, collate_sequence_batch
+from dcn.data import FeatureValues, SequenceDataset, collate_sequence_batch
 from dcn.eval import (
     TrueMetricCallback,
     build_catalog_batch,
@@ -14,6 +14,7 @@ from dcn.eval import (
     build_item_snapshot,
 )
 from dcn.models import Tower, TowerInputEncoder, TwoTowerModel
+from dcn.semantic import SemanticCodes
 from neuralrec.utils import EXTRA_METRICS
 
 SECONDS_IN_DAY = 86_400
@@ -95,6 +96,20 @@ class _CutoffStub(_NextItemStub):
         return self._one_hot(item_ids[last])
 
 
+class _FixedRankingStub(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.unused = nn.Parameter(torch.zeros(1))
+
+    def encode_items(self, batch: dict) -> torch.Tensor:
+        item_ids = batch["int_columns"]["compact_item_id"].dense()
+        return torch.eye(len(CATALOG))[item_ids - FIRST_ITEM]
+
+    def encode_queries(self, batch: dict) -> torch.Tensor:
+        scores = torch.arange(1, len(CATALOG) + 1, dtype=torch.float32)
+        return scores.repeat(batch["cumulative_lens"][-1], 1)
+
+
 def _build_callback(
     tmp_path: Path, model: nn.Module, **overrides: object
 ) -> TrueMetricCallback:
@@ -157,6 +172,38 @@ def test_model_can_resolve_its_own_cutoff_token_positions(tmp_path: Path) -> Non
     assert metrics["recall@3"] == pytest.approx(1.0)
 
 
+def test_semantic_codes_add_base_sid_metrics_without_the_collision_suffix(
+    tmp_path: Path,
+) -> None:
+    codes = SemanticCodes(
+        item_ids=torch.tensor([*CATALOG, 15]),
+        codes=torch.tensor(
+            [
+                [0, 0, 1],
+                [0, 1, 1],
+                [1, 0, 1],
+                [1, 1, 1],
+                [2, 0, 1],
+                [2, 1, 1],
+            ]
+        ),
+        codes_per_level=(3, 2, 2),
+    )
+    callback = _build_callback(
+        tmp_path,
+        _NextItemStub(),
+        semantic_codes=codes,
+        semantic_base_levels=2,
+    )
+
+    metrics = callback.score(max_users=None)
+
+    assert metrics is not None
+    assert metrics["sid_exact_recall@3"] == pytest.approx(1.0)
+    assert metrics["sid_prefix_recall@3_l1"] == pytest.approx(1.0)
+    assert "sid_prefix_recall@3_l3" not in metrics
+
+
 def test_catalog_comes_from_the_snapshot_not_the_future(tmp_path: Path) -> None:
     train_files, _ = _write_days(tmp_path)
     batch = build_item_snapshot(train_files, item_id_column="compact_item_id")
@@ -196,6 +243,123 @@ def test_score_reports_every_user_regardless_of_the_epoch_cap(tmp_path: Path) ->
 
     assert metrics is not None
     assert metrics["num_users"] == 3.0
+
+
+def test_full_user_query_snapshot_is_ordered_and_leaves_model_mode_unchanged(
+    tmp_path: Path,
+) -> None:
+    model = _CutoffStub()
+    model.train()
+    callback = _build_callback(tmp_path, model, max_users=2)
+
+    user_ids, queries = callback.full_user_query_snapshot()
+
+    assert user_ids.tolist() == [1, 2, 3]
+    assert queries.shape == (3, len(CATALOG))
+    assert model.training
+
+
+def test_score_with_evidence_preserves_histories_targets_frequencies_and_ranks(
+    tmp_path: Path,
+) -> None:
+    callback = _build_callback(
+        tmp_path,
+        _NextItemStub(),
+        train_item_frequencies={10: 1, 11: 2, 12: 1, 13: 2, 14: 1},
+    )
+
+    scored = callback.score_with_evidence(max_users=None)
+
+    assert scored is not None
+    metrics, evidence = scored
+    assert metrics["recall@3"] == pytest.approx(1.0)
+    assert evidence.user_ids.tolist() == [1, 2, 3]
+    assert evidence.history_offsets.tolist() == [0, 2, 4, 6]
+    assert evidence.history_item_ids.tolist() == [10, 11, 11, 12, 13, 13]
+    assert evidence.relevant_item_ids.tolist() == [12, 13, 14]
+    assert evidence.relevant_train_frequencies.tolist() == [1, 2, 1]
+    assert evidence.relevant_ranks.tolist() == [1, 1, 1]
+
+
+def test_score_with_evidence_and_rankings_encodes_and_ranks_once(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    model = _NextItemStub()
+    model.train()
+    callback = _build_callback(
+        tmp_path,
+        model,
+        train_item_frequencies={10: 1, 11: 2, 12: 1, 13: 2, 14: 1},
+    )
+    calls = {"catalog": 0, "queries": 0, "topk": 0}
+    encode_catalog = callback._encode_catalog
+    encode_queries = callback._encode_queries
+    topk = torch.topk
+
+    def counted_catalog():
+        calls["catalog"] += 1
+        return encode_catalog()
+
+    def counted_queries():
+        calls["queries"] += 1
+        return encode_queries()
+
+    def counted_topk(*args, **kwargs):
+        calls["topk"] += 1
+        return topk(*args, **kwargs)
+
+    monkeypatch.setattr(callback, "_encode_catalog", counted_catalog)
+    monkeypatch.setattr(callback, "_encode_queries", counted_queries)
+    monkeypatch.setattr(torch, "topk", counted_topk)
+
+    scored = callback.score_with_evidence_and_rankings(max_users=None)
+
+    assert scored is not None
+    metrics, evidence, rankings = scored
+    assert metrics["recall@3"] == pytest.approx(1.0)
+    assert evidence.relevant_ranks.tolist() == [1, 1, 1]
+    assert rankings == {
+        1: (12, 13, 14),
+        2: (13, 14, 10),
+        3: (14, 11, 12),
+    }
+    assert calls == {"catalog": 1, "queries": 1, "topk": 1}
+    assert model.training
+
+
+def test_ranking_evidence_aligns_multi_target_ranks_in_catalog_order(
+    tmp_path: Path,
+) -> None:
+    descending_catalog = torch.tensor(list(reversed(CATALOG)))
+    callback = _build_callback(
+        tmp_path,
+        _FixedRankingStub(),
+        item_batch={
+            "int_columns": {
+                "compact_item_id": FeatureValues(
+                    descending_catalog,
+                    torch.arange(len(CATALOG) + 1),
+                )
+            },
+            "float_columns": {},
+        },
+        train_item_frequencies={item_id: item_id for item_id in CATALOG},
+    )
+    callback.relevance[1].add(14)
+
+    scored = callback.score_with_evidence(max_users=None)
+
+    assert scored is not None
+    _, evidence = scored
+    first_user_end = int(evidence.relevance_offsets[1])
+    assert dict(
+        zip(
+            evidence.relevant_item_ids[:first_user_end].tolist(),
+            evidence.relevant_ranks[:first_user_end].tolist(),
+            strict=True,
+        )
+    ) == {14: 1, 12: 3}
+    assert evidence.relevant_train_frequencies[:first_user_end].tolist() == [14, 12]
 
 
 def test_the_catalog_is_ranked_in_full_precision(

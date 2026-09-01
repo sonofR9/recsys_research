@@ -27,7 +27,7 @@ the reference for corrected 64-dimensional follow-ups.
 | rq1 | Does µTransfer work? | **yes across model width; no tested method reliably transfers LR across Yambda dataset size** | `mup_dim128_lr5e2` | 0.1303 ±0.0006 | +3.7% vs μP width 32 | 4 |
 | rq2 | Best transformer combination for metrics | selected combination plus input RMSNorm | `rqfinal_normalization_input_rms` | **0.14589** | +0.8% vs tuned selected control | 1 |
 | rq3 | Best metrics/performance balance | batch 512: 13.2s/epoch and 23.9 GB | `rqfinal_normalization_input_rms` | **0.14589** | +1.6% vs prior throughput baseline | 1 |
-| rq4 | Does SwiGLU help? | **yes** after equal-budget width/LR tuning; SwiGLU-171 wins | `rqfinal_neg_random` | **0.14480** | +2.3% vs tuned GELU-128 | 1 |
+| rq4 | Does SwiGLU help? | **yes** after equal-budget width/LR tuning; SwiGLU-192 wins | `rqfinal_neg_random` | **0.14480** | +2.3% vs tuned GELU-128 | 1 |
 | rq5 | Which lr scheduler works best? | linear has the highest mean; linear, cosine and polynomial are tied within noise | `lr_linear` | 0.1408 ±0.0006 | **+31.3%** vs constant | 4 |
 | rq6 | Does lr warmup help? | **no clear benefit** for constant, cosine or inverse sqrt | `lr_cosine_warmup` | 0.1395 ±0.0007 | −0.4% vs cosine without warmup | 4 |
 | rq7 | rope / alibi / position embeddings | learned forward wins the tuned 18-treatment comparison; learned reverse loses 9.6% | `rqfinal_neg_random` | **0.14480** | reference | 1 |
@@ -278,7 +278,7 @@ than throughput and maximum quality.
 | model dimension / item-table dimension | 64 / 64 |
 | layers / sequence length / attention window | 2 / 128 / 50 |
 | query heads / KV heads | 2 / 1 (GQA) |
-| FFN | SwiGLU, intermediate width 171 |
+| FFN | SwiGLU, intermediate width 192 |
 | normalization | pre-LayerNorm; input RMSNorm; final LayerNorm |
 | positions | learned forward; no RoPE; no ALiBi |
 | time feature | 16 log-spaced timestamp-delta bins, added |
@@ -377,10 +377,10 @@ faster and better than the historical batch-128 maximum. The older in-batch
 Hypothesis: SwiGLU should improve ranking quality over GELU, but the comparison
 must tune each family's width and rates independently. The equal proxy grid
 tested GELU widths 128/171/256/384 and SwiGLU widths 96/128/171/224 at three LR
-pairs. Its best GELU-128 treatment and reused SwiGLU-171 control then ran once
+pairs. Its best GELU-128 treatment and reused SwiGLU-192 control then ran once
 on 500M. Result: SwiGLU wins by 2.3% recall, far outside shared noise.
 
-**Independently tuned FFN families on 500M (baseline: SwiGLU-171)**
+**Independently tuned FFN families on 500M (baseline: SwiGLU-192)**
 
 | variant | selected configuration | runs | recall@100 | ndcg@100 | recall@10 | ndcg@10 | coverage@100 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -601,7 +601,7 @@ both random/in-batch mixtures are worse after tuning.
 Hypothesis: combining independently selected parameters should beat every
 single-axis corrected-baseline variant. The final combined arm reaches
 recall@100 **0.14589** and NDCG@100 **0.05578**. It uses dim 64, depth 2,
-sequence length 128, 2 query heads/1 KV head, window 50, SwiGLU width 171,
+sequence length 128, 2 query heads/1 KV head, window 50, SwiGLU width 192,
 pre-LayerNorm with input RMSNorm and final LayerNorm, learned forward positions,
 dropout 0.1, 16 additive time-delta bins, and 512 uniform random negatives.
 Training uses LR 0.032/0.012, linear decay without warmup, 10 epochs, batch 512,

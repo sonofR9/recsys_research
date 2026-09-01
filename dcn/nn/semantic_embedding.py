@@ -4,6 +4,7 @@ from typing import Literal, Sequence
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from dcn.data.features import FeatureValues
 from dcn.semantic import ResidualCodebooks, SemanticCodes
@@ -14,13 +15,36 @@ from .types import ModuleWithDim
 Aggregation = Literal["concat", "sum"]
 
 
+class _FrozenCodebookWithSuffix(nn.Module):
+    def __init__(
+        self,
+        weights: torch.Tensor,
+        suffix_start: int,
+        suffix_size: int,
+    ) -> None:
+        super().__init__()
+        self.register_buffer("weights", weights)
+        self.suffix = nn.Embedding(suffix_size, weights.shape[1], padding_idx=0)
+        self.suffix_start = suffix_start
+        self.embedding_dim = weights.shape[1]
+
+    def forward(self, tokens: torch.Tensor) -> torch.Tensor:
+        suffix_ranks = (tokens - self.suffix_start).clamp(
+            min=0, max=self.suffix.num_embeddings - 1
+        )
+        is_suffix = tokens >= self.suffix_start
+        return F.embedding(tokens, self.weights) + self.suffix(suffix_ranks) * (
+            is_suffix.unsqueeze(-1)
+        )
+
+
 class SemanticIdEmbedding(ModuleWithDim):
     """Describes an item by the codes it was quantized to."""
 
     def __init__(
         self,
         item_tokens: torch.Tensor,
-        embedding: nn.Embedding,
+        embedding: nn.Module,
         aggregation: Aggregation = "concat",
     ):
         super().__init__()
@@ -43,7 +67,12 @@ class SemanticIdEmbedding(ModuleWithDim):
 
     @classmethod
     def from_codebooks(
-        cls, codes: SemanticCodes, codebooks: ResidualCodebooks, num_items: int
+        cls,
+        codes: SemanticCodes,
+        codebooks: ResidualCodebooks,
+        num_items: int,
+        *,
+        train_collision_suffix: bool = False,
     ) -> SemanticIdEmbedding:
         """Frozen table holding the centroid each code stands for."""
         vocabulary = codes.vocabulary
@@ -55,7 +84,20 @@ class SemanticIdEmbedding(ModuleWithDim):
         for level in range(codebooks.num_levels):
             first, last = vocabulary.level_range(level)
             weights[first:last] = codebooks.centroids[level]
-        embedding = nn.Embedding.from_pretrained(weights, freeze=True)
+        if train_collision_suffix:
+            if codes.num_levels != codebooks.num_levels + 1:
+                raise ValueError(
+                    "a trainable collision suffix requires one code level after the"
+                    " residual codebooks"
+                )
+            suffix_start, _ = vocabulary.level_range(codebooks.num_levels)
+            embedding: nn.Module = _FrozenCodebookWithSuffix(
+                weights,
+                suffix_start=suffix_start,
+                suffix_size=codes.codes_per_level[-1],
+            )
+        else:
+            embedding = nn.Embedding.from_pretrained(weights, freeze=True)
         return cls(cls._item_tokens(codes, num_items), embedding, aggregation="sum")
 
     @staticmethod

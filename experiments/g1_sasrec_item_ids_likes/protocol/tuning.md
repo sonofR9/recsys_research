@@ -233,10 +233,10 @@ approved batch surface. No treatment-specific batch extension is allowed.
 - GELU widths 128/171/256/384 compete with SwiGLU widths
   16/32/64/96/128/171/224.
   RQ4 compares the independently tuned best GELU and SwiGLU families;
-  SwiGLU-171 is the shared selected-architecture control for the other axes.
+  SwiGLU-192 is the shared selected-architecture control for the other axes.
 - The dimension axis is one μP width family with a fixed 64-dimensional item
   table and learned projections. It preserves the selected SwiGLU capacity
-  ratio 171/64: dimensions 16/32/64/128/256 use rounded intermediate widths
+  ratio 192/64: dimensions 16/32/64/128/256 use rounded intermediate widths
   43/86/171/342/684.
 - Position treatments cover none, learned forward/reverse, RoPE
   forward/reverse, ALiBi, and every existing two- and three-way combination.

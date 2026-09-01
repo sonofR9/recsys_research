@@ -1,0 +1,163 @@
+{
+  "acceptance_protocol": {
+    "criterion": "Adding a pretraining stage should at minimum decrease training time without losing quality, and will most probably improve the main metrics.",
+    "empirical_absolute_bands": {
+      "ndcg@100": 0.0009512178348245378,
+      "recall@100": 0.0021501867108938925
+    },
+    "operational_band_derivation": "ceil empirical absolute band to 0.001",
+    "quality_resolution_bands": {
+      "ndcg@100": 0.001,
+      "recall@100": 0.003
+    },
+    "sources": {
+      "architecture_protocol": {
+        "artifact_sha256": "b7fd90723c28c7c5dec097e18f2000dbab22bca6b042465e644945762b40705e",
+        "path": "experiments/g1_sasrec_item_ids_likes/protocol/rq12_rq15_architecture_plan.md"
+      },
+      "baseline_spread": {
+        "artifact_sha256": "01d5cd24f599afe01737676e4bd71b04c4328fe389d47b8395b8f5f6f27a926d",
+        "path": "experiments/g1_sasrec_item_ids_likes/scratchpad/baseline_spread_500m.json"
+      },
+      "reporting_implementation": {
+        "artifact_sha256": "2c98afea0d1d0d64a5b9ed50f76e9911ecf989a68ca25afabf07cc64c9e90f6f",
+        "path": "experiments/g1_sasrec_item_ids_likes/analysis/reporting.py"
+      }
+    }
+  },
+  "acceptance_sha256": "c750fbb1278284a6fa206a9b9b626b4032f7140af35a6e06b5957e5e0448745b",
+  "conclusion": "Pretraining plus fine-tuning improves Recall@100 and NDCG@100 beyond the shared G1 reporting bands, but it does not meet the approved cold-start speed criterion. Fine-tuning alone takes longer than scratch through the selected checkpoint, and adding the required pretraining horizon makes the complete cold start slower still; no amortized efficiency win was measured.",
+  "correctness_audit_sha256": "6257eba448425641763993ea27d4e625daa56e97e68abf377e0d3c3b505cc774",
+  "dataset_size": "500m",
+  "input_bindings": {
+    "acceptance_protocol_sha256": "ac58725fed5ed2f38b2202a670bb34f937cbc9a29b372398f8b766b07b6833ad",
+    "artifact_audit_sha256": "e02bf9835c8fb017205e4f2447f4e93b4af2b41571d7a7e35d15c8da526fd2bf",
+    "selected_artifacts_sha256": "814466ddad829f7a3e317d8a241c7092b6d1f28d09810251b37f431b1375d4f3",
+    "selected_records_sha256": "0c13254bc2d4c39e0afb87aa2837c256cbc78dd263b2f839b81d634bcd060fb2"
+  },
+  "research_question": "RQ15 decoder-decoder training method",
+  "schema_version": 1,
+  "selected_artifacts": {
+    "auxiliary_ntp": {
+      "artifact_sha256": {
+        "final_metrics.json": "be5013219f869631da0965479136c761f4b100fe8fd99f3f0d99cd4ac22c5155",
+        "sweep.log": "1b040176645c8f8a0bb013a6c411e9ed67da599a1b42cc80d0480ebeece668bb",
+        "training_metadata.json": "c1105a3685b125fe8beae4c2f29c771965648b5350a3f5854d0301df123e56d3"
+      },
+      "run_name": "g1_rq15_auxiliary_ntp_e0p256_d0p012_b1280_seed42_h20_lrembeddinghigh1_r1_500m"
+    },
+    "checkpoint_pretraining": {
+      "artifact_sha256": {
+        "final_metrics.json": "08fc95e2566ffd886a85c2be9a295572e87a85d84e0833db51d975dc74353bb6",
+        "rq15_first_stage_checkpoint.pt": "3a8cfb68acc0116bee2020189934b578f01b6021a9823642f581a591c9de54f0",
+        "sweep.log": "cb6684325f85dd06e916bc09cc27f2deb87144cd5de18029c2f6521cde4066fb",
+        "training_metadata.json": "3916f918265130a25d29fd5cfb5038fe97a9542a1d0632ed9743e4cf219be87c"
+      },
+      "run_name": "g1_rq15_rq8_standard_ntp_checkpoint_s128_e0p064_d0p048_b1280_seed42_h20_r1_500m"
+    },
+    "pretrained_finetune": {
+      "artifact_sha256": {
+        "final_metrics.json": "90c7ba1e9831f9f94ea81aeb04d90061c3cc23d8dde4c8da42421dc5746c51ee",
+        "sweep.log": "9d0a4f04bd2f674e4925862dc3e3b999d1aafa23174f2a1862d5e899aeac7285",
+        "training_metadata.json": "610962873121ad3b0fade26b0bdf3f1c568ddf78b60af50a780752644b697ee9"
+      },
+      "run_name": "g1_rq15_pretrained_finetune_e0p00025_d0p00075_b1280_seed42_h20_lrembeddinglow7_r1_500m"
+    },
+    "scratch_candidate_only": {
+      "artifact_sha256": {
+        "final_metrics.json": "4ac9d5fe718b9df795354881b4878e9e7222e1016571996229b3cbb660a42f69",
+        "sweep.log": "db497f0a6e0640aec67f7d478dca4405f1bbf2337152d85f7b481d46e611897d",
+        "training_metadata.json": "3c1471fa4ae711205355de5d9a5a910f8614950ec0261581f05cb27a9e01a89d"
+      },
+      "run_name": "g1_rq15_scratch_candidate_only_e0p016_d0p003_b1280_seed42_h20_lrembeddinglow1_r1_500m"
+    }
+  },
+  "status": "passed",
+  "targeted_evidence": {
+    "amortization_bound": {
+      "artifact_sha256": "c376a365939841c07992ab0469208858f0413aa290686e33f33ab0876f9159f7",
+      "asymptotic_excess_over_scratch_seconds": 43.454499999999996,
+      "asymptotic_seconds_per_fine_tune": 55.911899999999996,
+      "claim": "The source checkpoint could in principle be reused, but this experiment measured no reuse workload and does not establish an amortized serving or retraining win. Even if pretraining cost approached zero per reuse, the measured fine-tuning stage remains slower than scratch, so no finite reuse count can satisfy the approved speed comparison for this recipe.",
+      "fine_tuning_stage_exceeds_scratch": true,
+      "fine_tuning_stage_seconds": 55.911899999999996,
+      "finite_reuse_count_can_beat_scratch": false,
+      "measured_reuse_count": null,
+      "passed": true,
+      "per_reuse_budget_formula": "fine_tuning_stage_seconds + pretraining_stage_seconds / reuse_count",
+      "pretraining_stage_seconds": 357.5286,
+      "scratch_seconds": 12.4574
+    },
+    "cold_start_criterion": {
+      "approved_budget_definition": "pretraining required horizon plus fine-tuning time through the selected checkpoint",
+      "artifact_sha256": "6bbac0688016f6e94c4f995cb83a0e958ec61a573cf8e7963f82179ceee60271",
+      "claim": "The approved speed criterion counts the required pretraining horizon plus fine-tuning through its selected checkpoint. That measured sum is larger than scratch through its selected checkpoint, so the speed part of the minimum acceptance criterion fails even though quality improves.",
+      "cold_start_excess_seconds": 400.9831,
+      "combined_cold_start_seconds": 413.4405,
+      "criterion_met": false,
+      "fine_tuning_seconds": 55.911899999999996,
+      "minimum_acceptance_met": false,
+      "passed": true,
+      "pretraining_seconds": 357.5286,
+      "quality_non_inferior": true,
+      "scratch_seconds": 12.4574
+    },
+    "optimization_path": {
+      "artifact_sha256": "4a8c198bf815a0a448a610f136c8b185c736d1464f1b279eb4b02331a16522d7",
+      "candidate_targets_per_epoch": 75434,
+      "candidate_targets_per_epoch_identical": true,
+      "checkpoint_pretraining_best_epoch": 16,
+      "checkpoint_pretraining_horizon_epochs": 20,
+      "claim": "The selected fine-tuning stage processes the same candidate targets and input tokens per epoch as scratch at comparable measured throughput. Its larger selected-checkpoint cost therefore comes from selecting epoch 18 instead of epoch 4, while cold start additionally includes the mandatory 20-epoch source horizon. The selected runs use different embedding/deep learning rates, but this observed association does not establish learning-rate causality.",
+      "input_tokens_per_epoch": 4832707,
+      "input_tokens_per_epoch_identical": true,
+      "passed": true,
+      "pretrained_candidate_targets_per_second": 25351.7055956982,
+      "pretrained_epoch_1_already_above_scratch_best": true,
+      "pretrained_epoch_1_validation_recall@100": 0.0978,
+      "pretrained_fine_tuning_best_epoch": 18,
+      "pretrained_fine_tuning_lrs": {
+        "deep": 0.00075,
+        "embedding": 0.00025
+      },
+      "scratch_best_epoch": 4,
+      "scratch_best_validation_recall@100": 0.0791,
+      "scratch_candidate_targets_per_second": 24979.79998675409,
+      "scratch_lrs": {
+        "deep": 0.003,
+        "embedding": 0.016
+      },
+      "throughput_comparable_within_5_percent": true,
+      "throughput_relative_difference": 0.014888254074945335
+    },
+    "quality_compute_tradeoff": {
+      "artifact_sha256": "946c0e27bed525e74467ec1929b12729f8f64f3c4b9c8182e2b6656f8e45511f",
+      "budgets": {
+        "fine_tuning_stage_only_seconds": 55.911899999999996,
+        "pretraining_plus_fine_tuning_seconds": 413.4405,
+        "pretraining_stage_seconds": 357.5286,
+        "scratch_from_random_initialization_seconds": 12.4574
+      },
+      "checkpoint_pretraining_run_name": "g1_rq15_rq8_standard_ntp_checkpoint_s128_e0p064_d0p048_b1280_seed42_h20_r1_500m",
+      "claim": "Pretraining followed by fine-tuning improves the final candidate metrics, but both the downstream fine-tuning stage alone and the complete cold-start pipeline require more measured training time than the selected scratch checkpoint.",
+      "cold_start_faster": false,
+      "complete_cold_start_over_scratch_ratio": 33.18834588276847,
+      "fine_tuning_stage_over_scratch_ratio": 4.488247949010226,
+      "full_ndcg@100_delta": 0.029792979704747043,
+      "full_recall@100_delta": 0.07912395842732294,
+      "passed": true,
+      "pretrained_finetune_run_name": "g1_rq15_pretrained_finetune_e0p00025_d0p00075_b1280_seed42_h20_lrembeddinglow7_r1_500m",
+      "pretrained_full_ndcg@100": 0.0650477685553147,
+      "pretrained_full_recall@100": 0.15855041833362785,
+      "pretraining_fraction_of_complete_cold_start": 0.864764337310931,
+      "quality_improved": true,
+      "quality_resolution_bands": {
+        "ndcg@100": 0.001,
+        "recall@100": 0.003
+      },
+      "scratch_full_ndcg@100": 0.03525478885056766,
+      "scratch_full_recall@100": 0.07942645990630491,
+      "scratch_run_name": "g1_rq15_scratch_candidate_only_e0p016_d0p003_b1280_seed42_h20_lrembeddinglow1_r1_500m"
+    }
+  }
+}

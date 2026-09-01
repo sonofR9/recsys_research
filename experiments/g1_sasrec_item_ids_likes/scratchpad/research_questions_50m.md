@@ -19,7 +19,7 @@
 
 | proxy-selected FFN family | selected width | recall@100 | ndcg@100 | coverage@100 |
 | --- | --- | --- | --- | --- |
-| GELU | 171 | 0.077 | 0.029 | 0.699 |
+| GELU | 192 | 0.077 | 0.029 | 0.699 |
 | **SwiGLU** | 32 | +2% (0.079) | 0% (0.029) | <span style="color: red">-49% (0.357)</span> |
 
 ## RQ6 — Does learning-rate warmup help?

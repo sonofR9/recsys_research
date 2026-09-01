@@ -6,7 +6,7 @@ import pytest
 import torch
 from torch import nn
 
-from dcn.config.networks import build_causal_transformer
+from dcn.config.networks import build_causal_transformer, build_transformer_encoder
 from dcn.config.settings import TRANSFORMER, TransformerConfig
 from dcn.nn import DenseNet, GEGLU, ReGLU, RegularMLP, SwiGLU
 from dcn.nn.transformer import (
@@ -32,6 +32,36 @@ def _encoder(**knobs):
 def _run(encoder) -> torch.Tensor:
     torch.manual_seed(0)
     return encoder(torch.randn(5, 8), packed_lens([2, 3]))
+
+
+def test_transformer_encoder_attention_direction_is_publicly_selectable() -> None:
+    transformer = replace(
+        _SMALL,
+        alibi=False,
+        learned_positions=None,
+        input_norm=None,
+        final_norm=None,
+    )
+    original = torch.randn(4, 8)
+    changed = original.clone()
+    changed[-1] += 10
+
+    torch.manual_seed(0)
+    causal = build_transformer_encoder(transformer, max_seq_len=4).eval()
+    torch.manual_seed(0)
+    bidirectional = build_transformer_encoder(
+        transformer, max_seq_len=4, is_causal=False
+    ).eval()
+
+    lengths = packed_lens([4])
+    assert torch.allclose(
+        causal(original, lengths)[0], causal(changed, lengths)[0], atol=1e-5
+    )
+    assert not torch.allclose(
+        bidirectional(original, lengths)[0],
+        bidirectional(changed, lengths)[0],
+        atol=1e-5,
+    )
 
 
 @pytest.mark.parametrize(

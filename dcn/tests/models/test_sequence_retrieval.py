@@ -5,7 +5,7 @@ from torch.nn import functional as F
 import dcn.nn.transformer as transformer_module
 from dcn.models.history_tokens import ActionTokenizer, BosTokenizer, ItemTokenizer
 from dcn.models.sequence_targets import NextItemTargets
-from dcn.nn.sampled_softmax import StreamingInBatchSoftmax
+from dcn.nn.sampled_softmax import RandomCatalogNegatives, StreamingInBatchSoftmax
 from dcn.models.sequence_retrieval import SequenceRetrievalModel
 from dcn.nn.transformer import (
     ReverseRelativePositionInput,
@@ -28,6 +28,17 @@ pytestmark = pytest.mark.usefixtures("cpu_attention")
 
 NUM_ITEMS = 16
 DIM = 8
+
+
+class _ProjectedItemEncoder(torch.nn.Module):
+    def __init__(self, num_items: int, input_dim: int, output_dim: int) -> None:
+        super().__init__()
+        self.embedding = torch.nn.Embedding(num_items, input_dim)
+        self.projection = torch.nn.Linear(input_dim, output_dim, bias=False)
+        self.out_dim = output_dim
+
+    def forward(self, item_ids: torch.Tensor) -> torch.Tensor:
+        return self.projection(self.embedding(item_ids))
 
 
 def _model(tokenizer_factory) -> SequenceRetrievalModel:
@@ -122,10 +133,103 @@ class TestSequenceRetrievalModel:
 
     def test_items_are_scored_against_the_table_the_history_is_read_from(self) -> None:
         model = _item_model()
+        batch = packed_batch([1, 2], [2])
 
-        out = model(packed_batch([1, 2], [2]))
+        out = model(batch)
 
         assert torch.equal(out["item_repr"], model.item_embedding.weight[[1, 2]])
+        assert torch.equal(model.encode_item_ids(torch.tensor([1, 2])), out["item_repr"])
+        assert torch.equal(model.encode_items(batch), out["item_repr"])
+        assert model.tokenizer.item_embedding is model.item_embedding
+        assert not any(
+            name.startswith("catalog_item_encoder.") for name in model.state_dict()
+        )
+
+    def test_catalog_encoder_is_independent_from_history_input(self) -> None:
+        history_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        catalog_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        model = SequenceRetrievalModel(
+            tokenizer=ItemTokenizer(history_embedding, item_id_column=ITEM_COLUMN),
+            sequence_model=tiny_encoder(DIM),
+            item_embedding=history_embedding,
+            catalog_item_encoder=catalog_embedding,
+            item_id_column=ITEM_COLUMN,
+        )
+        batch = packed_batch([1, 2, 3], [3])
+
+        history_before = model.tokenizer(batch).embeddings.detach().clone()
+        output_before = model(batch)["item_repr"].detach().clone()
+        with torch.no_grad():
+            history_embedding.weight.add_(10)
+        history_after = model.tokenizer(batch).embeddings.detach().clone()
+        output_after = model(batch)["item_repr"].detach().clone()
+
+        assert not torch.equal(history_after, history_before)
+        assert torch.equal(output_after, output_before)
+        assert torch.equal(output_after, catalog_embedding.weight[[1, 2, 3]])
+
+    def test_untied_history_and_catalog_encoders_both_receive_gradients(self) -> None:
+        history_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        catalog_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        model = SequenceRetrievalModel(
+            tokenizer=ItemTokenizer(history_embedding, item_id_column=ITEM_COLUMN),
+            sequence_model=tiny_encoder(DIM),
+            item_embedding=history_embedding,
+            catalog_item_encoder=catalog_embedding,
+            item_id_column=ITEM_COLUMN,
+        )
+        criterion = TwoTowerLoss(
+            model,
+            StreamingInBatchSoftmax(hash_size=NUM_ITEMS, num_in_batch_negatives=4),
+        )
+
+        criterion(packed_batch([1, 2, 3, 4, 5], [3, 2]))["loss"].backward()
+
+        assert history_embedding.weight.grad is not None
+        assert catalog_embedding.weight.grad is not None
+
+    def test_non_embedding_history_encoder_is_independent_from_catalog(self) -> None:
+        history_encoder = _ProjectedItemEncoder(NUM_ITEMS, 6, DIM)
+        catalog_encoder = _ProjectedItemEncoder(NUM_ITEMS, 7, 5)
+        tokenizer = ItemTokenizer(history_encoder, item_id_column=ITEM_COLUMN)
+        model = SequenceRetrievalModel(
+            tokenizer=tokenizer,
+            sequence_model=tiny_encoder(DIM),
+            item_embedding=history_encoder,
+            catalog_item_encoder=catalog_encoder,
+            item_id_column=ITEM_COLUMN,
+            query_projection=torch.nn.Linear(DIM, 5, bias=False),
+        )
+        batch = packed_batch([1, 2, 3], [3])
+
+        output = model(batch)
+
+        assert tokenizer.out_dim == DIM
+        assert output["query_repr"].shape == (3, 5)
+        assert torch.equal(output["item_repr"], catalog_encoder(torch.tensor([1, 2, 3])))
+
+    def test_random_negatives_use_the_public_catalog_encoding_path(self) -> None:
+        history_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        catalog_embedding = torch.nn.Embedding(NUM_ITEMS, DIM)
+        model = SequenceRetrievalModel(
+            tokenizer=ItemTokenizer(history_embedding, item_id_column=ITEM_COLUMN),
+            sequence_model=tiny_encoder(DIM),
+            item_embedding=history_embedding,
+            catalog_item_encoder=catalog_embedding,
+            item_id_column=ITEM_COLUMN,
+        )
+        negatives = RandomCatalogNegatives(
+            catalog_size=NUM_ITEMS,
+            num_negatives=4,
+            item_encoder=model.encode_item_ids,
+            first_item_id=1,
+            dense_scores=True,
+        )
+
+        torch.manual_seed(23)
+        sampled, item_ids = negatives(num_examples=3, device=torch.device("cpu"))
+
+        assert torch.equal(sampled, model.encode_item_ids(item_ids))
 
     def test_query_projection_decouples_transformer_and_item_widths(self) -> None:
         item_embedding = torch.nn.Embedding(NUM_ITEMS, 4)

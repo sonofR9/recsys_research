@@ -30,13 +30,13 @@
 ## Comparison
 
 - Unchanged primary control: the G1 `future_baseline` structure on native 50M:
-  dimension 64, two layers, two query heads and one KV head, SwiGLU width 171,
+  dimension 64, two layers, two query heads and one KV head, SwiGLU width 192,
   pre-LayerNorm with input RMSNorm and final LayerNorm, learned forward
   positions, attention window 50, sequence length 128, 16 additive timestamp
   bins, linear 20-epoch schedule, and uniform sampled softmax with 512
   negatives. Its batch and two learning rates are recalibrated in G2 and then
   frozen.
-  Width 171 is retained only because this control must remain structurally
+  Width 192 is retained only because this control must remain structurally
   unchanged; every new G2 SwiGLU intermediate width is divisible by 32.
 - Official sanity control: RecTools 0.19.0 `SASRecModel` with `LiGRLayers`,
   `loss="sampled_softmax"`, dimension 256, two blocks, four heads, dropout 0.2,

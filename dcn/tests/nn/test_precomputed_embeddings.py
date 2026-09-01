@@ -36,6 +36,41 @@ def test_lookup_returns_correct_rows_for_compact_ids() -> None:
     assert lookup.num_known_ids == 3
 
 
+def test_dense_lookup_preserves_shape_and_routes_unknown_ids_to_default() -> None:
+    lookup = PrecomputedEmbeddingLookup(
+        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
+        learnable_default=False,
+        strict=False,
+    )
+
+    output = lookup.lookup(torch.tensor([[2, 0], [1, 99]]))
+
+    assert torch.equal(
+        output,
+        torch.tensor(
+            [
+                [[3.0, 4.0], [0.0, 0.0]],
+                [[1.0, 2.0], [0.0, 0.0]],
+            ]
+        ),
+    )
+
+
+def test_pretrained_table_is_not_exposed_as_an_initializable_parameter() -> None:
+    lookup = PrecomputedEmbeddingLookup(
+        torch.tensor([[1.0, 2.0], [3.0, 4.0]]),
+        learnable_default=False,
+        strict=False,
+    )
+    expected = lookup.lookup(torch.tensor([1, 2])).clone()
+
+    for name, parameter in lookup.named_parameters():
+        if "weight" in name:
+            torch.nn.init.zeros_(parameter)
+
+    assert torch.equal(lookup.lookup(torch.tensor([1, 2])), expected)
+
+
 def test_out_of_range_ids_route_to_default() -> None:
     embeddings = torch.tensor([[1.0, 0.0], [0.0, 1.0]])
     lookup = PrecomputedEmbeddingLookup(

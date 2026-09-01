@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import polars as pl
 import pytest
 import torch
@@ -386,17 +388,61 @@ def test_dense_random_scores_reject_nondefault_embedding_semantics(
         )
 
 
-def test_dense_random_scores_reject_embedding_subclasses() -> None:
+def test_dense_random_scores_support_embedding_subclasses() -> None:
     class CustomEmbedding(torch.nn.Embedding):
         pass
 
-    with pytest.raises(TypeError, match="plain nn.Embedding"):
-        RandomCatalogNegatives(
-            catalog_size=17,
-            num_negatives=6,
-            item_encoder=CustomEmbedding(17, 5),
-            dense_scores=True,
-        )
+    embedding = CustomEmbedding(17, 5)
+    negatives = RandomCatalogNegatives(
+        catalog_size=17,
+        num_negatives=6,
+        item_encoder=embedding,
+        dense_scores=True,
+    )
+
+    scores, ids = negatives.logits(torch.randn(3, 5))
+
+    assert scores.shape == ids.shape == (3, 6)
+
+
+def test_generic_dense_random_scores_match_direct_scores_and_gradients() -> None:
+    catalog_size = 17
+    direct_encoder = torch.nn.Sequential(
+        torch.nn.Embedding(catalog_size, 7),
+        torch.nn.Linear(7, 5, bias=False),
+    )
+    dense_encoder = deepcopy(direct_encoder)
+    direct_query = torch.randn(7, 5, requires_grad=True)
+    dense_query = direct_query.detach().clone().requires_grad_()
+    direct = RandomCatalogNegatives(
+        catalog_size=catalog_size,
+        num_negatives=6,
+        item_encoder=direct_encoder,
+        first_item_id=1,
+    )
+    dense = RandomCatalogNegatives(
+        catalog_size=catalog_size,
+        num_negatives=6,
+        item_encoder=dense_encoder,
+        first_item_id=1,
+        dense_scores=True,
+    )
+
+    torch.manual_seed(17)
+    direct_scores, direct_ids = direct.logits(direct_query)
+    torch.manual_seed(17)
+    dense_scores, dense_ids = dense.logits(dense_query)
+
+    assert torch.equal(direct_ids, dense_ids)
+    torch.testing.assert_close(direct_scores, dense_scores)
+
+    direct_scores.square().sum().backward()
+    dense_scores.square().sum().backward()
+    torch.testing.assert_close(direct_query.grad, dense_query.grad)
+    for direct_parameter, dense_parameter in zip(
+        direct_encoder.parameters(), dense_encoder.parameters(), strict=True
+    ):
+        torch.testing.assert_close(direct_parameter.grad, dense_parameter.grad)
 
 
 def test_random_catalog_negatives_can_follow_an_exact_proposal() -> None:

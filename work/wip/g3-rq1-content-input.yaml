@@ -1,0 +1,11 @@
+version: 1
+id: g3-rq1-content-input
+title: Compare content-only and learned-ID history input
+description: >-
+  Implement, tune, evaluate, and report the native-500M-only comparison of
+  normalized frozen pretrained content input against the original tied
+  learned-ID baseline, including deterministic item-frequency slices.
+blocked_by:
+  - g3-baseline-native500m
+ideas_tags:
+  - g3-rq1-content-input

@@ -265,7 +265,7 @@ learned-forward positions remain best; and input RMSNorm adds 0.8%. Use
 
 The accepted 500M scheduler family still selects linear decay; two and four
 cosine cycles add no benefit. Targeted corrected-baseline runs select
-embedding/deep LRs 0.032/0.012, SwiGLU-171, learned forward positions, 16 additive time bins,
+embedding/deep LRs 0.032/0.012, SwiGLU-192, learned forward positions, 16 additive time bins,
 sequence length 128, 2-query/1-KV-head GQA, pre-norm plus input RMSNorm,
 dropout 0.1, and attention window 50.
 

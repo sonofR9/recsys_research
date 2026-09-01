@@ -1,0 +1,21 @@
+{
+  "jobs": [
+    {
+      "id": "remediation_tuning:learned_sid_residual_trial_12",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.005171199681170028,
+        "embedding_learning_rate": 0.06037525181956247,
+        "frozen_event_width": 128,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_learned_residual_event",
+        "representation_width": 128,
+        "source_control_job_id": "lr_boundary:boundary_item_frozen_sid_event_embedding_learning_rate_0",
+        "source_control_run_name": "g6_rq0_boundary_item_frozen_sid_event_embedding_learning_rate_0_native50m",
+        "validation_batch_size": 8192
+      }
+    }
+  ],
+  "manifest_sha256": "0cbda03a524c55bd2630f68467a55bbb4c5424faa5ef50862cd64c34f3a3f493"
+}

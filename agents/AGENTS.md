@@ -65,7 +65,7 @@ dataset size, and training runs before step 2 begins.
 7. Reviewer independently checks raw evidence, tables, and claims.
 8. Lead researcher challenges unexpected results and records conclusions.
 
-While the current experiment has approved unfinished tasks, the lead researcher
+While the current experiment has approved active work, the lead researcher
 must continuously advance its research questions: keep every actionable task
 assigned, accept and dispatch handoffs promptly, and use available compute for
 ready work. Do not leave workers or training capacity idle when safe independent
@@ -89,6 +89,9 @@ assigned, started, handed off, blocked, reviewed, or completed. Allowed states:
 artifacts or commands in `Evidence`; never use status text as research evidence.
 
 Only an exact plan explicitly approved by the lead may enter full training.
+Compiler-authenticated boundary continuations prescribed by that plan are
+already approved work: submit them automatically without asking the user or
+lead for another approval.
 The assigned researcher submits it through the persistent service, records its
 job id and status, and follows it through evidence collection. Never source an
 independent full-run queue. Sourcing `queue.sh` while the service is active
@@ -110,26 +113,22 @@ all workers treat them as read-only. Move `human_review` to `done` only after
 the user accepts the result.
 
 Use `<!-- work:stable-tag -->` on a tagged `experiments/ideas.md` RQ line. The
-monitor synchronizes that line from the task directory and sends the lead only
-the generic unfinished-work reminder every 30 minutes when a task is
-`not_started` or `wip`. Blocked and human-review tasks do not trigger it. Start
-it from the active lead Codex tmux pane with `./work/monitor_service.sh start`.
-See `work/README.md` for the schema and service commands.
+lead synchronizes that line from the task directory with
+`python -m work.workflow sync`. See `work/README.md` for the schema and manual
+commands.
 
-Select training batch size once on the unchanged control, promote it to the
-experiment's global batch, and reuse it for all later research questions and
-final configurations. Do not tune batch size per treatment. Recalibrate only
-when batch size is itself the approved research axis or the global batch is
-infeasible after a model, dataset, or hardware change; document the exception
-and obtain user approval. Negative count is independent of training batch size.
+Use training batch size `512` for every newly launched research run. Do not tune
+batch size. A different batch requires explicit user approval; completed runs
+at other batches remain valid historical evidence. Negative count is
+independent of training batch size.
 
-Every experiment uses exactly one dataset size for all research
-questions, tuning, and final evidence. The lead proposes that size in the
-initial plan and must obtain explicit user validation before implementation or
-training. A smaller sample may be used only for correctness/debugging checks;
-it cannot select treatments or support claims. Dataset size may vary only in a
-separate experiment where it is the explicitly approved research axis, and
-every size then trains on its native examples without repeated-data matching.
+Every research question uses exactly one dataset size for tuning and final
+evidence. The lead proposes that size in the plan and must obtain explicit user
+validation before implementation or training. A smaller sample may be used
+only for correctness/debugging checks; it cannot select treatments or support
+claims. An explicitly approved dataset-size research question may compare
+multiple sizes within its experiment group, with every size trained on its
+native examples without repeated-data matching.
 
 Every experiment that constructs or consumes semantic IDs tunes tokenizer
 parameters for its own downstream task; intrinsic SID metrics are diagnostics,
@@ -153,14 +152,12 @@ base tuple as semantic tokens followed by `<eos_sid>` and then `<pad_sid>` to th
 family's declared maximum length; compute every prefix depth over that canonical
 sequence and keep all evaluation examples in every denominator.
 
-Every research run validates each epoch, stops early when the
-validation metric no longer improves, restores the best validation epoch, and
-reports that epoch. `num_epochs` is a generous cap, not the selected stopping
-point. Fixed-final-epoch evidence is invalid unless epoch count is itself the
-explicitly approved experimental axis. Start G1 at a 20-epoch cap with
-recall@100 validation every epoch, patience three, and zero minimum delta. If
-the stopping rule has not triggered before the cap, including when the best
-epoch equals the cap, extend the cap and rerun before selection.
+Tune the training epoch or schedule horizon with the other relevant non-batch
+hyperparameters. Every run validates each epoch, restores the best validation
+epoch, and reports both its candidate horizon and restored epoch. An annealed
+schedule must finish its candidate horizon. A schedule without a declared
+horizon uses early stopping; if stopping has not triggered before its selected
+cap, extend and rerun before selection.
 
 ## Reports
 
@@ -205,11 +202,32 @@ unchanged batch-1280 control. The complete machine-readable table is
 | coverage@50 | 0.40869043 | 0.06172179 | 15.102% |
 | coverage@100 | 0.52941655 | 0.07109742 | 13.429% |
 
-Use these bands only as native Yambda-500M empirical diagnostics. Their rounded
-operational form is 0.003 recall, 0.001 NDCG/MRR, and 0.1 coverage. A plan at
-another dataset size must propose size-matched uncertainty evidence and obtain
-user validation before training; never reuse the 500M measurements across
-sizes. Record each approved size's bands here after its repeats are reviewed.
-These are shared noise measurements, not confidence intervals or
-treatment-specific significance tests. Do not add a `runs` column to
-reader-facing tables.
+Native Yambda-50M relative calibration comes from the one-time batch-512
+unchanged-control seed-42 run plus seeds 43–51 in G1 aggregate queue batch
+`5c6250d40aa84ad5925f8389069c2b47`. The reviewed relative dispersions are:
+
+| metric | sample stddev / mean |
+| --- | ---: |
+| recall@10 | 25.924% |
+| recall@50 | 24.172% |
+| recall@100 | 19.414% |
+| ndcg@10 | 27.546% |
+| ndcg@50 | 24.805% |
+| ndcg@100 | 21.427% |
+| mrr@10 | 26.918% |
+| mrr@50 | 25.274% |
+| mrr@100 | 24.280% |
+| capped_recall@10 | 26.000% |
+| capped_recall@50 | 24.190% |
+| capped_recall@100 | 19.413% |
+| coverage@10 | 102.046% |
+| coverage@50 | 91.862% |
+| coverage@100 | 85.178% |
+
+For all future native Yambda-500M experiments, reuse only the final
+column's relative dispersion and scale the current experiment's own baseline
+metric by it. Do not reuse the table's absolute means or absolute bands. Native
+Yambda-50M reuses the reviewed table above instead of launching new repeat
+batches. These are shared noise measurements, not confidence intervals or
+treatment-specific significance tests. Never transfer them across dataset
+sizes, and do not add a `runs` column to reader-facing tables.

@@ -21,6 +21,11 @@ class _EvaluableUser(NamedTuple):
     relevant: set[int]
 
 
+class RankingDetails(NamedTuple):
+    relevant_ranks: torch.Tensor
+    top_item_ids: torch.Tensor
+
+
 def build_interaction_sets(
     parquet_files: list[Path],
     *,
@@ -46,6 +51,34 @@ def build_interaction_sets(
         for user_id, item_ids in zip(
             grouped.get_column(user_column).to_list(),
             grouped.get_column(item_id_column).to_list(),
+        )
+    }
+
+
+def build_item_frequencies(
+    parquet_files: list[Path],
+    *,
+    item_id_column: str,
+    row_filter: pl.Expr | None = None,
+) -> dict[int, int]:
+    keep = [item_id_column]
+    if row_filter is not None:
+        keep.extend(row_filter.meta.root_names())
+    frame = pl.concat(
+        [
+            pl.read_parquet(file, columns=list(dict.fromkeys(keep)))
+            for file in parquet_files
+        ]
+    )
+    if row_filter is not None:
+        frame = frame.filter(row_filter)
+    counts = frame.group_by(item_id_column).len()
+    return {
+        int(item_id): int(count)
+        for item_id, count in zip(
+            counts.get_column(item_id_column).to_list(),
+            counts.get_column("len").to_list(),
+            strict=True,
         )
     }
 
@@ -244,7 +277,14 @@ def evaluate_true_ndcg(
     seed: int = 42,
     prepared: PreparedRanking | None = None,
     exclude_seen: bool = True,
-) -> dict[str, float]:
+    item_semantic_codes: torch.Tensor | None = None,
+    return_relevant_ranks: bool = False,
+    return_ranking_details: bool = False,
+) -> (
+    dict[str, float]
+    | tuple[dict[str, float], torch.Tensor]
+    | tuple[dict[str, float], RankingDetails]
+):
     """Mean full-catalog NDCG@k / Recall@k / MRR@k over evaluable users, plus
     the share of the catalog their top-k lists between them cover.
 
@@ -252,10 +292,20 @@ def evaluate_true_ndcg(
     with `num_users` and is comparable only between runs that scored the same
     number of them.
     """
+    if return_relevant_ranks and return_ranking_details:
+        raise ValueError("ranking detail modes are mutually exclusive")
     ks = list(dict.fromkeys(ks))
     device = device or item_repr.device
     item_repr = item_repr.to(device)
     query_repr = query_repr.to(device)
+    if item_semantic_codes is not None:
+        if item_semantic_codes.ndim != 2:
+            raise ValueError("item semantic codes must have shape [items, levels]")
+        if item_semantic_codes.shape[0] != item_repr.shape[0]:
+            raise ValueError("item semantic codes must align with the ranked catalog")
+        if item_semantic_codes.shape[1] < 1:
+            raise ValueError("item semantic codes must contain at least one level")
+        item_semantic_codes = item_semantic_codes.to(device)
 
     if prepared is None:
         prepared = prepare_ranking(
@@ -276,6 +326,25 @@ def evaluate_true_ndcg(
         for metric in ("ndcg", "recall", "capped_recall", "mrr")
         for k in ks
     }
+    semantic_sums = (
+        {
+            **{
+                f"sid_exact_recall@{k}": torch.zeros(
+                    (), dtype=torch.float64, device=device
+                )
+                for k in ks
+            },
+            **{
+                f"sid_prefix_recall@{k}_l{level}": torch.zeros(
+                    (), dtype=torch.float64, device=device
+                )
+                for k in ks
+                for level in range(1, item_semantic_codes.shape[1] + 1)
+            },
+        }
+        if item_semantic_codes is not None
+        else {}
+    )
     covered = {
         k: torch.zeros(item_repr.shape[0], dtype=torch.bool, device=device) for k in ks
     }
@@ -287,12 +356,17 @@ def evaluate_true_ndcg(
     reciprocal_ranks = 1.0 / (
         torch.arange(top_n, dtype=torch.float64, device=device) + 1
     )
+    relevant_rank_chunks: list[torch.Tensor] = []
+    top_item_id_chunks: list[torch.Tensor] = []
+    catalog_item_ids = item_ids.to(device) if return_ranking_details else None
 
     for query_rows, (seen_rows, seen_columns), relevant_positions in prepared.chunks():
         scores = query_repr[query_rows] @ item_repr.t()
         scores[seen_rows, seen_columns] = float("-inf")
 
         top_positions = torch.topk(scores, top_n, dim=1).indices
+        if catalog_item_ids is not None:
+            top_item_id_chunks.append(catalog_item_ids[top_positions].cpu())
         insertion_points = torch.searchsorted(relevant_positions, top_positions)
         clamped_points = insertion_points.clamp_max(relevant_positions.shape[1] - 1)
         hits = (insertion_points < relevant_positions.shape[1]) & (
@@ -302,6 +376,18 @@ def evaluate_true_ndcg(
         cumulative_dcg = (hits * discounts).cumsum(1)
         reciprocal_hits = hits * reciprocal_ranks
         relevant_counts = (relevant_positions < item_repr.shape[0]).sum(1)
+        if return_relevant_ranks or return_ranking_details:
+            valid_relevant = relevant_positions < item_repr.shape[0]
+            matches = relevant_positions[:, :, None] == top_positions[:, None, :]
+            ranks = matches.to(torch.int64).argmax(2) + 1
+            ranks[~matches.any(2)] = 0
+            relevant_rank_chunks.append(ranks[valid_relevant].cpu())
+        if item_semantic_codes is not None:
+            valid_relevant = relevant_positions < item_repr.shape[0]
+            relevant_codes = item_semantic_codes[
+                relevant_positions.clamp_max(item_repr.shape[0] - 1)
+            ]
+            ranked_codes = item_semantic_codes[top_positions]
 
         for k in ks:
             cutoff = min(k, top_n)
@@ -314,16 +400,45 @@ def evaluate_true_ndcg(
             sums[f"capped_recall@{k}"] += (hit_count / ideal_length).sum()
             sums[f"mrr@{k}"] += reciprocal_hits[:, :cutoff].amax(1).sum()
             covered[k][top_positions[:, :cutoff].flatten()] = True
+            if item_semantic_codes is not None:
+                for level in range(1, item_semantic_codes.shape[1] + 1):
+                    matches = (
+                        relevant_codes[:, :, None, :level]
+                        == ranked_codes[:, None, :cutoff, :level]
+                    ).all(-1)
+                    semantic_hit_count = (matches.any(2) & valid_relevant).sum(1)
+                    recall = semantic_hit_count / relevant_counts
+                    semantic_sums[f"sid_prefix_recall@{k}_l{level}"] += recall.sum()
+                    if level == item_semantic_codes.shape[1]:
+                        semantic_sums[f"sid_exact_recall@{k}"] += recall.sum()
 
     num_users = len(evaluable)
     catalog_size = item_repr.shape[0]
-    names = [*sums, *(f"coverage@{k}" for k in ks)]
+    names = [*sums, *semantic_sums, *(f"coverage@{k}" for k in ks)]
     totals = torch.stack(
-        [*sums.values(), *(covered[k].sum(dtype=torch.float64) for k in ks)]
+        [
+            *sums.values(),
+            *semantic_sums.values(),
+            *(covered[k].sum(dtype=torch.float64) for k in ks),
+        ]
     ).tolist()
     metrics = {}
     for name, total in zip(names, totals):
         denominator = catalog_size if name.startswith("coverage@") else num_users
         metrics[name] = total / denominator if denominator else 0.0
     metrics["num_users"] = float(num_users)
+    if return_relevant_ranks or return_ranking_details:
+        relevant_ranks = (
+            torch.cat(relevant_rank_chunks)
+            if relevant_rank_chunks
+            else torch.empty(0, dtype=torch.int64)
+        )
+        if return_ranking_details:
+            top_item_ids = (
+                torch.cat(top_item_id_chunks)
+                if top_item_id_chunks
+                else torch.empty((0, top_n), dtype=item_ids.dtype)
+            )
+            return metrics, RankingDetails(relevant_ranks, top_item_ids)
+        return metrics, relevant_ranks
     return metrics

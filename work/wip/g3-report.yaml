@@ -1,0 +1,14 @@
+version: 1
+id: g3-report
+title: Verify and report G3 pretrained item embeddings
+description: >-
+  Resolve the dependency-aware native-500M aggregate, verify
+  raw evidence and every approved acceptance criterion, and publish the
+  reader-facing G3 report.
+blocked_by:
+  - g3-rq1-content-input
+  - g3-rq2-content-concat
+  - g3-rq3-output-target
+  - g3-rq4-metadata
+  - g3-rq5-frequency-gate
+ideas_tags: []

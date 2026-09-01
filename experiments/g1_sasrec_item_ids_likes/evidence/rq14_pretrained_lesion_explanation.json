@@ -1,0 +1,133 @@
+{
+  "claims_status": "diagnostics_complete_claims_not_published",
+  "evidence_sha256": "e383254f53d7dc7b5f9d6897f6b903c56dab17964fdc35c479bc1fd5e8c1096c",
+  "findings": {
+    "distinct_cls_only": {
+      "drop_cls_0": {
+        "lesion_minus_normal_ndcg@100": -0.000675844867938924,
+        "lesion_minus_normal_recall@100": -0.0011496202276772283,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_1": {
+        "lesion_minus_normal_ndcg@100": 0.00013631612586133268,
+        "lesion_minus_normal_recall@100": 0.0002489870956443041,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_2": {
+        "lesion_minus_normal_ndcg@100": 0.0001182126207954215,
+        "lesion_minus_normal_recall@100": 0.000310715797745581,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_3": {
+        "lesion_minus_normal_ndcg@100": 0.00017226687002612484,
+        "lesion_minus_normal_recall@100": 0.00021180615450550055,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      }
+    },
+    "distinct_history": {
+      "drop_cls_0": {
+        "lesion_minus_normal_ndcg@100": -0.0001640852661025094,
+        "lesion_minus_normal_recall@100": -0.0003168028237194864,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_1": {
+        "lesion_minus_normal_ndcg@100": -9.82911216785981e-05,
+        "lesion_minus_normal_recall@100": -0.0003230639063477314,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_2": {
+        "lesion_minus_normal_ndcg@100": -0.0002507321314271366,
+        "lesion_minus_normal_recall@100": -0.000506878950486872,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_3": {
+        "lesion_minus_normal_ndcg@100": -0.00023528943625590604,
+        "lesion_minus_normal_recall@100": -0.0005724100403951549,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "remove_history": {
+        "lesion_minus_normal_ndcg@100": -0.0005446461556219695,
+        "lesion_minus_normal_recall@100": -0.0019597874065417076,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      }
+    },
+    "shared_cls_only": {
+      "drop_cls_0": {
+        "lesion_minus_normal_ndcg@100": 0.00010036207577469869,
+        "lesion_minus_normal_recall@100": 0.0002655544525526077,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_1": {
+        "lesion_minus_normal_ndcg@100": 0.00012951082513761036,
+        "lesion_minus_normal_recall@100": 0.00034659627527502956,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_2": {
+        "lesion_minus_normal_ndcg@100": -0.0005197021206033853,
+        "lesion_minus_normal_recall@100": -0.0009006203878669239,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_3": {
+        "lesion_minus_normal_ndcg@100": 0.00018726310436818772,
+        "lesion_minus_normal_recall@100": 0.00038475441492977214,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      }
+    },
+    "shared_history": {
+      "drop_cls_0": {
+        "lesion_minus_normal_ndcg@100": -0.0001403008451457688,
+        "lesion_minus_normal_recall@100": -0.0002854132001531007,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_1": {
+        "lesion_minus_normal_ndcg@100": -0.00017715133839706076,
+        "lesion_minus_normal_recall@100": -0.0003788261136665194,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_2": {
+        "lesion_minus_normal_ndcg@100": -0.00020089264144960983,
+        "lesion_minus_normal_recall@100": -0.000348936455971921,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "drop_cls_3": {
+        "lesion_minus_normal_ndcg@100": -0.00024169846571199527,
+        "lesion_minus_normal_recall@100": -0.00048055609480263106,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      },
+      "remove_history": {
+        "lesion_minus_normal_ndcg@100": -0.00035872919418997173,
+        "lesion_minus_normal_recall@100": -0.0017096763481386779,
+        "recommendation_effect": "within_noise_or_redundant",
+        "state_use": "states_used"
+      }
+    }
+  },
+  "interpretation_rule": "A nonzero query-representation change shows that the removed state is used. When Recall@100 and NDCG@100 changes remain inside their native-500M bands, the marginal recommendation benefit is within noise or redundant. Exact zero query change identifies an ignored state. Within-band treatment deltas are not gains.",
+  "research_question": "RQ14 pretrained decoder-decoder query-memory lesions",
+  "schema_version": 1,
+  "status": "passed",
+  "summary": {
+    "resolved_change_after_removal": 0,
+    "resolved_degradation_after_removal": 0,
+    "states_ignored": 0,
+    "states_used": 18,
+    "within_noise_or_redundant": 18
+  }
+}

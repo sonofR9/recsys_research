@@ -1,0 +1,10 @@
+version: 1
+id: g6-rq0-semantic-history
+title: Select the RQ-KMeans history representation
+description: >-
+  Execute the approved native-500M rerun of the seven RQ-KMeans history
+  representations, tune the best-G1 and original-G1 controls, and bridge the
+  selected SID representation to the original baseline.
+blocked_by: []
+ideas_tags:
+  - g6-rq0-semantic-history

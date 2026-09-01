@@ -35,6 +35,7 @@ from experiments.g1_sasrec_item_ids_likes.analysis import rq10_reinvestigation_r
 from experiments.g1_sasrec_item_ids_likes.analysis import rq11_mixed_streaming_report
 from experiments.g1_sasrec_item_ids_likes.analysis import select_native_500m
 from experiments.g1_sasrec_item_ids_likes.launchers import verify_artifact
+from utils.report_file_facts import report_file_facts
 
 HERE = Path(__file__).resolve().parent
 EXPERIMENT = HERE.parent
@@ -4388,7 +4389,9 @@ def _rq4_tables(
 ) -> str:
     if dataset_size == "50m":
         return _rq4_table(runs, candidates)
-    activation_depth = rq4_activation_depth.load_runs(GENERATED)
+    activation_depth = rq4_activation_depth.load_runs(
+        GENERATED, report_file_facts(GENERATED)
+    )
     if not activation_depth:
         raise ValueError("RQ4 activation/depth surface is absent")
     return rq4_activation_depth.reader_tables(activation_depth)
@@ -5327,7 +5330,9 @@ def write_automated_reports(output: Path) -> None:
         "research_questions_500m.md": render_compact_report("500m"),
         "hyperparameter_tuning_50m.md": render_full_tuning_report("50m"),
     }
-    activation_depth = rq4_activation_depth.load_runs(GENERATED)
+    activation_depth = rq4_activation_depth.load_runs(
+        GENERATED, report_file_facts(GENERATED)
+    )
     if activation_depth:
         artifacts["rq4_activation_depth_tuning_500m.md"] = (
             rq4_activation_depth.tuning_report(activation_depth)

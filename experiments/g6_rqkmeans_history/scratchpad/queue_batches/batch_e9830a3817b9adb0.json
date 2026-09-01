@@ -1,0 +1,106 @@
+{
+  "jobs": [
+    {
+      "id": "original_control_tuning:original_g1_control_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0003672548345277943,
+        "embedding_learning_rate": 0.017544872424722916,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_original_g1_control_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_event_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0008143078517339716,
+        "embedding_learning_rate": 0.0016095496417916327,
+        "num_codes": 128,
+        "num_levels": 3,
+        "representation": "learned_sid_event",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_event_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_frozen_sid_event_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.07897443949113069,
+        "embedding_learning_rate": 0.00501210333428335,
+        "num_codes": 64,
+        "num_levels": 2,
+        "representation": "item_frozen_sid_event",
+        "representation_width": 128,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_frozen_sid_event_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:item_learned_frozen_sid_event_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.0009498549964386012,
+        "embedding_learning_rate": 0.00023826296895324928,
+        "num_codes": 128,
+        "num_levels": 4,
+        "representation": "item_learned_frozen_sid_event",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_item_learned_frozen_sid_event_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_tokens_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03811745946409095,
+        "embedding_learning_rate": 0.057943996988729624,
+        "num_codes": 256,
+        "num_levels": 2,
+        "representation": "learned_sid_tokens",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_tokens_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_frozen_sid_tokens_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.025296906038530756,
+        "embedding_learning_rate": 0.03736589643173399,
+        "num_codes": 64,
+        "num_levels": 4,
+        "representation": "learned_frozen_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_frozen_sid_tokens_trial_09_native50m"
+    },
+    {
+      "id": "treatment_tuning:frozen_sid_tokens_trial_09",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.03369803129060224,
+        "embedding_learning_rate": 0.007324671051237571,
+        "num_codes": 32,
+        "num_levels": 3,
+        "representation": "frozen_sid_tokens",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_frozen_sid_tokens_trial_09_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

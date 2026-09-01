@@ -207,10 +207,24 @@ class TestTransformerBlockCpu:
         for position in range(3):
             assert torch.allclose(out_a[position], out_b[position], atol=1e-5)
 
-    def test_cross_sequence_isolation(self) -> None:
+    def test_bidirectional_attention_reads_later_history_tokens(self) -> None:
+        torch.manual_seed(0)
+        block = _make_block(dim=8, is_causal=False).eval()
+        cumulative_lens = packed_lens([4])
+        original = torch.randn(4, 8)
+        changed = original.clone()
+        changed[3] += 10
+
+        original_output = block(original, cumulative_lens)
+        changed_output = block(changed, cumulative_lens)
+
+        assert not torch.allclose(original_output[0], changed_output[0], atol=1e-5)
+
+    @pytest.mark.parametrize("is_causal", [True, False])
+    def test_cross_sequence_isolation(self, is_causal: bool) -> None:
         torch.manual_seed(0)
         dim = 8
-        block = _make_block(dim=dim)
+        block = _make_block(dim=dim, is_causal=is_causal)
         block.eval()
 
         cumulative_lens = packed_lens([3, 3])
@@ -599,9 +613,9 @@ def test_flash_path_uses_configured_sequence_length_without_readback(monkeypatch
 
 def test_flash_path_gets_local_attention_window(monkeypatch) -> None:
     captured = _capture_flash_call(monkeypatch)
-    encoder = TransformerEncoder(
-        blocks=[_make_block(dim=8, attention_window=25)]
-    ).to(torch.bfloat16)
+    encoder = TransformerEncoder(blocks=[_make_block(dim=8, attention_window=25)]).to(
+        torch.bfloat16
+    )
     encoder.eval()
 
     encoder(
@@ -610,6 +624,24 @@ def test_flash_path_gets_local_attention_window(monkeypatch) -> None:
     )
 
     assert captured["window_size"] == (24, 0)
+
+
+def test_flash_path_gets_bidirectional_attention_and_symmetric_window(
+    monkeypatch,
+) -> None:
+    captured = _capture_flash_call(monkeypatch)
+    encoder = TransformerEncoder(
+        blocks=[_make_block(dim=8, attention_window=25, is_causal=False)]
+    ).to(torch.bfloat16)
+    encoder.eval()
+
+    encoder(
+        torch.randn(4, 8, dtype=torch.bfloat16),
+        torch.tensor([0, 4], dtype=torch.int64),
+    )
+
+    assert captured["causal"] is False
+    assert captured["window_size"] == (24, 24)
 
 
 def test_flash_path_combines_alibi_rope_and_position_inputs(monkeypatch) -> None:

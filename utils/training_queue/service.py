@@ -78,6 +78,10 @@ class ServicePaths:
     def daemon_log(self) -> Path:
         return self.root / "service.log"
 
+    @property
+    def submission_lock(self) -> Path:
+        return self.root / "submission.lock"
+
     def create(self) -> None:
         for directory in (
             self.pending,
@@ -204,44 +208,51 @@ def _write_status(paths: ServicePaths, instance_token: str) -> None:
 
 
 def _fail_dispatched(paths: ServicePaths, reason: str) -> None:
-    for path in paths.dispatched.glob("*.json"):
-        job = _read_json(path)
-        job["exit_code"] = None
-        job["finished_at"] = time.time()
-        job["failure"] = reason
-        _atomic_json(paths.failed / path.name, job)
-        path.unlink()
+    with paths.submission_lock.open("a+") as submission_lock:
+        fcntl.flock(submission_lock, fcntl.LOCK_EX)
+        for path in paths.dispatched.glob("*.json"):
+            job = _read_json(path)
+            job["exit_code"] = None
+            job["finished_at"] = time.time()
+            job["failure"] = reason
+            _atomic_json(paths.failed / path.name, job)
+            path.unlink()
 
 
 def _collect_results(paths: ServicePaths) -> None:
-    for result in paths.results.glob("*.result"):
-        job_id = result.stem
-        job_path = paths.dispatched / f"{job_id}.json"
-        if not job_path.exists():
+    with paths.submission_lock.open("a+") as submission_lock:
+        fcntl.flock(submission_lock, fcntl.LOCK_EX)
+        for result in paths.results.glob("*.result"):
+            job_id = result.stem
+            job_path = paths.dispatched / f"{job_id}.json"
+            if not job_path.exists():
+                result.unlink()
+                continue
+            try:
+                exit_code = int(result.read_text().strip())
+            except ValueError:
+                exit_code = 1
+            job = _read_json(job_path)
+            job["exit_code"] = exit_code
+            job["finished_at"] = time.time()
+            destination = paths.completed if exit_code == 0 else paths.failed
+            _atomic_json(destination / job_path.name, job)
+            job_path.unlink()
             result.unlink()
-            continue
-        try:
-            exit_code = int(result.read_text().strip())
-        except ValueError:
-            exit_code = 1
-        job = _read_json(job_path)
-        job["exit_code"] = exit_code
-        job["finished_at"] = time.time()
-        destination = paths.completed if exit_code == 0 else paths.failed
-        _atomic_json(destination / job_path.name, job)
-        job_path.unlink()
-        result.unlink()
 
 
 def _next_job(paths: ServicePaths) -> tuple[Path, dict[str, Any]] | None:
-    try:
-        pending = next(iter(sorted(paths.pending.glob("*.json"))))
-    except StopIteration:
-        return None
-    job = _read_json(pending)
-    dispatched = paths.dispatched / f"{job['id']}.json"
-    os.replace(pending, dispatched)
-    return dispatched, job
+    with paths.submission_lock.open("a+") as submission_lock:
+        fcntl.flock(submission_lock, fcntl.LOCK_EX)
+        for pending in sorted(paths.pending.glob("*.json")):
+            job = _read_json(pending)
+            batch = _read_json(paths.batches / f"{job['batch_id']}.json")
+            if batch.get("atomic_submission") is True and not batch["sealed"]:
+                continue
+            dispatched = paths.dispatched / f"{job['id']}.json"
+            os.replace(pending, dispatched)
+            return dispatched, job
+    return None
 
 
 def _scheduler_command(job: dict[str, Any], paths: ServicePaths) -> str:
@@ -619,6 +630,221 @@ def _enqueue_run(
     return 0
 
 
+def _submit_atomic_batch(
+    paths: ServicePaths,
+    specification_path: Path,
+    *,
+    existing_only: bool = False,
+) -> int:
+    if _require_running(paths) is None:
+        return 2
+    try:
+        specification = _read_json(specification_path)
+    except (FileNotFoundError, json.JSONDecodeError):
+        print("invalid atomic batch specification", file=sys.stderr)
+        return 2
+    rows = specification.get("jobs") if isinstance(specification, dict) else None
+    if (
+        not isinstance(rows, list)
+        or not rows
+        or set(specification) != {"version", "jobs"}
+        or specification["version"] != 1
+    ):
+        print("invalid atomic batch specification", file=sys.stderr)
+        return 2
+    normalized: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict) or set(row) != {
+            "script",
+            "run",
+            "data_group",
+            "environment",
+        }:
+            print("invalid atomic batch row", file=sys.stderr)
+            return 2
+        assignments = row["environment"]
+        if (
+            not isinstance(row["script"], str)
+            or not isinstance(row["run"], str)
+            or not isinstance(row["data_group"], str)
+            or not isinstance(assignments, list)
+            or not all(isinstance(value, str) for value in assignments)
+            or any(not _valid_assignment(value) for value in assignments)
+            or not re.fullmatch(r"[a-zA-Z0-9_.-]*", row["data_group"])
+        ):
+            print("invalid atomic batch row", file=sys.stderr)
+            return 2
+        forbidden = next(
+            (
+                message
+                for value in assignments
+                for message in (_forbidden_persisted_name(value),)
+                if message is not None
+            ),
+            None,
+        )
+        if forbidden is not None:
+            print(forbidden, file=sys.stderr)
+            return 2
+        normalized.append(row)
+    runs = [row["run"] for row in normalized]
+    if len(set(runs)) != len(runs):
+        print("atomic batch run names must be unique", file=sys.stderr)
+        return 2
+    specification_sha256 = hashlib.sha256(
+        json.dumps(
+            {"version": 1, "jobs": normalized},
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode()
+    ).hexdigest()
+
+    batch_id = uuid.uuid4().hex
+    batch_path = paths.batches / f"{batch_id}.json"
+    stable_locks = []
+    with paths.submission_lock.open("a+") as submission_lock:
+        fcntl.flock(submission_lock, fcntl.LOCK_EX)
+        try:
+            for run in sorted(runs):
+                stable_key = hashlib.sha256(run.encode()).hexdigest()
+                lock = (paths.stable / f"{stable_key}.lock").open("a+")
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                stable_locks.append(lock)
+            if existing_only:
+                existing_batch = _matching_sealed_atomic_batch(
+                    paths, specification_sha256, normalized
+                )
+                if existing_batch is None:
+                    return 3
+                print(existing_batch)
+                return 0
+            _recover_incomplete_atomic_batch(
+                paths, specification_sha256, set(runs)
+            )
+            existing_batch = _matching_sealed_atomic_batch(
+                paths, specification_sha256, normalized
+            )
+            if existing_batch is not None:
+                print(existing_batch)
+                return 0
+            if any(_stable_job(paths, run) is not None for run in runs):
+                print("atomic batch run already exists", file=sys.stderr)
+                return 2
+            batch = {
+                "id": batch_id,
+                "jobs": [],
+                "sealed": False,
+                "atomic_submission": True,
+                "expected_job_count": len(normalized),
+                "specification_sha256": specification_sha256,
+                "submitted_at": time.time(),
+            }
+            _atomic_json(batch_path, batch)
+            for row in normalized:
+                job_id = uuid.uuid4().hex
+                job = {
+                    "id": job_id,
+                    "batch_id": batch_id,
+                    "script": row["script"],
+                    "run": row["run"],
+                    "data_group": row["data_group"],
+                    "environment": row["environment"],
+                    "submitted_at": time.time(),
+                }
+                stable_key = hashlib.sha256(row["run"].encode()).hexdigest()
+                filename = f"{time.time_ns():020d}-{job_id}.json"
+                _atomic_json(paths.stable / f"{stable_key}.json", job)
+                _atomic_json(paths.pending / filename, job)
+                batch["jobs"].append(job_id)
+            batch["sealed"] = True
+            batch["sealed_at"] = time.time()
+            _atomic_json(batch_path, batch)
+        finally:
+            for lock in reversed(stable_locks):
+                fcntl.flock(lock, fcntl.LOCK_UN)
+                lock.close()
+    print(batch_id)
+    return 0
+
+
+def _recover_incomplete_atomic_batch(
+    paths: ServicePaths,
+    specification_sha256: str,
+    expected_runs: set[str],
+) -> None:
+    for batch_path in paths.batches.glob("*.json"):
+        batch = _read_json(batch_path)
+        if not (
+            batch.get("atomic_submission") is True
+            and batch.get("sealed") is False
+            and batch.get("specification_sha256") == specification_sha256
+            and batch.get("expected_job_count") == len(expected_runs)
+        ):
+            continue
+        batch_id = batch["id"]
+        owned_jobs: list[tuple[Path, dict[str, Any]]] = []
+        for pending in paths.pending.glob("*.json"):
+            job = _read_json(pending)
+            if job.get("batch_id") == batch_id:
+                owned_jobs.append((pending, job))
+        stable_jobs = []
+        for stable in paths.stable.glob("*.json"):
+            job = _read_json(stable)
+            if job.get("batch_id") == batch_id:
+                stable_jobs.append((stable, job))
+        observed_runs = {
+            job["run"] for _, job in (*owned_jobs, *stable_jobs)
+        }
+        if not observed_runs <= expected_runs:
+            raise RuntimeError("atomic batch recovery found foreign runs")
+        for path, _ in owned_jobs:
+            path.unlink()
+        for path, _ in stable_jobs:
+            path.unlink()
+        batch_path.unlink()
+
+
+def _matching_sealed_atomic_batch(
+    paths: ServicePaths,
+    specification_sha256: str,
+    expected_rows: list[dict[str, Any]],
+) -> str | None:
+    for batch_path in paths.batches.glob("*.json"):
+        batch = _read_json(batch_path)
+        if not (
+            batch.get("atomic_submission") is True
+            and batch.get("sealed") is True
+            and batch.get("specification_sha256") == specification_sha256
+            and batch.get("expected_job_count") == len(expected_rows)
+            and len(batch.get("jobs", [])) == len(expected_rows)
+        ):
+            continue
+        actual_rows = []
+        for job_id in batch["jobs"]:
+            candidates = [
+                *paths.pending.glob(f"*-{job_id}.json"),
+                paths.dispatched / f"{job_id}.json",
+                paths.completed / f"{job_id}.json",
+                paths.failed / f"{job_id}.json",
+            ]
+            existing = [path for path in candidates if path.is_file()]
+            if len(existing) != 1:
+                raise RuntimeError("sealed atomic batch has missing or duplicate jobs")
+            job = _read_json(existing[0])
+            actual_rows.append(
+                {
+                    "script": job["script"],
+                    "run": job["run"],
+                    "data_group": job["data_group"],
+                    "environment": job["environment"],
+                }
+            )
+        if actual_rows != expected_rows:
+            raise RuntimeError("sealed atomic batch differs from exact retry")
+        return batch["id"]
+    return None
+
+
 def _seal_batch(paths: ServicePaths, batch_id: str) -> int:
     batch_path = paths.batches / f"{batch_id}.json"
     try:
@@ -629,6 +855,9 @@ def _seal_batch(paths: ServicePaths, batch_id: str) -> int:
         print(f"unknown batch id: {batch_id}", file=sys.stderr)
         return 2
     try:
+        if batch.get("atomic_submission") is True:
+            print("atomic batches can only be sealed by submit-batch", file=sys.stderr)
+            return 2
         batch["sealed"] = True
         batch["sealed_at"] = time.time()
         _atomic_json(batch_path, batch)
@@ -745,6 +974,10 @@ def _parser() -> argparse.ArgumentParser:
     enqueue.add_argument("--run", required=True)
     enqueue.add_argument("--data-group", default="")
     enqueue.add_argument("environment", nargs=argparse.REMAINDER)
+    submit_batch = subparsers.add_parser("submit-batch")
+    submit_batch.add_argument("specification", type=Path)
+    find_batch = subparsers.add_parser("find-batch")
+    find_batch.add_argument("specification", type=Path)
     seal = subparsers.add_parser("seal-batch")
     seal.add_argument("batch_id")
     wait = subparsers.add_parser("wait-batch")
@@ -776,6 +1009,12 @@ def main() -> int:
             run=arguments.run,
             data_group=arguments.data_group,
             environment=arguments.environment,
+        )
+    if arguments.action == "submit-batch":
+        return _submit_atomic_batch(paths, arguments.specification.resolve())
+    if arguments.action == "find-batch":
+        return _submit_atomic_batch(
+            paths, arguments.specification.resolve(), existing_only=True
         )
     if arguments.action == "seal-batch":
         return _seal_batch(paths, arguments.batch_id)

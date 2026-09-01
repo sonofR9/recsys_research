@@ -1,0 +1,10 @@
+version: 1
+id: g3-rq2-content-concat
+title: Test learned-ID and content input concatenation
+description: >-
+  Implement, tune, evaluate, and report the native-500M-only normalized
+  content-plus-ID DenseNet input against the original tied learned-ID baseline.
+blocked_by:
+  - g3-baseline-native500m
+ideas_tags:
+  - g3-rq2-content-concat

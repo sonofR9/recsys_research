@@ -6,13 +6,18 @@ from .types import ModuleWithDim
 
 class DenseNet(ModuleWithDim):
     def __init__(
-        self, input_dim: int, output_dim: int, preserve_input_rms: bool = False
+        self,
+        input_dim: int,
+        output_dim: int,
+        preserve_input_rms: bool = False,
+        hidden_dim: int | None = None,
     ) -> None:
         super().__init__()
+        hidden_dim = output_dim if hidden_dim is None else hidden_dim
         self.input_dim = input_dim
-        self.input_projection = nn.Linear(input_dim, output_dim)
+        self.input_projection = nn.Linear(input_dim, hidden_dim)
         self.activation = nn.GELU()
-        self.output_projection = nn.Linear(output_dim, output_dim)
+        self.output_projection = nn.Linear(hidden_dim, output_dim)
         self.output_norm = (
             nn.RMSNorm(output_dim, eps=1e-12, elementwise_affine=False)
             if preserve_input_rms

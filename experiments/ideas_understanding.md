@@ -45,19 +45,22 @@ useful proxies, even though the downstream target metric selects treatments.
 ### Common acceptance contract
 
 An RQ is accepted when every planned arm is implemented, trained to the valid
-stopping condition, evaluated, and reported with a decision. Recall@100 against
-the named control and the size-matched empirical band decides quality: above is
-an improvement, inside is a null, and below is a regression. Non-inferiority
-selects a treatment only for an explicitly stated efficiency trade-off.
-Regressions and surprising nulls require focused correctness checks and a short
-analysis. All standard evidence and reporting rules in `experiments/AGENTS.md`
+stopping condition, evaluated, and reported with a decision. Unless stated
+otherwise, Recall@100 delta `d` and band `b` decide quality: improvement if
+`d > b`, null if `|d| <= b`, and regression if `d < -b`. A cross-size effect
+must exceed `b_small + b_large`. “Best” and “stronger” mean validation-selected,
+with ties going to the simpler model. Non-inferiority selects a treatment only
+for an explicitly stated efficiency trade-off. Regressions and surprising
+nulls require focused correctness checks and a short analysis. Unexpected-result
+explanations must satisfy the empirical-evidence rule in
+`experiments/AGENTS.md`; prose alone is insufficient. All standard rules there
 still apply.
 
 ## 1. SASRec over item IDs and likes
 
 ### Common setup
 
-**Main dataset: native Yambda-500M.** The calibration range, global batch, and
+**Main dataset: Yambda-500M.** The calibration range, global batch, and
 open G1 comparisons already live on 500M. Moving them would break comparability
 with completed G1 evidence. The common control is the homework-compatible
 item-ID SASRec trained on likes under the final full-catalog protocol.
@@ -77,8 +80,9 @@ with the unchanged control and strongest individual treatment. Report the sum
 of isolated gains beside the measured joint gain and analyze destructive or
 synergistic interactions.
 
-**Acceptance.** Compare the combination with the strongest included individual
-treatment. Also report its interaction gap against the sum of component gains.
+**Acceptance.** Compare the combination with both the original baseline and the
+strongest included treatment. Also report its interaction gap against summed
+component gains.
 
 ### RQ3 — What is the best quality/performance balance?
 
@@ -91,9 +95,9 @@ accelerator memory, and parameter count. Remove dominated points, then select a
 cheaper configuration under an explicit maximum recall loss. The selected point
 must be a complete configuration and is retuned as such.
 
-**Acceptance.** Select a Pareto-nondominated point. A cheaper point must be
-Recall@100-non-inferior to the maximum-quality configuration and improve at
-least one declared resource metric.
+**Acceptance.** Select a Pareto-nondominated point. A cheaper point may trade up
+to the predeclared maximum Recall@100 loss for improvement in at least one
+declared resource metric.
 
 ### RQ10 — Do per-layer item embeddings help?
 
@@ -110,28 +114,106 @@ latency. Reference: [Gemma PLE](https://ai.google.dev/gemma/docs/gemma-3n).
 **Acceptance.** A PLE gain must beat both the shared-table and
 parameter-matched capacity controls. Beating only the smaller control is a
 capacity result, not evidence for PLE.
+s
+### RQ12 — Which decoder-only query-token layout works best?
 
-### Dataset-size RQ — Does scale change the maximum-quality G1 gain?
+**Understanding.** This isolates whether candidate generation benefits from a
+learned query state or repeated autoregressive query supervision. The
+interleaved arm uses one shared CLS token between items, before each following
+item.
 
-**Understanding.** Test whether the maximum-quality G1 configuration improves
-over the homework-compatible baseline by the same amount at 50M and 500M. The
-quality/performance Pareto configuration is not a second selection target in
-this companion RQ.
+**Implementation.** Compare standard item-state querying, one end-only CLS,
+and the autoregressive interleaved layout `[item1, CLS, item2, CLS, ...]`, where
+each CLS state predicts the following item. Preserve eligible native-500M
+results for the
+standard, one-CLS, and interleaved arms after verifying that their data,
+architecture, objective, and evaluation protocol match the new comparison.
+Give genuinely new architecture families equal tuning budgets.
 
-**Implementation.** Apply the shared companion protocol to the exact final G1
-configuration and homework baseline. Recalibrate both optimizer groups at each
-size, retain the same architectural treatment definition, and compare
-`delta_50M` with `delta_500M`. This is distinct from RQ1's μP transfer question.
+**Acceptance.** Compare every layout by final candidate-generation quality,
+with Recall@100 primary. In a separate efficiency table report training
+throughput, processed examples and supervised targets to the best checkpoint,
+and wall-clock time to that checkpoint.
 
-**Acceptance.** Compare treatment-minus-baseline Recall@100 at both sizes.
-Claim a scale effect only when the two deltas differ beyond their combined
-resolution.
+### RQ13 — Does bounded prefix expansion help an encoder-decoder model?
+
+**Understanding.** Prefix expansion turns several transitions from one user
+history into separate encoder-decoder examples. Fixed caps of 8 and 16 prevent
+highly active users from dominating the training set. The comparison also
+separates allowing short truncated prefixes from requiring a full-length
+encoder input.
+
+**Implementation.** The required retained-history length is 128. Compare:
+
+1. no expansion: one final history-to-next-item example per user;
+2. truncated-prefix expansion: the latest 8 or 16 eligible chronological
+   prefixes, retaining at most the last 128 events and allowing shorter
+   prefixes; and
+3. required-length expansion: the latest 8 or 16 prefixes with at least 128
+   preceding events, each retaining the last 128; when the user's complete
+   history is shorter than 128, emit exactly one whole-history example instead.
+
+Keep the encoder-decoder architecture and downstream objective identical.
+The two caps are reported independently and are not a search axis.
+
+**Acceptance.** Compare final candidate-generation metrics separately from
+training efficiency. Because the arms create different example counts, report
+both original users and generated prefix examples, histories and targets per
+second, processed examples and targets to the best checkpoint, and wall-clock
+time to that checkpoint.
+
+### RQ14 — Which decoder-decoder query memory works best?
+
+**Understanding.** The first causal decoder appends four query slots after the
+history. Distinct tokens may learn specialized summaries; exposing the history
+states as well as the four query states lets the second decoder recover details
+that the summaries omit.
+
+**Implementation.** Run a two-by-two comparison. The four appended tokens are
+either four copies of one shared CLS token or distinct `CLS_0` through `CLS_3`.
+The second decoder cross-attends either only the four resulting CLS states or
+the CLS states concatenated with the first decoder's history states. Hold the
+training method at joint downstream-only training from scratch so this RQ
+changes only token identity and cross-attention memory.
+
+**Acceptance.** Resolve the shared-versus-distinct and CLS-only-versus-CLS-plus-
+history effects using final candidate-generation metrics. Report training
+throughput, processed examples and targets to the best checkpoint, and
+wall-clock time to that checkpoint in a separate efficiency table.
+
+### RQ15 — How should the distinct-CLS decoder-decoder model be trained?
+
+**Understanding.** This asks whether next-item supervision makes the first
+decoder a better history representation before or during downstream training.
+It does not repeat the shared-CLS arms because the intended contrast is the
+incremental benefit for four specialized query slots.
+
+**Implementation.** Use four distinct CLS tokens and the better CLS-only or
+CLS-plus-history memory selected in RQ14. Compare:
+
+1. joint training from scratch using only the second decoder's final
+   candidate-generation loss;
+2. first-decoder NTP pretraining followed by joint fine-tuning of both decoders
+   using only the final candidate-generation loss; and
+3. joint training from scratch using the final candidate-generation loss plus
+   an auxiliary NTP loss on the first decoder.
+
+In the second arm, downstream gradients continue to update the first decoder;
+only its NTP loss is absent during fine-tuning. Pretraining cost is included in
+the arm's total training cost. The two losses in the third arm are averaged
+separately and initially combined with NTP weight 1.0; weights 0.1 and 0.3 are
+conditional corrections only if the initial auxiliary arm regresses.
+
+**Acceptance.** Compare final candidate-generation metrics in one table and
+training efficiency in another. The efficiency accounting includes every
+pretraining and fine-tuning stage and reports throughput, processed examples
+and targets to the selected checkpoint, and total wall-clock time.
 
 ## 2. eSASRec
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Use the size-calibrated G1 structural
+**Main dataset: Yambda-500M.** Use the size-calibrated G1 structural
 baseline, repository preprocessing/evaluation, and official RecTools behavior
 for the modules under test.
 Add an eSASRec experiment configuration beside the existing generation
@@ -156,49 +238,79 @@ eSASRec model, tuning mixture and logQ rather than confounding the factorial.
 Match capacity and report quality, coverage, time, memory, and latency.
 References: [paper](https://arxiv.org/abs/2508.06450) and [RecTools](https://github.com/MTSWebServices/RecTools).
 
-**Acceptance.** Pass parity against the official implementation. Report matched
-effects for LiGR, loss type, sampler mixture, and logQ, then compare the selected
-eSASRec system with the G1 control.
+**Acceptance.** Pass forward/loss/gradient parity against the official
+implementation. Report matched effects for LiGR, loss type, sampler mixture,
+and logQ, then compare the selected system with G1.
 
 ## 3. Pretrained item embeddings
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Compute, normalize, version, and freeze the
-provided content/audio vector for every train-mapped item. The control has a
-learned item-ID input table and learned item-output table. Input and target are
-studied in RQ1/RQ2; RQ3 fixes the concatenated RQ2 input while changing the
-prediction space.
+**Main dataset: Yambda-500M.** Compute, normalize, version, and freeze the
+provided content/audio vector for every train-mapped item. The control is the
+best G1 combination with its depth increase removed: two layers, tied learned
+item IDs, SwiGLU-192, deep-only one-cycle cosine with 5% warmup, ALiBi plus forward/reverse
+learned positions concatenated to the item representation, post-norm blocks,
+input/final RMSNorm, end-only CLS, 32-bin additive time plus raw reverse
+timestamp RoPE, popularity global-Q negatives, GQA, and BOS. G3 retunes it at
+batch 512 without MuTransfer or μP and does not reuse its G1 metrics. Input and
+target are studied in RQ1/RQ2; RQ3 fixes the concatenated RQ2 input while
+changing the prediction space.
 Use `PrecomputedEmbeddingLookup` for frozen vectors, add composition encoders
 under `dcn/nn/`, and keep query/catalog encoders exposed through the existing
 full-catalog evaluator.
+
+Every content-consuming branch uses an L2-normalized content representation
+before concatenation or projection. Frozen rows are checked and normalized at
+lookup; trainable copies are normalized on every forward pass. Learned
+model-width outputs remain unnormalized unless an RQ explicitly changes that
+axis.
+
+The frozen two-layer G1-best tied learned-ID experiment baseline is the first
+row and percentage reference for every RQ1-RQ5 primary reader comparison,
+promotion decision, and overall or slice table. Untied or predecessor controls
+may remain only as explicitly requested secondary mechanism diagnostics; they
+never replace that baseline.
+
+Retain automatically available runtime and resource telemetry for sanity; do
+not add dedicated performance benchmarks. Omit it from reader, compact, and tuning tables unless the user
+explicitly asks about performance or training budget, or a material anomaly is
+needed to explain validity. Selection uses the requested quality metrics and
+then deterministic order, never performance by default.
 
 ### RQ1 — What happens when pretrained embeddings replace item IDs?
 
 **Understanding.** This isolates content-only history representation from
 collaborative item memorization.
 
-**Implementation.** Replace the learned input lookup with the fixed pretrained
-vector followed by a learned projection to model width. Keep the learned
-item-ID output target fixed. Tune the projection and model rates, match active
-capacity where possible, and report overall plus item-frequency slices.
+**Implementation.** Replace the learned input lookup with the normalized fixed
+pretrained vector followed by a learned projection to model width. Keep the learned
+item-ID output target fixed. Use the existing bias-free linear 128-to-64
+projection; projection-family capacity is not an RQ1 axis. Tune both learning
+rates and the schedule horizon while holding the transformer/backbone fixed,
+and report overall plus item-frequency slices against the G1-best baseline.
+Retain one tuned untied learned-ID input/output arm only as the secondary
+mechanism control needed to separate content replacement from lost weight
+tying; it never replaces the G1-best primary baseline.
 
-**Acceptance.** Compare content-only input with learned item IDs. Report overall
-and head/mid/tail results; a slice-only win requires aggregate non-inferiority.
+**Acceptance.** Compare content-only input with the two-layer G1-best tied
+learned item IDs. Report overall and head/mid/tail results; a slice-only win
+requires aggregate non-inferiority to that baseline.
 
 ### RQ2 — Does concatenating content and item ID help?
 
 **Understanding.** Test whether content generalization and item-specific
 collaborative information are complementary.
 
-**Implementation.** Concatenate learned item-ID and frozen content vectors and
-encode them with DenseNet before the transformer. Compare with the unchanged
-item-ID input and a proposed parameter-matched item-ID-only DenseNet control.
-Keep the learned item-output target fixed. Tune encoder capacity and relevant
-rates without changing the negative objective.
+**Implementation.** Concatenate learned item-ID and normalized frozen content
+vectors and encode them with DenseNet before the transformer. Compare with the two-layer
+G1-best tied learned-ID baseline. Tie the history learned-ID branch to the
+learned catalog target so the treatment does not confound content with weight
+untying. Tune encoder capacity and relevant rates without changing the negative
+objective. No parameter-matched item-ID-only DenseNet is active or required.
 
-**Acceptance.** Concatenation must beat both the unchanged item-ID model and the
-parameter-matched item-ID-only encoder to establish content complementarity.
+**Acceptance.** Concatenation must beat the two-layer G1-best tied learned
+item-ID baseline to establish content complementarity.
 
 ### RQ3 — Which prediction embedding is best?
 
@@ -208,66 +320,122 @@ joint target space, not automatically multi-task learning.
 
 **Implementation.** Feed every history item as
 `DenseNet(concat(learned_item_id_embedding, pretrained_embedding))`, using the
-selected RQ2 encoder. Keep that input identical and try these full-catalog
-output tables:
+selected RQ2 encoder. Give this history encoder one independent learned-ID table
+shared by all five arms so its input remains identical while the catalog target
+changes. Try these full-catalog output tables:
 
 1. a learned item-ID embedding table initialized randomly;
 2. the frozen pretrained table followed by a learned projection;
 3. a trainable copy initialized from the pretrained table, followed by the same
    projection;
 4. `concat(learned_item_id, frozen_pretrained)` followed by a learned shared
-   projection and normalization;
+   projection;
 5. the same concatenation with a trainable pretrained copy.
 
-Match final output dimension and normalization, and give each family the same
-tuning budget. This separates target identity, initialization, and whether the
-content component remains frozen.
+Match final output dimension, use raw dot-product scoring without output
+normalization, and give each family the same tuning budget. This separates
+target identity, initialization, and whether the content component remains
+frozen. Normalize frozen and trainable content rows before their learned
+projection, including after every trainable lookup. Variant 1 is the local control; an output treatment is aggregate-eligible
+only when it improves variant 1 marginally.
+
+Every primary reader metric and promotion decision references the two-layer
+G1-best tied learned-ID baseline. The explicitly requested comparisons among
+variants 1-5 remain secondary scientific acceptance evidence and are not
+replaced by the baseline comparison.
 
 **Acceptance.** Compare every output target with the learned item-output table.
 Use paired contrasts to separate target type, pretrained initialization, and
-freezing.
+freezing. I think the expected result is that variant 4 will be the best, but I mey be very wrong. You must explain why your results are expected (if results differs from my expectations). Not just by words, but include experimental proof: plots/ gradient norms etc. And variant 4 should be better then 1 or 2. Also variant 3 should not be much worse then 1 and 2 and most probably better.
 
-### Dataset-size RQ — Does scale change the content benefit?
+### RQ4 — Do artist and album features help?
 
-**Understanding.** More interactions may strengthen collaborative item-ID
-learning relative to fixed pretrained information, so the winning content
-treatment's effect may differ between 50M and 500M.
+**Understanding.** Artist and album identities may share evidence across
+related and tail items beyond content and collaborative item IDs.
 
-**Implementation.** Select the best G3 treatment on 50M, freeze its input and
-prediction definitions, then train it and the learned item-ID baseline natively
-at both sizes. Rebuild mapped content tables and tune both families fairly
-inside each size. Compare overall, head/mid/tail, and low-history treatment
-deltas; do not reselect a different G3 treatment on 500M.
+**Implementation.** Start independently from the common two-layer G1-best tied
+learned-ID baseline. Add artist only, album only, and artist plus album through
+train-only compact vocabularies, mean pooling, concatenation, and DenseNet
+projection. Use one shared metadata encoder for history and catalog so the
+baseline's item-ID tying is preserved. Tune metadata width and relevant learning
+rates/horizon while holding the backbone fixed. Do not include RQ1, RQ2, RQ3,
+or RQ5 treatments during RQ4 selection and do not create a parameter-matched
+extra item-ID control. Combine selected metadata with other methods only during
+the final aggregate stage.
 
-**Acceptance.** Compare the selected treatment's Recall@100 gain over item IDs
-at both sizes. Claim a scale effect only when the two gains differ beyond their
-combined resolution.
+**Acceptance.** Artist and album features should improve tail metrics and
+should not make overall Recall@100 worse than the two-layer G1-best tied
+learned-ID baseline.
+
+### RQ5 — Does a frequency-adaptive content gate help?
+
+**Understanding.** A learned gate may rely more on content for sparse items and
+more on collaborative identity for frequent items.
+
+**Implementation.** Compare fixed concatenation, a learned global gate, and a
+train-frequency-conditioned gate. Put the two-layer G1-best tied learned-ID
+baseline first in the primary reader comparison and use it for promotion and
+percentage deltas. Retain fixed-versus-global-versus-frequency comparisons as
+the explicit mechanism diagnostic. Reuse the selected RQ2 embedding learning
+rate for every RQ5 run; tune only deep learning rate, horizon, and frequency-gate
+width. A learned gate must improve its fixed or global predecessor marginally
+before it can enter the aggregate.
+
+**Acceptance.** The frequency-adaptive gate should improve tail Recall@100 and
+should not make overall Recall@100 worse than the two-layer G1-best tied
+learned-ID baseline, the fixed concatenation, or the learned global gate.
+
+Completed parameter-matched RQ2 DenseNet and RQ4 extra-ID artifacts remain
+preserved in raw audit storage. They are excluded from the active protocol,
+budgets, selection, promotion, and reader/compact/tuning tables; they are never
+deleted.
 
 ## 4. Predicting future items during training
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** The control is standard next-liked-item
+**Main dataset: Yambda-500M.** The control is standard next-liked-item
 training. Construct all broader positives strictly after each prefix and within
 the training interval. Keep final-seven-day evaluation unchanged and mask all
 valid positives for a query from its negatives.
 Extend `SequenceTargets`/`TimeWindowTargets` for target construction and expose
-each rule through a `TimeWindowGenerationExperiment` configuration; the model
-architecture itself stays unchanged.
+each rule through a `TimeWindowGenerationExperiment` configuration. Every
+native-500M arm uses the two-layer form of G1's selected
+aggregate: transfer its ten non-depth members, including SwiGLU width 192, but
+keep model/item width 64, two attention heads, and two transformer layers. Do
+not add scaling-only depth, width, or per-layer-embedding increases. Retain
+G1's fixed-width μP class with base/delta widths 16/32, its tied item table,
+two query heads and one KV head, and the exact selected aggregate dropout,
+position, time, negative-sampling, norm, CLS, GQA, and BOS semantics.
+Historical native-50M SwiGLU-171 artifacts remain unchanged.
+
+Batch size is fixed at 512 and is not tuned. Tune the relevant non-batch
+parameter: fix embedding LR and the 15-epoch deep-only one-cycle-cosine horizon
+to G1's selected aggregate values, and tune only deep learning rate. Start with
+half, equal to, and twice G1's deep LR; add two points farther left or right only
+when an edge wins. Fix every RQ3 recommender arm to one selected period rather
+than retuning capacity. Reuse only the reviewed relative dispersions from the
+one-time unchanged-control native-500M calibration, scaling G4's own
+native-500M baseline values; never reuse the calibration's absolute scores or
+absolute bands. G4 launches no repeat batch.
 
 ### RQ1 — Does a 24-hour future window help?
 
 **Understanding.** The target treats any positive engagement in the next day as
 acceptable instead of privileging the immediately next event.
 
-**Implementation.** For each selected prefix, sample eligible liked-item
-positives from its next 24 hours using dense multi-positive supervision. Match
-the number of prefix-positive
-pairs and optimizer budget to the next-item control. Report aggregate metrics
-and recall by temporal distance. Reference: [PinnerFormer](https://arxiv.org/abs/2205.04507).
+**Implementation.** For every causal prefix, sample one eligible liked-event
+positive per epoch from its next 24 hours. This is PinnerFormer-style dense
+all-action supervision: prefix coverage is dense, while one future positive is
+sampled for each prefix rather than scoring every future positive in one loss
+row. Fall back to the next liked item when a prefix has no 24-hour candidate,
+so the prefix/user distribution, number of prefix-positive pairs, and optimizer
+budget match the next-item control. Mask every valid 24-hour positive item from
+that query's negatives and report aggregate metrics, recall by temporal
+distance, eligibility, and fallback rates. Reference: [PinnerFormer](https://arxiv.org/abs/2205.04507).
 
 **Acceptance.** Compare the 24-hour objective with next-item training. Report
-results by target distance and user activity.
+results by target distance and user activity. It most probably should be better since it better alines with the evaluation.
 
 ### RQ2 — Does a next-event-count window help?
 
@@ -280,7 +448,7 @@ for 10; smaller `k` values are optional diagnostics, not required treatments.
 Compare with next-item and 24-hour objectives under the same evaluator.
 
 **Acceptance.** Compare next-10-events with both next-item and 24-hour training.
-Report results by target distance and user activity.
+Report results by target distance and user activity. It should not be much worse then the baseline
 
 ### RQ3 — Can behavior-similar periods define better positives?
 
@@ -289,42 +457,74 @@ same user state, then using only their items as positives. It is conditional
 future supervision, not simply a longer window.
 
 **Implementation.** First define period boundaries and training-only similarity
-labels. Try the following selectors, all using only information available at
-the prefix and training-only future labels:
+labels. The offline selector may inspect candidate-period liked events while
+constructing training targets, but neither it nor the recommender may inspect
+the final seven evaluation days. Try the following selectors:
 
-1. deterministic matching to the same local hour and day-of-week in later
-   weeks;
+1. deterministic matching to the same UTC hour and day-of-week in later weeks,
+   because Yambda has no user-timezone field;
 2. cosine similarity between content centroids of the prefix period and each
    candidate future period;
-3. cosine or weighted-Jaccard similarity between their item, artist, or album
-   frequency vectors;
-4. a binary period-pair classifier whose inputs are the past-period summary,
-   time gap, hour/day features, and user-activity counters, and whose label is
-   whether future-period behavior exceeds a fixed similarity threshold;
+3. weighted-Jaccard similarity between their item, artist, or album frequency
+   vectors;
+4. a binary period-pair classifier whose inputs combine the same liked-event
+   content/frequency similarities as the deterministic selectors with time
+   gap, continuous circular hour-of-week similarity, prefix/candidate hour/day
+   features, period activity, and past
+   user-activity counters. Its independent label is whether weighted-Jaccard
+   similarity between the user's listened-artist frequency vectors in the two
+   periods strictly exceeds the selector-training partition's fixed
+   nearest-rank 80th-percentile threshold (`label = similarity > threshold`);
 5. for the best learned score, hard top-k period selection versus sampling
    positives proportionally to the predicted similarity.
 
-Use one-hour, six-hour, and calendar-day periods as the initial bounded choices.
-For hourly periods search later periods within the next seven days; for daily
-periods search the next 28 days. With several moving choices, use one bounded
-random search over period width, lookahead, similarity threshold/top-k, and
-classifier settings rather than a Cartesian grid.
+Use one-hour, six-hour, and calendar-day periods as the bounded choices. For
+hourly periods search 3/7-day lookaheads; for daily periods search 14/28-day
+lookaheads. Give the time, content, frequency, and learned
+families equal random-search budgets over their predeclared conditional spaces.
+Tune on the chronological selector-validation partition and evaluate the gate
+once on an untouched selector-test partition; neither may use the final seven
+evaluation days.
+
+Evaluate every selector on one common universe: every later liked-event
+occurrence in the next 28 training-only days for each causal prefix. Define an
+event's independent relevance from listened-artist similarity between the
+prefix's trailing 24 hours and only the strictly post-prefix part of the UTC
+day containing that event. Structural
+period choices change scores, not candidates, labels, queries, or NDCG
+denominators. The time family excludes a three-day lookahead because matching
+UTC day-of-week inside it is degenerate.
+
+Every width-`w` past-period summary is exactly `(prefix-w, prefix]` and every
+UTC-aligned candidate period starts strictly after the causal prefix. For
+downstream target construction,
+generate learned-selector scores with five user-id hash folds: train on four
+folds and predict the fifth, so no classifier scores a user or pair it trained
+on. Recommender histories and targets remain likes-only; listens are consumed
+only inside the training interval to define the independent selector label.
 
 Freeze every selector before recommender training and compare it with matched
-next-item and fixed-window controls using the same prefix-positive budget. Stop
-before recommender training if the classifier does not beat the deterministic
-selectors on held-out period-pair ranking or if materializing its positives is
-outside the approved runtime budget.
+next-item and fixed-window controls using the same prefix-positive budget. Fall
+back to the next liked item when no selected period is available, preserving
+the control prefix/user distribution, and report the fallback rate. Stop before
+recommender training if the classifier does not beat the deterministic
+selectors on untouched-test period-pair ranking or if materializing its
+positives is outside the approved runtime budget.
+
+For the selector gate, compare the learned winner with the validation winner
+across every deterministic pipeline on the common event universe. Evaluate both
+once on selector test and resolve their paired query difference by user-cluster
+bootstrap before calling the learned selector better.
 
 **Acceptance.** The learned selector must beat the best deterministic selector,
 and its downstream model must beat next-item and the best fixed-window control.
-Report selector quality and materialization cost.
+Report selector quality and materialization cost. It must be not worse then baseline. Most probably better.
 
 ## 5. Likes and listens with action tokens
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Preserve chronological likes and listens.
+**Main dataset: Yambda-500M.** Preserve chronological likes and listens.
 Maintain matched likes-only and listens-only controls and report each target
 separately; macro metrics cannot hide negative transfer. Count comparable
 history in events rather than serialized tokens.
@@ -345,7 +545,7 @@ listens→likes and likes→listens.
 
 **Acceptance.** Compare each cross-action history direction with its target-only
 control. Report likes and listens separately; averaging may not hide negative
-transfer.
+transfer. Also include some analysis: popularity biased attention map and some dipper analysis too. To check your results you also need the following comparison: likes + listens history model with history length limited by likes (with all listens in between) must be better then likes only model with the same history length in likes (but without listens). Or at least not worse. But most probably better.
 
 ### RQ2 — Does jointly predicting likes and listens help?
 
@@ -377,30 +577,35 @@ better.
 
 ### RQ4 — Does request-conditioned interleaving help?
 
-**Understanding.** Train one model on interleaved task blocks. A request token
-selects which action-specific item should follow: `<want like>` asks for the
-next liked item after the current prefix and `<want listen>` asks for the next
-listened item. Ordinary chronological items remain in the same causal stream;
-after such an item the model outputs its like/listen probabilities. A stream
-can therefore look exactly like `<want like>, item_i, <want listen>, item_j,
-item_k, [p_like, p_listen], <want like>, item_l`. At serving, appending
-`<want like>` requests a like recommendation.
+**Understanding.** Train one model on interleaved task blocks. `<want like>`
+asks for the next future item with `is_like = 1`. `<want listen>` uses an
+explicit attributed-listen target: the earliest future raw listen or like event.
+Its target may therefore be listen-only or liked, because every like is treated
+as a listen for this request. Ordinary
+chronological items remain in the same causal stream; after such an item the
+model outputs its like/listen probabilities. A stream can therefore look like
+`<want like>, item_i, <want listen>, item_j, item_k,
+[p_like, p_listen], <want like>, item_l`. At serving, appending `<want like>`
+requests a like recommendation.
 
 **Implementation.** For every eligible chronological prefix derive three
-different blocks: `<want like>, next_like_after_prefix`, `<want listen>,
-next_listen_after_prefix`, and `immediate_next_item, [like/listen output]`.
-Thus a requested target may skip intervening events, whereas the ordinary block
-never does. Sample and pack these blocks into the interleaved causal training
-stream with segment-aware attention: every block sees its own chronological
-prefix and its request, but cannot attend to targets from adjacent blocks. A
-requested block applies item loss at the request position. An ordinary block
-applies chronological next-item loss before the item, then a two-logit action
-loss after the item using that item's hidden state; the probability pair is an
-output, not ground-truth input. Loss masks must also guarantee that an item
-prediction cannot attend to its action target. Tune the block mixture while
-keeping the number of supervised items fixed. Compare the all-ordinary stream,
-interleaving without action loss, and the full interleaved stream. At evaluation
-append each request separately and measure recall for its held-out action.
+blocks: `<want like>, next_liked_item`, `<want listen>, next_listened_item`, and
+`immediate_next_item, [like/listen output]`. `next_listened_item` is the first
+future event in the union of raw listen and like events; record which event type
+supplied it. This attribution is used by every `<want listen>` control and
+treatment. A requested target may skip intervening events, whereas the ordinary
+block never does. Sample and pack these blocks
+into the interleaved causal training stream with segment-aware attention: every
+block sees its own chronological prefix and its request, but cannot attend to
+targets from adjacent blocks. A requested block applies item loss at the
+request position. An ordinary block applies chronological next-item loss before
+the item, then a two-logit action loss after the item using that item's hidden
+state; the probability pair is an output, not ground-truth input. Loss masks
+must also guarantee that an item prediction cannot attend to its action target.
+Tune the block mixture while keeping the number of supervised items fixed.
+Compare the all-ordinary stream, interleaving without action loss, and the full
+interleaved stream. At evaluation append each request separately; for
+`<want listen>`, also report recall split by listen-only versus liked targets.
 RQ4.2 isolates whether the post-item action loss is necessary.
 
 Also compare an offline-only baseline without request tokens. Serialize each
@@ -416,9 +621,9 @@ is a deliberately non-production control: it tests whether enriched item events
 and multi-task prediction beat the special-token interface, not whether they
 support a serving request protocol.
 
-**Acceptance.** Request conditioning must improve at least one requested task
-without regressing the others. Evaluate the offline enriched-event model by the
-same rule, but label it non-production.
+**Acceptance.** Compare each requested output with its single-task control; one
+must improve and neither may regress. Use the same controls for the offline
+model and label it non-production.
 
 ### RQ4.1 — How should action and item tokens be aggregated?
 
@@ -430,7 +635,7 @@ history and request/target grammar. BPE is not assumed to solve this comparison;
 it can be studied later as a separate serializer.
 
 **Acceptance.** Prefer aggregation when both action metrics are non-inferior and
-sequence length, memory, or latency improves; otherwise select by quality.
+sequence length, memory, or latency improves; otherwise select by Recall@100.
 
 ### RQ4.2 — Which auxiliary losses are needed?
 
@@ -463,19 +668,46 @@ of a treatment already specified in `ideas.md`.
 placement must improve one action without regressing the other; otherwise
 prefer the cheaper query-only form.
 
+### RQ5 — Which model is best for likes prediction?
+
+**Understanding.** Choose the best way to predict the next liked item when both
+likes and listens are available in history. This closes the separate G5
+comparisons into one like-focused decision.
+
+**Implementation.** Compare on identical like-evaluation prefixes and candidate
+sets:
+
+1. likes-only history with a next-like objective;
+2. chronological likes+listens history with the same next-like objective;
+3. the selected joint like/listen model from RQ2;
+4. the selected request-conditioned model from RQ4 evaluated with
+   `<want like>`; and
+5. the offline enriched-event model from RQ4.
+
+For the first two arms, expose the same last `L` liked items; arm 2 additionally
+includes every listen between those likes. Match capacity and tuning budgets.
+Reuse earlier evidence only when its evaluation prefixes, history construction,
+and candidates are identical; otherwise run a matched bridge.
+
+**Acceptance.** Select by like Recall@100; ties go to lower serving cost. The
+likes+listens next-like model is expected to beat likes-only. A null or
+regression requires the same popularity-attention and mechanism analysis as
+RQ1.
+
 ## 6. RQ-KMeans semantic IDs in history
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Fit RQ-KMeans only on content vectors for
-the train-mapped catalog. Version normalization, codebooks, assignments,
+**Main dataset: Yambda-500M.** Fit RQ-KMeans only on content vectors for the
+train-mapped catalog. Version normalization, codebooks, assignments,
 centroids, level vocabulary, and collision map. The downstream task remains
 item retrieval. Report item metrics plus ICR, p95 load at every level,
 intra-code similarity, and collision distribution.
-Tune levels, per-level codebook sizes, and other RQ-KMeans parameters on this
-downstream item-retrieval task under the program-wide per-level limit.
+Search only three or four levels and one shared codebook size from 512, 2048,
+or 8192 at every residual level. G6 never assigns independently tunable sizes
+to different levels. Use the fixed 26-epoch horizon and width 128 throughout.
 Create a `KMeansIdStage` before the downstream experiment, represent codes with
-`SemanticIdTokenizer`/`dcn/nn/semantic_embedding.py`, and store all fitted
+`SemanticHistoryTokenizer`/`dcn/nn/semantic_embedding.py`, and store all fitted
 artifacts under the experiment's dataset-keyed paths.
 
 ### RQ0 — How should SIDs describe history?
@@ -491,12 +723,17 @@ trainable and frozen codebook vectors concatenated; frozen codebook vectors as
 the per-level tokens; and an interleaved item-ID/SID token stream for every
 history item. Use DenseNet for every concatenated event representation. For all
 expanded forms truncate by history-item count and keep the same items visible.
-Tune SID parameters and representation capacity separately for every family
-under one fixed collision-resolution policy; RQ2/RQ3 later reopen that policy.
+Tune the historically strongest item-ID plus frozen-SID-event family first,
+then use its selected SID and learning-rate setup as the starting anchor for
+smaller independent searches of the other six families. RQ2/RQ3 later reopen
+the collision policy.
+Use the final best G1 combination as the primary backbone for all seven
+representations. Also reconstruct the original G1 item-ID baseline at 500M, and
+bridge only the winning representation to that original backbone rather than
+running the full seven-by-two crossing.
 
 **Acceptance.** Compare every tuned SID representation with learned item-ID
-history. A representation may also win on efficiency when recall is
-non-inferior.
+history. The final model must not be much worse then sasrec. And ideally it should be better (I think it can be).
 
 ### RQ1 — How should SID embeddings be initialized?
 
@@ -512,7 +749,7 @@ for this initialization RQ without replacing the RQ0 winner.
 
 **Acceptance.** Compare content/codebook initialization with random
 initialization. Faster convergence counts only when final recall is
-non-inferior.
+non-inferior. Codebook initialization should converge faster.
 
 ### RQ2 — What is the best collision-resolution-token setup?
 
@@ -521,54 +758,40 @@ collision-resolution token is included. This is primarily a search over
 codebook size, number of levels, and related tokenizer parameters—not over
 different collision-token designs.
 
-**Implementation.** Use one fixed collision-resolution rule and random-search
-the number of residual levels, every level's codebook size, and relevant
-RQ-KMeans fitting parameters with the selected RQ0 representation. Select on
+**Implementation.** Use one fixed collision-resolution rule and search the
+restricted three/four-level by 512/2048/8192 shared-codebook surface from the
+selected RQ0/RQ1 setup, with local learning-rate refinement. Select on
 downstream item recall, with ICR, p95 load, intra-code similarity, collisions,
 memory, and latency as diagnostics. Apply the `2^13` maximum to every level,
 including the collision-resolution level/symbols, for an approximately
 `2^20`-item catalog.
 
-**Acceptance.** Compare every tuned collision-token configuration with the
-fixed reference. A simpler configuration may win with non-inferior recall and
-lower vocabulary, memory, or latency.
+**Acceptance.** Compare every tuned collision-token configuration with the RQ0
+setting. The selected collision-token configuration must not worsen downstream
+Recall@100 versus RQ0.
 
 ### RQ3 — What happens without collision resolution?
 
 **Understanding.** Repeat RQ2's tokenizer-hyperparameter search without adding
 a collision-resolution token. This is not a single ablation that removes the
-token from RQ2's winner; the optimum number of levels and codebook sizes may
+token from RQ2's winner; the optimum number of levels and shared codebook size may
 change when collisions remain unresolved.
 
-**Implementation.** Run the same bounded random-search axes and budget as RQ2,
-with the same selected RQ0 representation, but omit collision resolution.
+**Implementation.** Run the same restricted paired axes and budget as RQ2,
+starting from the same selected RQ0/RQ1 setup, but omit collision resolution.
 Define an ambiguous tuple as the shared history representation of every item in
 its bucket. Select on downstream item recall and report the same intrinsic,
 collision-bucket, memory, and latency diagnostics so the independently selected
 with/without-collision setups can be compared.
 
 **Acceptance.** Compare independently tuned systems with and without collision
-resolution. No-collision may win on efficiency only with non-inferior recall.
-
-### Dataset-size RQ — Does scale change the SID-history gain?
-
-**Understanding.** Larger catalogs may increase semantic sharing and collisions
-simultaneously.
-
-**Implementation.** Freeze the selected representation mechanism, then refit
-RQ-KMeans natively and retune baseline/treatment at each size. Compare against
-the learned item-ID history baseline, including changes in ICR, load, collision
-distribution, tail recall, and treatment delta.
-
-**Acceptance.** Compare SID-history gain over item-ID history at both sizes.
-Claim a scale effect only when the two gains differ beyond their combined
 resolution.
 
 ## 7. Semantic-ID generation
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** By default, fit and freeze one approved
+**Main dataset: Yambda-500M.** By default, fit and freeze one approved
 RQ-KMeans tokenizer for comparisons that do not make tokenizer design part of
 the treatment. RQ2 and RQ7 are explicit exceptions: they first use a shared
 tokenizer for isolation, then give every representation/direction an equal
@@ -638,7 +861,7 @@ with scratch under matched final-stage budgets. A frozen-encoder arm is a
 proposed diagnostic, not a source requirement.
 
 **Acceptance.** Compare pretrained and scratch generators. Any efficiency claim
-must include pretraining plus fine-tuning cost.
+must include pretraining plus fine-tuning cost. Model with pretraining will be most probably better. You should consider other results unexpected.
 
 ### RQ5 — Does SID-level logQ help?
 
@@ -666,7 +889,7 @@ and normalization with hand-computed fixtures; this is unit validation rather
 than a separate experiment. Keep concrete-item popularity out of this RQ.
 
 **Acceptance.** Compare every adjustment with `beta = 0`. Select by item
-Recall@100, not SID-token accuracy.
+Recall@100, not SID-token accuracy. In my previous tests sids logq has improved the metrics quite a bit.
 
 ### RQ6 — Does item-popularity correction applied to the SID help?
 
@@ -699,9 +922,9 @@ attribute differences between the positive-only and sampled-tuple objective
 families to popularity correction. Verify item-proposal normalization and
 one-time correction in deterministic unit tests.
 
-**Acceptance.** Resolve the weighting, sampled-softmax correction, and reranking
-pairs separately. Do not compare across objective families; report head/tail
-effects for any accepted trade-off.
+**Acceptance.** Separately compare weighted vs unweighted loss, corrected vs
+uncorrected sampled softmax, and reranked vs raw beams. Do not compare across
+objective families.
 
 ### RQ7 — Does reverse SID generation order help?
 
@@ -753,7 +976,8 @@ fine-tune every parameter. Compare with a scratch model under the same final
 training and tuning budget; retain a frozen-backbone arm only as a diagnostic.
 
 **Acceptance.** Compare pretrained and scratch decoder-only generators. Any
-efficiency claim must include pretraining plus fine-tuning cost.
+efficiency claim must include pretraining plus fine-tuning cost. Pretraining is
+expected to improve metrics; a non-improvement is unexpected.
 
 ### Decoder-only RQ5 — Does SID-level logQ help?
 
@@ -774,7 +998,8 @@ inference-time SID adjustment would be a separate reranking RQ, not another
 interpretation of these runs.
 
 **Acceptance.** Compare every decoder-only adjustment with `beta = 0`. Select by
-item Recall@100, not SID-token accuracy.
+item Recall@100, not SID-token accuracy. Previous SID-logQ experiments improved
+metrics substantially, so a non-improvement is unexpected.
 
 ### Decoder-only RQ6 — Does item-popularity correction help?
 
@@ -797,9 +1022,9 @@ Every negative tuple is scored after the same causal history boundary. Do not
 attribute differences between positive-only and sampled-tuple objective
 families to popularity correction.
 
-**Acceptance.** Resolve the weighting, sampled-softmax correction, and reranking
-pairs separately. Do not compare across objective families; report head/tail
-effects for any accepted trade-off.
+**Acceptance.** Separately compare weighted vs unweighted loss, corrected vs
+uncorrected sampled softmax, and reranked vs raw beams. Do not compare across
+objective families.
 
 ### Decoder-only RQ7 — Does reverse SID order help?
 
@@ -816,32 +1041,11 @@ equal budgets. Match final beam and candidate budgets.
 **Acceptance.** Compare independently tuned forward and reverse decoder-only
 systems. Use the shared-tokenizer comparison only to isolate generation order.
 
-### Dataset-size RQ — Does scale change generative retrieval's gain?
-
-**Understanding.** Larger catalogs change code utilization, collisions, trie
-branching, and beam-search difficulty.
-
-**Implementation.** Treat this RQ as its own explicitly approved four-cell
-study: item-ID baseline and the frozen selected generator mechanism, each on
-native 50M and native 500M. Refit RQ-KMeans and every data-derived artifact on
-each size's training catalog. Give baseline and treatment equal size-local model
-tuning budgets; do not transfer rates, checkpoints, tokenizer assignments, or
-empirical bands across sizes. At each size, select the batch on that size's
-unchanged item-ID control with explicit approval, then reuse that batch for its
-baseline and treatment; do not transfer the 50M batch to 500M automatically.
-Keep the treatment definition and candidate/beam budget rule fixed, and report
-within-size treatment deltas plus the change in delta, using separately measured
-size-specific bands.
-
-**Acceptance.** Compare generator gain over item-ID retrieval at both sizes.
-Claim a scale effect only when the two gains differ beyond their combined
-resolution.
-
 ## 8. Item-ID and SID outputs in an encoder-decoder model
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Reuse the selected G7-style encoder and SID
+**Main dataset: Yambda-500M.** Reuse the selected G7-style encoder and SID
 tokenizer as architecture definitions, but fit/train all artifacts on this
 group's data. The primary control is that encoder-decoder with its SID decoder
 only. Keep the candidate and beam budgets explicit.
@@ -861,27 +1065,35 @@ been generated.
 
 1. SID-only and item-only attribution controls;
 2. a shared history encoder with parallel autoregressive-SID and one-token
-   full-catalog item-ID decoders;
+   full-catalog item-ID decoders. Main head - sid decoder;
 3. one sequential decoder whose target is
    `[sid_1, ..., sid_L, item_id]`, so the item-ID loss is applied after the SID;
-4. a cascaded variant where a one-token item decoder cross-attends to the
+4. the same sequential decoder with training-time corruption of teacher-forced
+   SID inputs before `item_id`: replace selected SID tokens with a level-specific
+   mask token, or replace a suffix with a different valid catalog continuation;
+   and
+5. a cascaded variant where a one-token item decoder cross-attends to the
    completed SID-decoder states instead of placing item ID in the same token
    stream.
 
-Tune SID/item loss weights for joint models. During training, report sequential
-item accuracy both with teacher-forced SID prefixes and with generated SID
-prefixes; at inference only the generated path counts. Report each output's
-recall, their oracle union, fused ranking, latency, and error recovery when an
-earlier SID level is wrong.
+Arm 4 uses two passes over the same encoded history. The clean pass computes all
+SID losses. The corrupted pass recomputes only the final item-ID prediction and
+item loss; it contributes no SID-token loss. Tune corruption probability
+including zero and the clean/corrupted item-loss mixture. Exclude the true SID
+continuation from random replacement. Report controlled corruption curves by
+probability and corrupted level. Tune SID/item loss weights for joint models.
+During training, report sequential item accuracy both with teacher-forced SID
+prefixes and with generated SID prefixes; at inference only the generated path
+counts. Report each output's recall, their oracle union, fused ranking, latency,
+and error recovery when an earlier SID level is wrong.
 
-**Acceptance.** Compare each joint architecture with the stronger single-output
-control. Select by realized fused recall; oracle union is diagnostic only.
+**Acceptance.** Variant 2 should beat the SID-only control in variant 1 by item
+Recall@100. Variant 3 probably will not work well. Variants 4 and 5 should
+probably beat variant 3 under generated-SID inference.
 
 ### RQ2 — Which logQ definition is correct for the joint model?
 
-**Understanding.** Item-head and SID corrections are separate factors. SID
-correction enters this experiment only if G7 showed a benefit outside its
-applicable empirical band.
+**Understanding.** Item-head and SID corrections are separate factors.
 
 **Implementation.** With architecture fixed, test:
 
@@ -895,42 +1107,20 @@ adjustment, use that exact method on the SID loss; do not rename it SID logQ.
 Tune correction strength for every enabled head and the joint loss weight. Do
 not spend runs on marginal/prefix SID variants that G7 already rejected.
 
-**Acceptance.** Compare every eligible correction combination with no
-correction. Test SID correction only if G7 accepted it; report isolated and
-combined effects separately.
+**Acceptance.** Compare item-only correction with no correction. If SID
+correction is eligible, compare SID-only with no correction and compare both
+corrections with no correction and with each single correction.
 
-### RQ3 — Which head should produce the final ranking?
+### RQ3 — Which head should produce the final generation?
 
-**Understanding.** Separate candidate generation from ranking: SID likelihood
-and item score can order the same reachable items differently.
+**Understanding.** In the model with shared history between sid generator and item id generator which head is better?
 
-**Implementation.** Resolve the SID beam to concrete items and rank the exact
-same candidate set by accumulated SID likelihood or the item branch. Also
-report the candidate-set oracle. An independent union of item-branch candidates
-is a separate treatment because it changes recall opportunity.
+**Implementation.** Reuse results from rq1.
 
-**Acceptance.** Compare SID and item-head ranking on identical candidates.
-Evaluate candidate union separately under the same final budget; oracle recall
-is diagnostic only.
+**Acceptance.** Compare SID-head and item-head Recall@100 from the same joint
+model. Also report fusion and use it only if it beats both heads.
 
-### RQ4 — Does an encoder-decoder help regular item-ID SASRec?
-
-**Understanding.** Replace the current decoder-only causal SASRec—not an
-“encoder-only SASRec”—with an encoder-decoder whose decoder predicts exactly
-one token: the next item ID.
-
-**Implementation.** The control is the current causal transformer that consumes
-history and predicts the next item from its final history state. The treatment
-encodes the same history, feeds one learned query/BOS token to a one-position
-decoder that cross-attends to all encoder states, and applies the same
-full-catalog item loss at that single decoder position. Match active parameters,
-history, objective, candidates, and tuning budget. Do not generate a sequence
-of future items in this RQ.
-
-**Acceptance.** Compare the one-token encoder-decoder with matched causal
-SASRec. An efficiency win requires non-inferior recall.
-
-### RQ5 — Do parallel forward/reverse SID branches help?
+### RQ4 — Do parallel forward/reverse SID branches help?
 
 **Understanding.** Forward and reversed SIDs factorize the same item probability
 in different orders and may make complementary beam errors. An item-ID head may
@@ -952,7 +1142,7 @@ diagnostic only.
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Use the same input content vectors and
+**Main dataset: Yambda-500M.** Use the same input content vectors and
 train catalog for all tokenizer families. Frozen tokenizer families feed the
 same downstream generator; coupled methods are compared as systems and then
 ablated internally. Report reconstruction, ICR, load/entropy, collisions,
@@ -976,9 +1166,8 @@ and RQ-KMeans fitting parameters under the shared bound and budget. Every trial
 trains/evaluates the common downstream generator; select by item recall, then
 freeze its assignments. This is the control for tokenizer improvements.
 
-**Acceptance.** Compare tuned RQ-KMeans configurations with the predeclared
-default and select on downstream item recall. Report tokenizer and decoding
-cost for non-inferior alternatives.
+**Acceptance.** Select the tuned RQ-KMeans configuration by downstream item
+recall. Report tokenizer and decoding cost for non-inferior alternatives.
 
 ### RQ2 — Does RQ-VAE improve over RQ-KMeans?
 
@@ -991,8 +1180,10 @@ Train/evaluate the same downstream generator for selection, freeze the winning
 tokenizer, and compare both intrinsic SID metrics and downstream item recall
 with RQ-KMeans.
 
-**Acceptance.** Compare independently tuned RQ-VAE with selected RQ-KMeans.
-Select on item recall; intrinsic SID metrics are diagnostic only.
+Do not forget to inialize rqvae with rqkmeans!
+
+**Acceptance.** Downstream Recall@100 must not be worse than RQ-KMeans and will
+probably be slightly better.
 
 ### RQ3 — Does PLUM or a PLUM modification help?
 
@@ -1024,9 +1215,10 @@ limit. Compare the winning tokenizer with an equal-checkpoint PLUM control and
 report level utilization and collision structure; do not attribute checkpoint
 or continued-pretraining gains to the schedule.
 
-**Acceptance.** Use matched contrasts for continued pretraining, the PLUM
-tokenizer, and codebook-size order. Select each only by its item-recall gain;
-intrinsic SID metrics are diagnostic.
+**Acceptance.** Full PLUM should have downstream Recall@100 at least not much
+worse than matched RQ-VAE. Separately compare continued pretraining with direct
+fine-tuning and compare all three codebook schedules inside the fixed PLUM
+system.
 
 ### RQ4 — Does R3-VAE help?
 
@@ -1038,8 +1230,8 @@ added mechanisms against matched RQ-VAE. Freeze each selected tokenizer before
 the common generator and report stability/collapse as well as final metrics.
 Reference: [R3-VAE](https://arxiv.org/abs/2604.11440).
 
-**Acceptance.** Compare full R3-VAE with matched RQ-VAE. Attribute an R3-VAE
-component only when removing it worsens item recall.
+**Acceptance.** R3-VAE should most probably improve downstream Recall@100 over
+matched RQ-VAE.
 
 ### RQ5 — Do variable-length BPE SIDs help?
 
@@ -1051,8 +1243,7 @@ training catalog only, and map every item to its merged token sequence. Compare
 under fixed decoding-latency and candidate budgets, reporting vocabulary size,
 length distribution, collisions, and quality.
 
-**Acceptance.** Compare BPE SIDs with fixed-length base SIDs under one candidate
-budget. BPE may win with non-inferior recall and shorter or faster decoding.
+**Acceptance.** BPE most probably should have non-inferior recall and shorter or faster decoding.
 
 ### RQ6 — Does DIGER's differentiable tokenizer help?
 
@@ -1061,11 +1252,12 @@ preventing early codebook collapse.
 
 **Implementation.** Jointly train tokenizer and generator with Gumbel
 exploration and a declared uncertainty-decay schedule. Compare with the same
-architecture using a frozen tokenizer and ablate exploration/decay. Report code
-utilization throughout training. Reference: [DIGER](https://arxiv.org/abs/2601.19711).
+architecture using the selected frozen RQ-VAE tokenizer and ablate
+exploration/decay. Report code utilization throughout training. Reference:
+[DIGER](https://arxiv.org/abs/2601.19711).
 
-**Acceptance.** Compare DIGER with the same generator and a frozen tokenizer.
-Attribute exploration or decay only when its ablation worsens item recall.
+**Acceptance.** Compare DIGER with the same generator using the frozen RQ-VAE
+tokenizer. DIGER should be better than this matched RQ-VAE control.
 
 ### RQ7 — Does a collision token help?
 
@@ -1077,8 +1269,8 @@ with collision suffixes. Report exact item resolution, suffix vocabulary/load,
 dynamic-catalog implications, decoding cost, and item metrics.
 
 **Acceptance.** Compare collision suffixes with unresolved tuples. Suffixes may
-win with non-inferior recall if they remove item ambiguity without a material
-cost regression.
+win with non-inferior recall if they remove ambiguity without worsening memory
+or decoding latency beyond its band.
 
 ### RQ8 — Does Purely Semantic Indexing improve collision resolution?
 
@@ -1113,7 +1305,7 @@ unique assignments; RRS may win on assignment cost with non-inferior recall.
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** The control is the selected content-only
+**Main dataset: Yambda-500M.** The control is the selected content-only
 tokenizer trained with the same downstream generator. All collaborative pairs,
 transitions, and user states use training data only.
 Tune each content/collaborative tokenizer's levels, per-level codebook sizes,
@@ -1147,13 +1339,13 @@ window with popularity-matched negatives. Add a contrastive pair term to
 RQ-VAE, tune its weight, and compare with matched RQ-VAE.
 
 **Acceptance.** Compare every pair definition with matched RQ-VAE without the
-pair term. Select by item recall, not pair separation or intrinsic SID metrics.
+pair term. Select by item recall, not pair separation or intrinsic SID metrics. It must not be worse then the original rqvae. And most probably it should be better.
 
 ## 10A. User-aware semantic-ID tokenization
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** This is a separate experiment because a
+**Main dataset: Yambda-500M.** This is a separate experiment because a
 user-aware code is a representation of a user-item pair, not one globally
 cacheable item identifier. Construct supervision and all aggregate features
 from training data only. Use a frozen upstream retriever to materialize one
@@ -1218,16 +1410,17 @@ checkpoints, then independently tune each semantic tokenizer on downstream
 recall. Compare all pair representations and the global content-only code on
 the identical frozen candidates and matched final vector dimensions.
 
-**Acceptance.** Compare all user-aware representations with global content
-codes on identical candidate lists. Select by reranked Recall@100; like AUC and
-SID metrics are diagnostic. Report materialization cost and mark infeasible
-variants as blocked.
+**Acceptance.** Compare every user-aware representation with global content
+codes on identical candidate lists and select by reranked Recall@100.
+Query-specific SID recall should beat global-code SID recall on those lists.
+Like AUC and other SID metrics are diagnostics. Report materialization cost and
+mark infeasible variants as blocked.
 
 ## 11. Gryphon
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Fit a fresh residual-K-Means tokenizer on
+**Main dataset: Yambda-500M.** Fit a fresh residual-K-Means tokenizer on
 the 50M training catalog. Match active parameters and inference budget between
 vanilla generative retrieval and Gryphon. The companion RQ below is where its
 large-catalog claim is tested on 500M.
@@ -1253,29 +1446,14 @@ add independently retrieved item candidates. Report candidate oracle, item
 recall, collision ordering, encoding/beam/reranking latency, memory, and
 parameters. Reference: [Gryphon](https://arxiv.org/abs/2606.08604).
 
-**Acceptance.** Compare Gryphon with the stronger matched vanilla or
-collision-resolved GR control. Candidate oracle is diagnostic only.
-
-### Dataset-size RQ — Does scale change Gryphon's gain?
-
-**Understanding.** This is especially important for Gryphon because trie
-branching, SID collisions, and beam-score accumulation grow with catalog scale.
-
-**Implementation.** Refit and tune fresh residual-K-Means tokenizers and matched
-vanilla-GR/Gryphon models independently at 50M and 500M. Freeze the Gryphon
-mechanism and candidate budget definition; do not reuse 50M assignments or
-rates. Compare within-size Gryphon-minus-vanilla deltas plus collision and beam
-diagnostics. This replaces the earlier assumption that Gryphon should simply
-start on 500M.
-
-**Acceptance.** Compare Gryphon's gain over vanilla GR at both sizes. Claim a
-scale effect only when the two gains differ beyond their combined resolution.
+**Acceptance.** Gryphon should beat the stronger of matched vanilla GR and
+collision-resolved GR by Recall@100.
 
 ## 12. Diffusion over item content embeddings
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Freeze normalized content/audio targets for
+**Main dataset: Yambda-500M.** Freeze normalized content/audio targets for
 the train-mapped catalog. All arms use the same history encoder, nearest-neighbor
 catalog index, candidate count, and inference accounting.
 Add continuous target heads under `dcn/models/` and a catalog-nearest-neighbor
@@ -1334,7 +1512,7 @@ diagnostics and trade-off metrics.
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Data scale is secondary to evaluation
+**Main dataset: Yambda-500M.** Data scale is secondary to evaluation
 validity. Restrict actions to reranking a fixed candidate set. No training claim
 is accepted without logged propensities or a separately validated simulator.
 Build this on `RankingExperiment`/`RankingWithHistoryExperiment`, with policy
@@ -1358,41 +1536,53 @@ latter as simulator-only evidence. Until then this group is scientifically
 blocked, not merely waiting for a model class.
 
 **Acceptance.** Block until logged propensities or a validated simulator exist.
-Then RL must beat both supervised controls in multi-step value without
-regressing one-step quality. Label simulator evidence as simulator-only.
+Then DR value must beat both supervised controls beyond its uncertainty band,
+IPS must agree in direction, and one-step quality must not regress. Label
+simulator evidence as simulator-only.
 
 ## 14. Thinking over history
 
 ### Common setup
 
-**Main dataset: native Yambda-50M.** Keep the final item objective fixed and
+**Main dataset: Yambda-500M.** Keep the final item objective fixed and
 require equal-parameter and equal-latency controls so extra compute is not
-misnamed reasoning.
-Implement the approved mechanism as a history-encoder variant and expose its
-intermediate state explicitly for utilization diagnostics; keep retrieval and
-full-catalog evaluation unchanged.
+misnamed reasoning. Keep retrieval and full-catalog evaluation unchanged and
+expose every intermediate trace for diagnostics.
 
 ### RQ1 — Does thinking based on history help?
 
-**Understanding.** The source does not define “thinking.” The proposed concrete
-reading is iterative latent refinement: a small set of latent intent states
-repeatedly reads the fixed history before producing the retrieval query.
+**Understanding.** Treat “thinking” as observable intermediate context before
+the final prediction. Test action events between like targets and an explicit
+SID draft-revision trace.
 
-**Implementation.** Append four learned latent states after the encoded history
-and refine them for four steps with one weight-shared cross-attention/FFN block;
-pool the final states into the ordinary item-retrieval query and train only with
-the unchanged next-item objective. Compare with the baseline, an
-equal-parameter unshared deeper transformer, and an equal-latency repeated
-block without latent states. Report recall, state diversity/collapse, stepwise
-query change, and latency. This proposed definition requires plan approval, but
-the treatment itself is no longer unspecified.
+**Implementation.** Compare:
 
-**Acceptance.** A “thinking” claim requires beating both equal-parameter and
-equal-latency controls. Non-inferiority alone is insufficient.
+1. **Listens between likes.** Train for next-like prediction, but retain every
+   chronological listen between the visible liked items as intermediate context.
+   Match the number of visible likes to a likes-only control; this is also a
+   bridge to G5 RQ5.
+2. **SID revision.** Train a revision decoder on
+   `[history, corrupted_draft, SID_END] -> clean_sid`. Create the draft by
+   masking SID tokens or replacing a suffix with a different valid SID
+   continuation; artificial draft values receive no prediction loss. Tune the
+   corruption probability including zero. At inference, first generate a draft
+   with the matched one-pass generator, then pass that actual draft to the
+   revision decoder and rank by the revision.
+3. **Direction variants.** For SID revision, compare forward/forward,
+   reverse/forward, and forward/reverse first/second attempts.
+
+For SID corruption, exclude the true continuation from random replacement.
+Compare every family with the unchanged one-pass baseline and its
+equal-parameter and equal-latency controls. Report draft and revised SID/item
+recall, correction rate after a wrong draft, and latency.
+
+**Acceptance.** A thinking claim requires beating both equal-parameter and
+equal-latency controls. SID revision must also improve revised item recall over
+both its draft and the matched one-pass generator.
 
 ## Remaining ideas
 
-### Additional features for SID construction
+### RQ1 — Do additional features improve SID construction?
 
 **Understanding.** Determine which content, collaborative, temporal, or action
 features improve both code quality and retrieval.
@@ -1402,11 +1592,11 @@ quantization, and give every feature family the same bounded downstream search
 over levels, per-level codebook sizes, and method-specific parameters. Select
 on item recall and report intrinsic SID metrics as diagnostics.
 
-**Acceptance.** Compare each feature with the feature-free or content-only
-tokenizer. A feature is usable only if non-inferior, and selected only for an
-item-recall gain; intrinsic SID metrics are diagnostic.
+**Acceptance.** Compare each feature with the selected tokenizer without that
+feature family. It is usable only if non-inferior and selected only for an
+item-recall gain; SID metrics are diagnostic.
 
-### Muon or another optimizer
+### RQ2 — Does Muon or another optimizer help?
 
 **Understanding.** This is an optimizer RQ, not a semantic-ID method.
 
@@ -1417,7 +1607,22 @@ experiment's main size.
 **Acceptance.** Compare with the current tuned optimizer. A challenger may win
 with non-inferior recall and lower total time or memory, including tuning cost.
 
-### DCNv2 with DenseNet deep part
+### RQ3 — Do auxiliary prediction tasks improve semantic-ID recommendation?
+
+**Understanding.** Test whether predicting item properties or counters provides
+useful supervision beyond next-item loss.
+
+**Implementation.** Fix one SID tokenizer and downstream model. Compare
+next-item loss alone with auxiliary heads for available categorical targets and
+training-only item-counter bins, first separately and then in the best
+combination. Fit every bin and counter from training data; dynamic counters must
+be prefix-causal. Tune auxiliary loss weights and report auxiliary accuracy as
+a diagnostic.
+
+**Acceptance.** Compare every auxiliary task with next-item loss alone. Select
+only by downstream item recall; auxiliary accuracy is diagnostic.
+
+### RQ4 — Does DCNv2 with a DenseNet deep part help?
 
 **Understanding.** Establish a non-sequential ranking/reranking control over a
 fixed candidate set.
@@ -1426,9 +1631,10 @@ fixed candidate set.
 features in DCNv2, and compare with a capacity-matched MLP ranker on 50M.
 
 **Acceptance.** Compare DCNv2 with a capacity-matched MLP. Retain explicit
-crosses only for better recall or a non-inferior efficiency win.
+crosses only for better recall, or non-inferior recall with lower latency or
+memory.
 
-### DCNv2 plus a history transformer
+### RQ5 — Does adding a history transformer to DCNv2 help?
 
 **Understanding.** Test whether sequential context adds information beyond
 explicit crosses.
@@ -1439,7 +1645,7 @@ the fixed DCNv2 ranker and compare with DCNv2 alone under the same candidates.
 **Acceptance.** Compare with DCNv2 alone. Keep the history transformer only if
 Recall@100 improves; extra compute cannot be justified by non-inferiority.
 
-### Transformer pretraining for ranking
+### RQ6 — Does transformer pretraining improve ranking?
 
 **Understanding.** Separate useful initialization from a permanently frozen
 representation.
@@ -1455,7 +1661,6 @@ cost.
 
 PSI is now resolved as *Purely Semantic Indexing for LLM-based Generative
 Recommendation and Retrieval*. Proposed completions remain explicitly marked
-for the empty G5 RQ4.3, decoder-only G7 carry-over, continuous-residual G12 RQ,
-and G14 thinking prompt. Before implementation or training, each experiment
-still needs an approved plan with exact configurations, run counts, and
-selection rules.
+for the empty G5 RQ4.3 and continuous-residual G12 RQ. Before implementation or
+training, each experiment still needs an approved plan with exact
+configurations, run counts, and selection rules.

@@ -8,6 +8,176 @@ _queue_timing_index=${_queue_service_state}/timing-history.json
 _run_lock_dir=generated/logs/.run-locks
 _gpu_check_evidence_dir=${TRAINING_QUEUE_GPU_CHECK_EVIDENCE_DIR:-generated/training-queue-gpu-checks}
 _queue_control_python=${TRAINING_QUEUE_CONTROL_PYTHON:-python3}
+_queue_snapshot_python=$(command -v python3) || return 1
+
+_verify_immutable_source_snapshot() {
+    local experiment_script=$1
+    shift
+    local snapshot_root=
+    local snapshot_identity=
+    local snapshot_manifest_sha256=
+    local assignment
+    for assignment in "$@"; do
+        case $assignment in
+            IMMUTABLE_SOURCE_SNAPSHOT_ROOT=*)
+                snapshot_root=${assignment#*=}
+                ;;
+            IMMUTABLE_SOURCE_SNAPSHOT_IDENTITY_SHA256=*)
+                snapshot_identity=${assignment#*=}
+                ;;
+            IMMUTABLE_SOURCE_SNAPSHOT_MANIFEST_SHA256=*)
+                snapshot_manifest_sha256=${assignment#*=}
+                ;;
+        esac
+    done
+    if [ -z "$snapshot_root$snapshot_identity$snapshot_manifest_sha256" ]; then
+        return 0
+    fi
+    if [ -z "$snapshot_root" ] || [ -z "$snapshot_identity" ] \
+        || [ -z "$snapshot_manifest_sha256" ]; then
+        echo "Immutable source snapshot contract is incomplete" >&2
+        return 1
+    fi
+    "$_queue_snapshot_python" -I -c '
+import hashlib
+import json
+import os
+from pathlib import Path
+import stat
+import sys
+
+root = Path(sys.argv[1])
+expected_identity = sys.argv[2]
+expected_manifest_sha256 = sys.argv[3]
+runner = Path(sys.argv[4])
+
+def fail(message):
+    raise SystemExit(message)
+
+def sha256(path):
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+def canonical(value):
+    return json.dumps(
+        value,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+        allow_nan=False,
+    ).encode()
+
+def pairs(values):
+    result = {}
+    for key, value in values:
+        if key in result:
+            fail("Duplicate source snapshot manifest key")
+        result[key] = value
+    return result
+
+def no_symlinks(path):
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current /= part
+        try:
+            mode = os.lstat(current).st_mode
+        except OSError:
+            fail("Source snapshot path is absent")
+        if stat.S_ISLNK(mode):
+            fail("Source snapshot path traverses a symlink")
+
+if not root.is_absolute() or len(expected_identity) != 64 \
+        or any(value not in "0123456789abcdef" for value in expected_identity):
+    fail("Source snapshot identity is invalid")
+no_symlinks(root)
+if root.name != expected_identity or not root.is_dir():
+    fail("Source snapshot root differs")
+marker = root / ".g3-native500m-source-snapshot.json"
+no_symlinks(marker)
+if not marker.is_file() or sha256(marker) != expected_manifest_sha256:
+    fail("Source snapshot manifest differs")
+try:
+    document = json.loads(
+        marker.read_text(),
+        object_pairs_hook=pairs,
+        parse_constant=lambda value: fail("Non-finite source snapshot value"),
+    )
+except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+    fail("Source snapshot manifest is invalid")
+if set(document) != {"schema_version", "kind", "implementation_identity", "sha256"}:
+    fail("Source snapshot manifest schema differs")
+body = {key: value for key, value in document.items() if key != "sha256"}
+identity = document["implementation_identity"]
+if document["schema_version"] != 1 \
+        or document["kind"] != "g3_native500m_source_snapshot" \
+        or document["sha256"] != hashlib.sha256(canonical(body)).hexdigest() \
+        or not isinstance(identity, dict) \
+        or set(identity) != {"schema_version", "files", "sha256"} \
+        or identity.get("schema_version") != 1 \
+        or identity.get("sha256") != expected_identity:
+    fail("Source snapshot manifest identity differs")
+identity_body = {key: value for key, value in identity.items() if key != "sha256"}
+if identity["sha256"] != hashlib.sha256(canonical(identity_body)).hexdigest():
+    fail("Source snapshot implementation identity differs")
+files = identity.get("files")
+if not isinstance(files, list) or not files:
+    fail("Source snapshot file ledger differs")
+expected_files = {marker.name}
+expected_directories = set()
+paths = []
+for item in files:
+    if not isinstance(item, dict) or set(item) != {"path", "size_bytes", "sha256"}:
+        fail("Source snapshot file schema differs")
+    relative = item["path"]
+    relative_path = Path(relative) if isinstance(relative, str) else Path("..")
+    if not relative or relative_path.is_absolute() or ".." in relative_path.parts \
+            or type(item["size_bytes"]) is not int or item["size_bytes"] < 0:
+        fail("Source snapshot file identity differs")
+    source = root / relative_path
+    no_symlinks(source)
+    try:
+        source_stat = os.lstat(source)
+    except OSError:
+        fail("Source snapshot file is absent")
+    if not stat.S_ISREG(source_stat.st_mode) \
+            or source_stat.st_size != item["size_bytes"] \
+            or sha256(source) != item["sha256"]:
+        fail("Source snapshot file differs")
+    paths.append(relative)
+    expected_files.add(relative_path.as_posix())
+    parent = relative_path.parent
+    while parent != Path("."):
+        expected_directories.add(parent.as_posix())
+        parent = parent.parent
+if paths != sorted(set(paths)):
+    fail("Source snapshot paths differ")
+actual_files = set()
+actual_directories = set()
+for source in root.rglob("*"):
+    relative = source.relative_to(root).as_posix()
+    source_stat = os.lstat(source)
+    if stat.S_ISLNK(source_stat.st_mode):
+        fail("Source snapshot contains a symlink")
+    if stat.S_ISREG(source_stat.st_mode):
+        actual_files.add(relative)
+    elif stat.S_ISDIR(source_stat.st_mode):
+        actual_directories.add(relative)
+    else:
+        fail("Source snapshot contains an irregular entry")
+if actual_files != expected_files or actual_directories != expected_directories:
+    fail("Source snapshot file set differs")
+try:
+    runner_relative = runner.relative_to(root).as_posix()
+except ValueError:
+    fail("Experiment runner is outside the source snapshot")
+if runner_relative not in expected_files:
+    fail("Experiment runner is absent from the source snapshot ledger")
+' "$snapshot_root" "$snapshot_identity" "$snapshot_manifest_sha256" \
+        "$experiment_script"
+}
 
 if [ -z "${TRAINING_QUEUE_SERVICE_CHILD:-}" ] \
     && [ -f "${_queue_service_state}/status.json" ] \
@@ -678,6 +848,13 @@ _enqueue_script() {
         exec {run_lock_fd}>"$run_lock" || exit 1
         if ! flock -n "$run_lock_fd"; then
             echo "!!! ${run} is already owned by another process"
+            touch "$failed_marker"
+            exit 1
+        fi
+        if ! _verify_immutable_source_snapshot "$experiment_script" "$@" \
+                >> "$log" 2>&1; then
+            echo "!!! ${run} failed immutable source snapshot verification" \
+                >> "$log"
             touch "$failed_marker"
             exit 1
         fi

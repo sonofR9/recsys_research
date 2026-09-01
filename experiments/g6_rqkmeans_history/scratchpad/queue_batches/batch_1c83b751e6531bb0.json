@@ -1,0 +1,104 @@
+{
+  "jobs": [
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_43",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_43_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_44",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_44_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_45",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_45_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_46",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_46_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_47",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_47_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_48",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_48_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_49",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_49_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_50",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_50_native50m"
+    },
+    {
+      "id": "primary_control_repeats:best_g1_control_seed_51",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.009275696897332332,
+        "embedding_learning_rate": 0.07705820452603944,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_best_g1_control_seed_51_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

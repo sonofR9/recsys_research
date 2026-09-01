@@ -1,0 +1,18 @@
+{
+  "schema": "g6-size-preflight-rejection-audit/v1",
+  "dataset_size": "native-500m",
+  "run_name": "g6_rqkmeans_history_size_preflight_b640_ga2_sel4ae8783438c5_native500m",
+  "queue_job_id": "680da5ab66ca482d85e96116d1a5cff0",
+  "terminal_selection_sha256": "4ae8783438c597b1693dff706869ac08c54076513f4acf06458ad4b0b8349c25",
+  "recorded_physical_batch_size": 640,
+  "recorded_gradient_accumulation_steps": 2,
+  "actual_microbatches": 1,
+  "reason": "the probe supplied one microbatch, so the trainer used its single-batch path and did not exercise accumulation 2",
+  "selection_eligible": false,
+  "user_validated_replacement_without_accumulation": true,
+  "artifact_sha256": {
+    "preflight": "eac79a224431fafb9a058d740e78910a70f67a5f4efbaf65ac4392da10b72839",
+    "queue_completion": "2845706be8edbd8813fa468cd329e6cdc3a086e2a694701e7e4d3547aa252a55",
+    "sweep_log": "21f681176970bfe0ce6ba3e08784b35687320eed41aa6f494ac76ff654f8377c"
+  }
+}

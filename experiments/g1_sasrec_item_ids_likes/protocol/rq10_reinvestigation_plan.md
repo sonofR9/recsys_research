@@ -35,7 +35,7 @@
   zero so the seeded treatment initially equals the control. PLE width is
   independently tuned at 8, 16, and 32.
 - Every treatment uses exactly four transformer layers. Width 64, SwiGLU
-  intermediate width 171, two query heads, one KV head, attention window 50,
+  intermediate width 192, two query heads, one KV head, attention window 50,
   learned-forward position, 16-bin timestamp input, standard item-state
   autoregression, random negatives, sequence length 128, no BOS/CLS, batch
   1280, and all other selected-G1 fields are held fixed.

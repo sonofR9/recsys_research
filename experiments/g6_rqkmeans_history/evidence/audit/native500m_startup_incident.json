@@ -1,0 +1,56 @@
+{
+  "schema": "g6-native500m-startup-incident/v1",
+  "observed_at": "2026-08-31",
+  "watchdog": {
+    "command": "/home/sashanovak/arcadia/junk/sashanovak/orcestrator/arcadia_read_watchdog.py --threshold 3 --request-rate 100",
+    "source_log": "/home/sashanovak/.local/state/ai-orchestrator/arcadia-read-watchdog.jsonl",
+    "action": "stopped",
+    "pid": 3128381
+  },
+  "batches": [
+    {
+      "batch_id": "2677d36973e544e8b1140adb64bab437",
+      "manifest_logical_sha256": "42c367a60226357913f31b165791910a09660322be6ad814a29a58289933cc78",
+      "watchdog_main_sigterm_pids": [
+        3951906,
+        3951864,
+        3952002,
+        3951842,
+        3965455,
+        3966753,
+        3966277,
+        3966189
+      ],
+      "watchdog_request_rates": [163.0, 200.333, 946.333]
+    },
+    {
+      "batch_id": "2d31aee728a3412b8d2d6a84998cf093",
+      "manifest_logical_sha256": "158b202d3faab5297fc063761a9710c6c39cfebad4611242f718b6da2939f817",
+      "watchdog_main_sigterm_pids": [
+        4049325,
+        4049095,
+        4049306,
+        4049341,
+        4049233,
+        4051232,
+        4051340,
+        4061149,
+        4060954,
+        4061045,
+        4060891,
+        4060808
+      ],
+      "watchdog_request_rates": [161.0, 357.333, 568.0]
+    }
+  ],
+  "cleanup": {
+    "invalid_retry_jobs_stopped": 12,
+    "orphan_g6_multiprocessing_processes_stopped": 36,
+    "raw_queue_and_run_artifacts_preserved": true
+  },
+  "remediation": {
+    "clean_retry_batch_id": "241170a4b7a54d4f84adbbc12c537f9a",
+    "loader_workers": 4,
+    "prefetch_factor": 4
+  }
+}

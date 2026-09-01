@@ -29,7 +29,7 @@ transfer can be drawn until the compared points spend the same schedule.
 
 ## Controlled comparison
 
-- Unchanged control: `control/control`, dim 64, SwiGLU 171, batch 1280,
+- Unchanged control: `control/control`, dim 64, SwiGLU 192, batch 1280,
   linear 20-epoch horizon, μP base 16 / delta 32.
 - Treatments and exact values:
   - **A. model width** — transformer dim ∈ {16, 32, 64, 128, 256}, item table

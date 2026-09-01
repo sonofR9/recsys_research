@@ -3,10 +3,14 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from experiments.g1_sasrec_item_ids_likes.analysis import reporting
+
+if TYPE_CHECKING:
+    from utils.report_file_facts import ReportFileFacts
 
 
 EMBEDDING_LR = 0.064
@@ -163,14 +167,21 @@ def _load_run(directory: Path, spec: RunSpec) -> Run:
     )
 
 
-def load_runs(generated: Path) -> list[Run]:
+def _artifact_paths(generated: Path, spec: RunSpec) -> tuple[Path, Path, Path]:
+    directory = generated / "logs" / spec.name
+    return (
+        directory / "training_metadata.json",
+        directory / "final_metrics.json",
+        directory / "sweep.log",
+    )
+
+
+def load_runs(generated: Path, facts: ReportFileFacts | None = None) -> list[Run]:
     specs = expected_specs()
     present = [
         spec
         for spec in specs
-        if (generated / "logs" / spec.name / "training_metadata.json").exists()
-        and (generated / "logs" / spec.name / "final_metrics.json").exists()
-        and (generated / "logs" / spec.name / "sweep.log").exists()
+        if all(map(Path.exists, _artifact_paths(generated, spec)))
     ]
     if not present:
         return []
@@ -180,7 +191,17 @@ def load_runs(generated: Path) -> list[Run]:
             f"RQ4 activation/depth surface is incomplete: {len(present)}/"
             f"{len(specs)} artifacts; missing {', '.join(missing)}"
         )
-    return [_load_run(generated / "logs" / spec.name, spec) for spec in specs]
+    if facts is None:
+        return [_load_run(generated / "logs" / spec.name, spec) for spec in specs]
+    paths = tuple(path for spec in specs for path in _artifact_paths(generated, spec))
+    serialized = facts.load_or_compute(
+        "g1_rq4_activation_depth_surface_v1",
+        paths,
+        lambda: [
+            asdict(_load_run(generated / "logs" / spec.name, spec)) for spec in specs
+        ],
+    )
+    return [Run(**values) for values in serialized]
 
 
 def selected_runs(runs: list[Run]) -> dict[tuple[str, int], Run]:

@@ -21,13 +21,21 @@ from dcn.config.ranking import (
     RankingWithHistoryExperiment,
     SemanticRankingExperiment,
 )
+from dcn.config.query_retrieval import (
+    CrossAttentionGenerationExperiment,
+    MuTransferCrossAttentionGenerationExperiment,
+)
 from dcn.config.retrieval import RetrievalExperiment, SampledSoftmaxExperiment
 from dcn.config.sasrec import (
     SasRecExperiment,
     SimpleTwoTowerExperiment,
     TwoTowerRetrievalExperiment,
 )
-from dcn.config.semantic import SemanticExperiment, SemanticIdConfig
+from dcn.config.semantic import CollisionPolicy, SemanticExperiment, SemanticIdConfig
+from dcn.config.semantic_history import (
+    SemanticHistoryExperiment,
+    SemanticHistoryRepresentation,
+)
 from dcn.config.sequence import SequenceExperiment
 from dcn.config.settings import (
     CheckpointConfig,
@@ -44,6 +52,8 @@ __all__ = [
     "ActionGenerationExperiment",
     "CheckpointConfig",
     "CombinedSemanticGenerationExperiment",
+    "CollisionPolicy",
+    "CrossAttentionGenerationExperiment",
     "DataloaderConfig",
     "DayRangeConfig",
     "EmbeddingConfig",
@@ -53,6 +63,7 @@ __all__ = [
     "HomeworkRankingExperiment",
     "LoggingConfig",
     "MuTransferGenerationExperiment",
+    "MuTransferCrossAttentionGenerationExperiment",
     "PretrainConfig",
     "RankingExperiment",
     "RankingWithHistoryExperiment",
@@ -61,6 +72,8 @@ __all__ = [
     "RuntimeConfig",
     "SampledSoftmaxExperiment",
     "SemanticExperiment",
+    "SemanticHistoryExperiment",
+    "SemanticHistoryRepresentation",
     "SemanticGenerationExperiment",
     "SemanticIdConfig",
     "SemanticRankingExperiment",

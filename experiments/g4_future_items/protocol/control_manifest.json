@@ -1,0 +1,126 @@
+{
+  "anchor": {
+    "batch_size": 512,
+    "deep_learning_rate": 0.02879154157702692,
+    "embedding_learning_rate": 0.16590060219780284,
+    "lr_schedule_horizon_epochs": 20
+  },
+  "fixed": {
+    "data": {
+      "day_range": {
+        "end_day": 300,
+        "start_day": 0
+      },
+      "drop_unmapped_items": true,
+      "event_type_filter": "like",
+      "min_item_interactions_per_item": 5,
+      "size": "50m",
+      "user_sample": null,
+      "validation_interval_seconds": 604800,
+      "window": "next_item"
+    },
+    "evaluation": {
+      "catalog": "all",
+      "eval_every_n_epochs": 1,
+      "exclude_seen": false,
+      "ks": [
+        10,
+        50,
+        100
+      ],
+      "selection_k": 100,
+      "selection_max_users": 20000
+    },
+    "loss": {
+      "correct_positive_logq": false,
+      "dense_random_negative_scores": true,
+      "exclude_own_group_negatives": false,
+      "logq_alpha": 0.01,
+      "logq_correction": "yi2019",
+      "mask_false_negatives": false,
+      "negative_sampling": "random",
+      "num_in_batch_negatives": 512,
+      "random_negative_fraction": 0.5
+    },
+    "model": {
+      "bos": false,
+      "cls_token": false,
+      "cls_token_mode": "none",
+      "item_embedding_dim": 64,
+      "max_seq_len": 128,
+      "per_layer_item_embeddings": false,
+      "per_layer_item_feature_dim": null,
+      "per_layer_item_features": "none",
+      "timestamp_combination": "add",
+      "timestamp_delta": "bins",
+      "timestamp_num_bins": 16,
+      "transformer": {
+        "alibi": false,
+        "attention_window": 50,
+        "dim": 64,
+        "dropout": 0.1,
+        "ffn": "swiglu",
+        "ffn_dropout": 0.1,
+        "ffn_intermediate_dim": 171,
+        "final_norm": "layer",
+        "gated_ffn_dropout": false,
+        "input_dropout": 0.1,
+        "input_norm": "rms",
+        "learned_positions": "forward",
+        "nhead": 2,
+        "norm": "layer",
+        "norm_place": "pre",
+        "num_kv_heads": 1,
+        "num_layers": 2,
+        "rope": null
+      }
+    },
+    "training": {
+      "adaptive_schedule_early_stopping": false,
+      "compile": false,
+      "dtype": "bfloat16",
+      "early_stopping_min_delta": 0.0,
+      "early_stopping_patience": 3,
+      "gradient_accumulation_steps": 1,
+      "gradient_clip_norm": null,
+      "initializer_std": 0.02,
+      "lr_schedule": {
+        "cycles": 1,
+        "min_lr_fraction": 0.0,
+        "optimizer_group_scope": "both",
+        "shape": "linear",
+        "warmup_fraction": 0.0
+      },
+      "num_workers": 4,
+      "prefetch_factor": 4,
+      "restore_best_weights": true,
+      "training_semantics_revision": 2,
+      "val_batch_size": 8192,
+      "weight_decay": 0.0
+    }
+  },
+  "tunable": {
+    "deep_learning_rate": {
+      "distribution": "log_uniform",
+      "high": 0.128,
+      "low": 0.0001
+    },
+    "embedding_learning_rate": {
+      "distribution": "log_uniform",
+      "high": 0.256,
+      "low": 0.0001
+    },
+    "lr_schedule_horizon_epochs": {
+      "distribution": "categorical",
+      "values": [
+        5,
+        10,
+        15,
+        20,
+        25,
+        30
+      ]
+    }
+  },
+  "version": 2
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "g6-rq3-recovery-audit/v1",
+  "source_job_id": "collision_search:none_trial_30",
+  "source_run_name": "g6_rq3_none_trial_30_native50m",
+  "recovery_run_name": "g6_rq3_none_trial_30_recovery_01_native50m",
+  "reason": "retry rewrote final metrics and metadata but immutable ranking evidence rejected the retry ranking",
+  "user_approved": true,
+  "active_source_removed": true,
+  "audit_path": "generated/audit/g6_rqkmeans_history/g6_rq3_none_trial_30_native50m",
+  "artifact_sha256": {
+    "job_contract": "814e41b1f775d4dc9290a1b22d55e3d11b169aafb7790b8f0de6e46973a98749",
+    "final_metrics": "b0da4fa82cd50e6ce4316bce7e1df526a857132e33f4ad3e8a91942ff759c693",
+    "training_metadata": "37bf282769f592d02d2cfc2d0aa9246f6c5d88508efcde36691c255f404094fa",
+    "ranking_evidence": "97ab98bc5f833b12abffd15b23d9f1b0b6dad51020f136526f77e8fe7e86e375",
+    "sweep_log": "ef7a4e71eeeb4f3e96dd4ea0c48eb39cec39f85e7874128597474104078632a5"
+  },
+  "ranking_recomputed": {
+    "recall@100": 0.10451238408007768,
+    "ndcg@100": 0.03682694354561244,
+    "mrr@100": 0.029937998673964367
+  },
+  "current_final_metrics": {
+    "recall@100": 0.10251221851386272,
+    "ndcg@100": 0.036790543796610974,
+    "mrr@100": 0.03166534334329473
+  }
+}

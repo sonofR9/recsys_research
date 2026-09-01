@@ -1,3 +1,4 @@
+import math
 from typing import Callable, Literal
 
 import torch
@@ -60,13 +61,23 @@ class DirectAddItemFeature(LayerItemFeatureFusion):
 
 
 class ConcatenatedItemFeatureResidual(LayerItemFeatureFusion):
-    def __init__(self, model_dim: int, feature_dim: int) -> None:
+    def __init__(
+        self, model_dim: int, feature_dim: int, *, max_scale: float | None = None
+    ) -> None:
         super().__init__(model_dim, feature_dim, "before")
+        if max_scale is not None and (not math.isfinite(max_scale) or max_scale < 0):
+            raise ValueError("max_scale must be nonnegative finite")
+        self.max_scale = max_scale
         self.hidden_norm = nn.RMSNorm(model_dim, eps=1e-12)
         self.feature_projection = nn.Linear(feature_dim, model_dim, bias=False)
         self.feature_norm = nn.RMSNorm(model_dim, eps=1e-12)
         self.encoder = DenseNet(2 * model_dim, model_dim)
         self.residual_scale = nn.Parameter(torch.zeros(()))
+
+    def effective_residual_scale(self) -> torch.Tensor:
+        if self.max_scale is None:
+            return self.residual_scale
+        return self.max_scale * torch.tanh(self.residual_scale)
 
     def forward(
         self,
@@ -84,7 +95,7 @@ class ConcatenatedItemFeatureResidual(LayerItemFeatureFusion):
                 dim=-1,
             )
         )
-        return self._combine(hidden, self.residual_scale * encoded, active)
+        return self._combine(hidden, self.effective_residual_scale() * encoded, active)
 
 
 class GemmaItemFeatureResidual(LayerItemFeatureFusion):
@@ -96,9 +107,7 @@ class GemmaItemFeatureResidual(LayerItemFeatureFusion):
     ) -> None:
         super().__init__(model_dim, feature_dim, "after")
         finite_readout_factory = finite_readout_factory or (
-            lambda input_dim, output_dim: nn.Linear(
-                input_dim, output_dim, bias=False
-            )
+            lambda input_dim, output_dim: nn.Linear(input_dim, output_dim, bias=False)
         )
         self.original_projection = finite_readout_factory(model_dim, feature_dim)
         self.original_norm = nn.RMSNorm(feature_dim, eps=1e-12)

@@ -5,10 +5,12 @@ from pathlib import Path
 
 import polars as pl
 import pytest
+import yaml
 
 from data.counters import DecayConfig, EmaCounter, FieldConfig
 from dcn.data.dataset_manager import DatasetManager
 from utils.global_config import config as global_config
+from utils.report_file_facts import report_file_fact_scope
 
 SECONDS_IN_DAY = 86_400
 COLUMNS = ["item_id", "uid", "target_like"]
@@ -74,6 +76,26 @@ def test_days_are_split_and_addressable(main_parquet: Path) -> None:
     assert manager.get_available_days() == [0, 1, 2]
     assert len(manager.create_dataset([0, 1])) == 4
     assert len(manager.create_dataset(0)) == 2
+
+
+def test_report_scope_reuses_dataset_metadata(
+    main_parquet: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _manager(main_parquet)
+    original = yaml.safe_load
+    loads = 0
+
+    def load(stream: object) -> object:
+        nonlocal loads
+        loads += 1
+        return original(stream)
+
+    monkeypatch.setattr(yaml, "safe_load", load)
+    with report_file_fact_scope(main_parquet.parent):
+        _manager(main_parquet)
+        _manager(main_parquet)
+
+    assert loads == 1
 
 
 def test_concurrent_managers_build_a_shared_cold_cache_once(

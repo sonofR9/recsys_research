@@ -1,0 +1,16 @@
+{
+  "dataset_size": "native-500m",
+  "audit": {
+    "path": "experiments/g4_future_items/protocol/native500m/evidence/rq3_feasibility_audit_v3.json",
+    "sha256": "dd679b2b2c580e87bd831d67063bfddafbf2a24380b9c430058b65fb9842c28a"
+  },
+  "kind": "g4_native500m_rq3_decision",
+  "schema_version": 1,
+  "status": "preselector_stop",
+  "user_validation": {
+    "audit_sha256": "dd679b2b2c580e87bd831d67063bfddafbf2a24380b9c430058b65fb9842c28a",
+    "message_sha256": "da0fd6b46d4bb41f96bc9c01a4e975c3260eae4130f158d12e68f11ebe892f6a",
+    "scope": "RQ3 pre-selector feasibility stop",
+    "validated": true
+  }
+}

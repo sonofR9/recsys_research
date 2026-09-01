@@ -1,0 +1,13 @@
+version: 1
+id: g3-rq5-frequency-gate
+title: Test frequency-adaptive content gating
+description: >-
+  Implement, tune, evaluate, and report the approved global and
+  training-frequency-conditioned content gates against the original tied
+  learned-ID baseline, with fixed and global gates as mechanism checks, on
+  native Yambda-500M. Reuse the selected RQ2 embedding learning rate and tune
+  only deep learning rate, horizon, and frequency-gate width.
+blocked_by:
+  - g3-rq2-content-concat
+ideas_tags:
+  - g3-rq5-frequency-gate

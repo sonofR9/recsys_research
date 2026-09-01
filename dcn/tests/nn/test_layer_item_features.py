@@ -49,6 +49,16 @@ def test_zero_start_fusions_preserve_the_control(fusion: nn.Module) -> None:
     assert torch.equal(fusion(hidden, original, features), hidden)
 
 
+def test_bounded_concat_residual_limits_its_effective_gate() -> None:
+    fusion = ConcatenatedItemFeatureResidual(8, 4, max_scale=0.025)
+
+    assert fusion.effective_residual_scale().item() == 0
+
+    fusion.residual_scale.data.fill_(100)
+
+    assert fusion.effective_residual_scale().item() == pytest.approx(0.025)
+
+
 @pytest.mark.parametrize(
     "fusion",
     [

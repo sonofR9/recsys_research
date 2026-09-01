@@ -38,6 +38,11 @@ Submitted runs, batches, and results survive submitting shells under
 monitoring. A launcher exits nonzero if one of its own runs fails; failures do
 not fail unrelated launcher batches.
 
+Launchers that require all-or-none submission may pass a versioned JSON job
+specification to `service.py submit-batch`. The service publishes and seals the
+whole batch under one dispatch lock; an exact retry recovers an interrupted
+unsealed submission before publishing the replacement.
+
 Only one service can own scheduling. While it is running, directly sourcing
 `queue.sh` submits to it instead of creating a competing embedded queue.
 

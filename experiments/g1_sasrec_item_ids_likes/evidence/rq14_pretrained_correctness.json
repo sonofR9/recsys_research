@@ -1,0 +1,111 @@
+{
+  "checkpoint_sha256": "3a8cfb68acc0116bee2020189934b578f01b6021a9823642f581a591c9de54f0",
+  "checks": {
+    "candidate_only_loss_and_target_exclusion": {
+      "passed": true
+    },
+    "exact_checkpoint_load_scope": {
+      "copied_item_embedding": true,
+      "copied_memory_encoder": true,
+      "copied_tokenizer": true,
+      "passed": true,
+      "preserved_decoder": true,
+      "preserved_decoder_query": true,
+      "preserved_query_projection": true,
+      "preserved_query_slots": true
+    },
+    "horizon_and_artifact_binding": {
+      "passed": true,
+      "run_count": 12
+    },
+    "memory_ordering_and_gradients": {
+      "passed": true
+    },
+    "treatment_recipes": {
+      "all_candidate_only": true,
+      "new_recipe_count": 9,
+      "new_treatments": [
+        "distinct_history",
+        "shared_cls_only",
+        "shared_history"
+      ],
+      "passed": true
+    }
+  },
+  "dataset_size": "500m",
+  "implementation_sha256": {
+    "dcn/config/query_retrieval_training.py": "6d4eb922e036ece4cce5e94f9c68c85adaac978beded38cde2689465ae4df751",
+    "dcn/models/cross_attention_retrieval.py": "3e3b2d6a6341c6ba03bfc121f881bf32a2533595a7c8ce55d1f4e0c92d0196b0",
+    "dcn/models/cross_attention_training.py": "8f9c51d68b70ada1a0b92f29bfd8760e405a7b842993f9ec3280da7daba26426",
+    "dcn/models/history_tokens.py": "c1b075764f3aeee0479f3fdd19ac1990a01c9ae07674449a0b4b5d524c7c542a",
+    "experiments/g1_sasrec_item_ids_likes/analysis/rq14_pretrained_audit.py": "3b4974ae11f0400f3eecbcb9804503c5c73681e85a1a3c068abc802077afaa25",
+    "experiments/g1_sasrec_item_ids_likes/analysis/rq14_pretrained_candidates.py": "c442b914d5484ec6224304372c2a685ce19e89cca5c74bd3fea1666fe30ce9a7",
+    "experiments/g1_sasrec_item_ids_likes/analysis/rq14_pretrained_report.py": "8f44ad7aa76c2edd852340a7a9cc6577f73382f42c30e9705eb6c8a38de0c4ef",
+    "experiments/g1_sasrec_item_ids_likes/configs/rq14_pretrained_query_variant.py": "c4ce31a23ce02334fc6a140e474d0f1eb7ecaeaaf06d3624a82473e88d33fa0e"
+  },
+  "research_question": "RQ14 pretrained decoder-decoder query memory",
+  "run_artifacts": {
+    "g1_rq14_pretrained_distinct_history_e0p00025_d0p000375_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "499031d6bb6183eb22b2348123c2162ac883835263c76786eef3932109a2259f",
+      "sweep.log": "625d5dafd4473095893957ae40c1297dc1549ef17fc0cd4e5c21e2c5cc510149",
+      "training_metadata.json": "1ded1f6926cffaa367bd82ce01192ae6668b41b81d73d475346d16ee7e8eab9c"
+    },
+    "g1_rq14_pretrained_distinct_history_e0p00025_d0p00075_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "e7e760fac42bf838a25bb40729aaba8b12c43399c2ecfa26b44c5045edd75a24",
+      "sweep.log": "9013a1b99b7ccb722e7d45e3535ef38a25aae92cf8f56a35cd07b1079a53f5df",
+      "training_metadata.json": "1c43c75d86294f1822a24e46d4083aaf66d1e7be926c0808f56196bd2c9d1ff2"
+    },
+    "g1_rq14_pretrained_distinct_history_e0p00025_d0p0015_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "a09693d52bdc604b36860edf8454606f019b4c093b9d8be84337317337cf3a1c",
+      "sweep.log": "f879792e62ca21c107900088cee7daf4fd58043aa108d4e16b345ad1f995f284",
+      "training_metadata.json": "9567a6140439808b54c503f5342ef3e8e0a90f91803f4d2bc2a419fc1c731cd2"
+    },
+    "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p000375_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "2080b28210d171e9b4ad36f87e8ac6056e8695281ac35e81940c6ad3ccf3d7fc",
+      "sweep.log": "5b81998380b68088edc081537b3e210f4d10bde309532448d1fe7b69efb8f05e",
+      "training_metadata.json": "bb93234c49cdbcc3e375a6692e5329a717c5866c5023b705f334361527eca954"
+    },
+    "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p00075_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "68c8f9b1c5ddba0e37da0010844565189a184a5354fd0b74fa50917f5e79bf07",
+      "sweep.log": "f4a94204d03e248705d596a989aa46f039ea4b3fbcf82ff1c2348b0c0840418a",
+      "training_metadata.json": "94596e90fd39bc268dc1d659dfbbb19151eaa702ab1affe56d95d1fd8bae86d3"
+    },
+    "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p0015_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "2b6fa3e6d490f51ee95fab0842fb4fa89fb657bd9d79cbab99af558a40316ed5",
+      "sweep.log": "f635fac7b4555b7054a347526cef331d305eade27979b56ebca291636ae445f9",
+      "training_metadata.json": "3db09d750a8bc42975ed7f31f3d9691ad645eed6f892a8c93e48c4ba4c82d0d6"
+    },
+    "g1_rq14_pretrained_shared_history_e0p00025_d0p000375_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "cdef003bdd5f70ddfdf1998b28a3228eff39d97a25a24ec385bae5f14b89da6b",
+      "sweep.log": "379aa6f83a30f3f775f6009e78c25558040043c7e4e4c7bc61928702fa1cbcef",
+      "training_metadata.json": "458995dba529876e722f259b62e33fd637f546722d87d6dc2d1bd81a8b2e3a80"
+    },
+    "g1_rq14_pretrained_shared_history_e0p00025_d0p00075_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "32c72f606419287d8e5d2bd1d0837004525601c38bcecbd057c5150d4caf07b8",
+      "sweep.log": "ae585bd5e97827d2003cefeb9a2cd4704053fbd5c361c5af2f688360632b5524",
+      "training_metadata.json": "c64d4e942e7dbff53469c68189ad28d723eb4f6528b711cf8db7df5df9216845"
+    },
+    "g1_rq14_pretrained_shared_history_e0p00025_d0p0015_b1280_seed42_h20_r1_500m": {
+      "final_metrics.json": "60049c3324e08e4b04be2896520635760c8069d3410605082a602e9ec84c4c66",
+      "sweep.log": "5f4228102c2b9de08f18789c4545b8d3d48d2b637e857927f078fcff17154cc3",
+      "training_metadata.json": "01971aa03e421643db22ab8ef6bb9c349fc18cddbaa8d10023c42009d1ee00a5"
+    },
+    "g1_rq15_pretrained_finetune_e0p00025_d0p000375_b1280_seed42_h20_lrdeeplow1_r1_500m": {
+      "final_metrics.json": "1fc9c59cc7741f5548693f98f00df35841be67d72cb8db975fff9507ac45d14d",
+      "sweep.log": "8a7224901f58e68046a06fd003ec6429f760cdb9dae32d243167a0e753976546",
+      "training_metadata.json": "d4370bb0fb1fa46021975c58e01ba3797887f27770345c956d4a513ba0291f97"
+    },
+    "g1_rq15_pretrained_finetune_e0p00025_d0p00075_b1280_seed42_h20_lrembeddinglow7_r1_500m": {
+      "final_metrics.json": "90c7ba1e9831f9f94ea81aeb04d90061c3cc23d8dde4c8da42421dc5746c51ee",
+      "sweep.log": "9d0a4f04bd2f674e4925862dc3e3b999d1aafa23174f2a1862d5e899aeac7285",
+      "training_metadata.json": "610962873121ad3b0fade26b0bdf3f1c568ddf78b60af50a780752644b697ee9"
+    },
+    "g1_rq15_pretrained_finetune_e0p00025_d0p0015_b1280_seed42_h20_lrembeddinglow7_r1_500m": {
+      "final_metrics.json": "960195c62079aff9b7feb76482166f114d97a2549c26cac84e4364473aafa27c",
+      "sweep.log": "db5cbba40e9ec85505f143b91eb39178b86576929f190401932f71574cea296a",
+      "training_metadata.json": "8d171ec34c3acf3255fd3702c2ef7b3568809b42e730b7cf0ba4228d3ff3f895"
+    }
+  },
+  "schema_version": 1,
+  "status": "passed"
+}

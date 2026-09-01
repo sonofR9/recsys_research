@@ -32,7 +32,7 @@ in the [RQ1 transfer evidence](rq1_transfer.md).
 ## RQ2 — Best transformer combination
 
 - `selected_quality` defines sequence 128, linear decay, 16 additive time bins,
-  uniform negatives, SwiGLU-171, GQA, and window 50
+  uniform negatives, SwiGLU-192, GQA, and window 50
   ([configuration](../configs/variant.py#L440-L454)).
 - `future_baseline` adds batch 512, input RMSNorm, and embedding/deep LRs
   0.032/0.012 ([final configuration](../configs/variant.py#L546-L561)).

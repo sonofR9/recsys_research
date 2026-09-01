@@ -1,6 +1,10 @@
 import torch
 
-from dcn.semantic import ResidualCodebooks, fit_residual_kmeans
+from dcn.semantic import (
+    ResidualCodebooks,
+    fit_residual_kmeans,
+    fit_residual_kmeans_with_diagnostics,
+)
 
 
 def _three_clusters(points_per_cluster: int = 60) -> torch.Tensor:
@@ -18,6 +22,92 @@ def _reconstruction_error(
 
 
 class TestFitResidualKmeans:
+    def test_convergent_fit_stops_before_the_iteration_cap(self) -> None:
+        embeddings = _three_clusters()
+
+        fit = fit_residual_kmeans_with_diagnostics(
+            embeddings,
+            num_levels=2,
+            num_codes=3,
+            max_iterations=300,
+            relative_inertia_tolerance=1e-4,
+            assignment_early_stopping=True,
+        )
+
+        assert fit.codebooks.num_levels == 2
+        assert torch.equal(fit.codes, fit.codebooks.encode(embeddings))
+        assert all(level.iterations_run < 300 for level in fit.diagnostics.levels)
+        assert all(
+            level.stop_reason in {"assignments_stable", "relative_inertia"}
+            for level in fit.diagnostics.levels
+        )
+        assert all(
+            level.final_inertia <= level.initial_inertia
+            for level in fit.diagnostics.levels
+        )
+
+    def test_convergent_fit_reports_the_iteration_cap(self) -> None:
+        generator = torch.Generator().manual_seed(9)
+        embeddings = torch.randn(200, 8, generator=generator)
+
+        fit = fit_residual_kmeans_with_diagnostics(
+            embeddings,
+            num_levels=1,
+            num_codes=8,
+            max_iterations=1,
+            relative_inertia_tolerance=0.0,
+            assignment_early_stopping=False,
+        )
+
+        level = fit.diagnostics.levels[0]
+        assert level.iterations_run == 1
+        assert level.stop_reason == "max_iterations"
+
+    def test_legacy_wrapper_keeps_fixed_iteration_semantics(self) -> None:
+        generator = torch.Generator().manual_seed(11)
+        embeddings = torch.randn(120, 6, generator=generator)
+
+        legacy = fit_residual_kmeans(
+            embeddings,
+            num_levels=2,
+            num_codes=7,
+            num_iterations=4,
+            seed=5,
+        )
+        explicit = fit_residual_kmeans_with_diagnostics(
+            embeddings,
+            num_levels=2,
+            num_codes=7,
+            max_iterations=4,
+            relative_inertia_tolerance=None,
+            assignment_early_stopping=False,
+            seed=5,
+        )
+
+        assert torch.equal(legacy.centroids, explicit.codebooks.centroids)
+        assert all(
+            level.iterations_run == 4 and level.stop_reason == "max_iterations"
+            for level in explicit.diagnostics.levels
+        )
+
+    def test_relative_inertia_stop_never_accepts_an_increase(self) -> None:
+        generator = torch.Generator().manual_seed(12)
+        embeddings = torch.randn(200, 8, generator=generator)
+
+        fit = fit_residual_kmeans_with_diagnostics(
+            embeddings,
+            num_levels=3,
+            num_codes=9,
+            max_iterations=300,
+            relative_inertia_tolerance=1e-4,
+            assignment_early_stopping=False,
+        )
+
+        for level in fit.diagnostics.levels:
+            if level.stop_reason == "relative_inertia":
+                assert level.final_relative_inertia_improvement is not None
+                assert level.final_relative_inertia_improvement >= 0
+
     def test_separated_clusters_get_one_code_each(self) -> None:
         embeddings = _three_clusters()
 

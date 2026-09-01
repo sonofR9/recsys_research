@@ -1,0 +1,30 @@
+{
+  "canonicalization": "cpython-3.12-json-v1",
+  "paths": {
+    "dcn/config/generation.py": "3318e615708f47bed4cf5d7140eea42c84b2e9e7fc237f0a3db44aff754e5f66",
+    "dcn/data/packed.py": "23c9aef7d3275246c2e3e55329e8f0e8ab96a774d08fa23418ec81cae13c9267",
+    "dcn/data/sequence_dataset.py": "1c10093787ee2726e9c9f0bc5aad4537d3b530dd2d0a69ebccff9682578c5496",
+    "dcn/eval/ranking_metrics.py": "0b263f022615afe8b5ff62fff35956ec5c27d54c56d352d2697e1d9018f7e186",
+    "dcn/models/history_tokens.py": "e2deec40320fed312aedb6058d523e1444708a7626c994b6954e5d80b7513d7e",
+    "dcn/models/loss_wrapper.py": "7f6046f711403f057688cfaf0090f31953e51a9a040ed2bb8e24bbfa9415bbe8",
+    "dcn/models/sequence_targets.py": "b8bde0436b8d7b20af3cc769ddbcd2fd1e9df2a207c9a3f640cce773dcb5ac21",
+    "dcn/nn/sampled_softmax.py": "055bd43bdc59ec8ca3c2e7520560fdb30edcbf834a47c5efd6482767b01aa385",
+    "dcn/training/epoch_trainer.py": "ff5df2f540cfb9f80526588a5475913785a973a1cfd70279a016a10051aae5cb",
+    "experiments/g4_future_items/__init__.py": null,
+    "experiments/g4_future_items/configs/__init__.py": null,
+    "experiments/g4_future_items/configs/control.py": null,
+    "experiments/g4_future_items/configs/selectors.py": null,
+    "experiments/g4_future_items/configs/treatments.py": null,
+    "experiments/g4_future_items/launchers/__init__.py": null,
+    "experiments/g4_future_items/launchers/compiled.py": null,
+    "experiments/g4_future_items/launchers/run_control.py": null,
+    "experiments/g4_future_items/launchers/run_selectors.py": null,
+    "experiments/g4_future_items/launchers/run_treatments.py": null,
+    "experiments/g4_future_items/protocol/__init__.py": null,
+    "experiments/g4_future_items/protocol/manifest.py": null,
+    "experiments/g4_future_items/protocol/materialization.py": null,
+    "experiments/g4_future_items/protocol/metrics.py": null,
+    "experiments/g4_future_items/selectors.py": null,
+    "experiments/g4_future_items/targets.py": null
+  }
+}

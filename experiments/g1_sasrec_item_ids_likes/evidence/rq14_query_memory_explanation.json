@@ -1,0 +1,85 @@
+{
+  "conclusion": "All four planned effects are unresolved inside the native-500M 0.003 Recall@100 band after correctness and LR checks. Distinct tokens and history memory have no individually resolved effect; the predeclared overall rule selects shared_cls_only.",
+  "covered_unexpected_effects": [
+    "distinct_minus_shared_cls_only",
+    "distinct_minus_shared_history",
+    "history_minus_cls_only_distinct",
+    "history_minus_cls_only_shared"
+  ],
+  "dataset_size": "500m",
+  "findings": {
+    "audit_scope": {
+      "claim": "The current audit verifies exact memory contents, target exclusion, gradient flow to every slot and history, candidate-only training, and complete LR/horizon resolution. Shared repeated tokens still occupy ordered causal positions and therefore form contextual slot states.",
+      "supported_by": [
+        "query_slot_identity_and_order",
+        "memory_content_and_lengths",
+        "target_exclusion_and_candidate_only_loss",
+        "gradient_flow_to_every_slot_and_history",
+        "learning_curves_and_lr_boundaries"
+      ]
+    },
+    "axis_effects": {
+      "distinct_token_identity": {
+        "claim": "Four distinct query-token identities do not produce a resolved Recall@100 gain over one repeated token on either memory surface.",
+        "covers": [
+          "distinct_minus_shared_cls_only",
+          "distinct_minus_shared_history"
+        ],
+        "evidence": {
+          "distinct_minus_shared_cls_only": {
+            "full_recall_delta": 0.00016960360490778092,
+            "recall_resolution_band": 0.003,
+            "validation_recall_delta": 0.0003000000000000086
+          },
+          "distinct_minus_shared_history": {
+            "full_recall_delta": 0.00042418909485605893,
+            "recall_resolution_band": 0.003,
+            "validation_recall_delta": 0.00020000000000000573
+          }
+        }
+      },
+      "history_memory": {
+        "claim": "Exposing history plus CLS states does not produce a resolved Recall@100 gain for either shared or distinct query tokens.",
+        "covers": [
+          "history_minus_cls_only_distinct",
+          "history_minus_cls_only_shared"
+        ],
+        "evidence": {
+          "history_minus_cls_only_distinct": {
+            "full_recall_delta": 0.0005040428587213125,
+            "recall_resolution_band": 0.003,
+            "validation_recall_delta": -0.00010000000000000286
+          },
+          "history_minus_cls_only_shared": {
+            "full_recall_delta": 0.0002494573687730345,
+            "recall_resolution_band": 0.003,
+            "validation_recall_delta": 0.0
+          }
+        }
+      }
+    },
+    "supervision_density": {
+      "claim": "The unresolved token and memory effects are consistent with a one-target-per-user supervision bottleneck, not evidence that the added states are inaccessible. RQ13 supplies controlled supporting evidence; it does not prove this mechanism causally for RQ14.",
+      "rq13_cap32_candidate_targets_per_user": 23.495983243630192,
+      "rq13_cap32_recall": 0.12548011157185807,
+      "rq13_cap32_recall_gain": 0.048051570523083245,
+      "rq13_one_example_candidate_targets_per_user": 1.0,
+      "rq13_one_example_recall": 0.07742854104877482,
+      "rq14_candidate_targets_per_user": 1.0,
+      "rq14_full_recall_range": [
+        0.07837894719160457,
+        0.07905259365523366
+      ]
+    }
+  },
+  "input_bindings": {
+    "rq13_correctness_audit_sha256": "90d2c6d5a95b679d58dd8cb90d31100ca8c8dd3e864eb0c44f88d7bbeab79a57",
+    "rq13_results_sha256": "25e2a670fe217b8b9d8a81de895ed6d729f0b9d560db5e1c4b69c836edb37b46",
+    "rq14_correctness_audit_sha256": "7ad433478a0758e9be636471ce7ab244ccdf1992eff7dc9e4a54895c9b30a305",
+    "rq14_paired_effects_sha256": "8bc20c67d74932044e642987bbc1ca7b1ec8d8709d19e0f0bc3a492dc85566c6",
+    "rq14_selected_and_workloads_sha256": "99d9f9945cbc01395db1742e06ce7e71457adaf912171322af753b588bea8a01"
+  },
+  "research_question": "RQ14 decoder-decoder query memory",
+  "schema_version": 1,
+  "status": "passed"
+}

@@ -1,0 +1,22 @@
+{
+  "schema": "g6-size-preflight-failure-audit/v1",
+  "dataset_size": "native-500m",
+  "run_name": "g6_rqkmeans_history_size_preflight_b1280_sel4ae8783438c5_native500m",
+  "queue_job_id": "1fe5d5278d1d4d00b2411a0481a1a139",
+  "terminal_selection_sha256": "4ae8783438c597b1693dff706869ac08c54076513f4acf06458ad4b0b8349c25",
+  "physical_batch_size": 1280,
+  "gradient_accumulation_steps": 1,
+  "effective_batch_size": 1280,
+  "fits": false,
+  "peak_memory_gb": 45.76139974594116,
+  "device_name": "NVIDIA A100-SXM4-80GB",
+  "replacement_physical_batch_size": 640,
+  "replacement_gradient_accumulation_steps": 1,
+  "replacement_effective_batch_size": 640,
+  "user_approved_replacement": true,
+  "artifact_sha256": {
+    "preflight": "aaf3e8ecdd41588bb7e70278e21ab1f45268526a1b630be738ae9e51a60bbc57",
+    "queue_failure": "c1c0d6fe156aa8ef461cf0959a51c3a0fc6eafe711da1801460d7675b97c01f7",
+    "sweep_log": "6b09d945165465a6d04edc80e99788a6e050cea0048e17a039d5efc0d0f66fe0"
+  }
+}

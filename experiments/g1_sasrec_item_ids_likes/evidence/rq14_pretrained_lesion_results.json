@@ -1,0 +1,567 @@
+{
+  "claims_status": "diagnostics_complete_claims_not_published",
+  "dataset_size": "500m",
+  "implementation_sha256": {
+    "dcn/config/query_retrieval_training.py": "6d4eb922e036ece4cce5e94f9c68c85adaac978beded38cde2689465ae4df751",
+    "dcn/eval/callback.py": "bb9c25f6ccd43968912584edd6ffa067b0bc6c7a92aea50043f2820ab8949a49",
+    "dcn/models/cross_attention_retrieval.py": "3e3b2d6a6341c6ba03bfc121f881bf32a2533595a7c8ce55d1f4e0c92d0196b0",
+    "dcn/models/history_tokens.py": "c1b075764f3aeee0479f3fdd19ac1990a01c9ae07674449a0b4b5d524c7c542a",
+    "experiments/g1_sasrec_item_ids_likes/analysis/rq14_pretrained_lesion_candidates.py": "f4e2d40f79de4aa3b0823b7ae6094fb431aacefb7bdc934de8a9c5f755cd411b",
+    "experiments/g1_sasrec_item_ids_likes/analysis/rq14_pretrained_lesion_evidence.py": "40ecb69ab8feb2def678b250005398ff2cc6a449e7c12948e03af337ddb5c3a4",
+    "experiments/g1_sasrec_item_ids_likes/configs/rq14_pretrained_lesion_variant.py": "b52bd4e5ed4084359e2e3d34b117f943c49bb150090fd752dc483df550a7ab00",
+    "experiments/g1_sasrec_item_ids_likes/launchers/architecture/rq14_pretrained_lesions_500m.sh": "661d2ef61f7226aa8de118e5ef620298416340b63a9c702baeb29bcada40eb67"
+  },
+  "research_question": "RQ14 pretrained decoder-decoder query-memory lesions",
+  "run_artifacts": {
+    "g1_rq14_pretrained_distinct_cls_only_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m": {
+      "final_metrics.json": "90c7ba1e9831f9f94ea81aeb04d90061c3cc23d8dde4c8da42421dc5746c51ee",
+      "rq14_lesion_diagnostics.json": "6766d8c2661508fdfe0ca35b16e94bf8f55c791aea01e89c03797bd05fa2863d",
+      "sweep.log": "09f8695c93f01d836fa8aae89b19b1812eb561db72df0ae6bc31494d70c9d73d",
+      "training_metadata.json": "c7499c9fcab6a17eab3325a39fe3741568b3617ea4ebc06ffd941694c4e05625"
+    },
+    "g1_rq14_pretrained_distinct_history_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m": {
+      "final_metrics.json": "e7e760fac42bf838a25bb40729aaba8b12c43399c2ecfa26b44c5045edd75a24",
+      "rq14_lesion_diagnostics.json": "7426d5aa1005a07065076314c9e251a3a1fa49e812bbcf8d3d563152e566e6a6",
+      "sweep.log": "7f3390045d85e113a5d35e548e44b9aec7d885c9d335927f74cce1f61a34551f",
+      "training_metadata.json": "43e411f11425a1a22226562bdc089cca584d99b9f06f631286d64f1ec2d8bb55"
+    },
+    "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m": {
+      "final_metrics.json": "68c8f9b1c5ddba0e37da0010844565189a184a5354fd0b74fa50917f5e79bf07",
+      "rq14_lesion_diagnostics.json": "8acd4a3bcf75e07c374909e9eec28325b5eed0cfc43b5e2db0ff79afd177abab",
+      "sweep.log": "1089241d8f31b7b69c02987a2160d646cb0379036b62505e19eda24e54716367",
+      "training_metadata.json": "76bcc2efc4c7a41b456a9203b15e33ad53ed6f057e9ad48eb5d1edb8da338fa6"
+    },
+    "g1_rq14_pretrained_shared_history_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m": {
+      "final_metrics.json": "32c72f606419287d8e5d2bd1d0837004525601c38bcecbd057c5150d4caf07b8",
+      "rq14_lesion_diagnostics.json": "aac31e79c37e14f97561876ecc30232b703e06d0000f280c3b68af095dccd788",
+      "sweep.log": "3c2d2041494e63f571b0556ffc3c3cddcfd3a80cf950b24eb2304ddb9018e114",
+      "training_metadata.json": "547cb8770e2bbadaebc8a9c603257e0e499cf118fee4bbdd4d089b31088e8ee6"
+    }
+  },
+  "runs": {
+    "distinct_cls_only": {
+      "artifact_sha256": {
+        "final_metrics.json": "90c7ba1e9831f9f94ea81aeb04d90061c3cc23d8dde4c8da42421dc5746c51ee",
+        "rq14_lesion_diagnostics.json": "6766d8c2661508fdfe0ca35b16e94bf8f55c791aea01e89c03797bd05fa2863d",
+        "sweep.log": "09f8695c93f01d836fa8aae89b19b1812eb561db72df0ae6bc31494d70c9d73d",
+        "training_metadata.json": "c7499c9fcab6a17eab3325a39fe3741568b3617ea4ebc06ffd941694c4e05625"
+      },
+      "best_model_state_sha256": "e36e844dbcd35f8cc1bd000e7f3984644ac93ab52e2b2f031fc323e791b46c93",
+      "lesions": {
+        "drop_cls_0": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.000675844867938924,
+            "lesion_minus_normal_recall@100": -0.0011496202276772283,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.399346708440044,
+            "ndcg@10": 0.03282248459284505,
+            "ndcg@100": 0.06437192368737578,
+            "recall@10": 0.0401223873152913,
+            "recall@100": 0.15740079810595062
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.5337914228439331,
+            "mean_cosine_distance": 0.0005268544191494584,
+            "mean_l2_change": 0.040373269468545914,
+            "mean_relative_l2_change": 0.02369093894958496,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_1": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.00013631612586133268,
+            "lesion_minus_normal_recall@100": 0.0002489870956443041,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.39129495351334864,
+            "ndcg@10": 0.033336030618976976,
+            "ndcg@100": 0.06518408468117604,
+            "recall@10": 0.040757570699517125,
+            "recall@100": 0.15879940542927215
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.21165940165519714,
+            "mean_cosine_distance": 7.734441896900535e-05,
+            "mean_l2_change": 0.017782997339963913,
+            "mean_relative_l2_change": 0.010433364659547806,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_2": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.0001182126207954215,
+            "lesion_minus_normal_recall@100": 0.000310715797745581,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.39227361985802983,
+            "ndcg@10": 0.03333722431603577,
+            "ndcg@100": 0.06516598117611012,
+            "recall@10": 0.04084020472511223,
+            "recall@100": 0.15886113413137343
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.18547959625720978,
+            "mean_cosine_distance": 8.674171840539202e-05,
+            "mean_l2_change": 0.01896383985877037,
+            "mean_relative_l2_change": 0.011132167652249336,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_3": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.00017226687002612484,
+            "lesion_minus_normal_recall@100": 0.00021180615450550055,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.39278837293542707,
+            "ndcg@10": 0.03343957474575068,
+            "ndcg@100": 0.06522003542534083,
+            "recall@10": 0.040946351272305385,
+            "recall@100": 0.15876222448813335
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.24098721146583557,
+            "mean_cosine_distance": 0.00014263391494750977,
+            "mean_l2_change": 0.025042133405804634,
+            "mean_relative_l2_change": 0.014774180017411709,
+            "num_users": 75434
+          }
+        }
+      },
+      "normal_metrics": {
+        "coverage@100": 0.3933412558704093,
+        "ndcg@10": 0.03325199861199059,
+        "ndcg@100": 0.0650477685553147,
+        "recall@10": 0.04072907066109472,
+        "recall@100": 0.15855041833362785
+      },
+      "run_name": "g1_rq14_pretrained_distinct_cls_only_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m",
+      "selected_rerun_compatibility": {
+        "diagnostic_minus_source_ndcg@100": 0.0,
+        "diagnostic_minus_source_recall@100": 0.0
+      },
+      "source_selected_run_name": "g1_rq15_pretrained_finetune_e0p00025_d0p00075_b1280_seed42_h20_lrembeddinglow7_r1_500m",
+      "treatment": "distinct_cls_only"
+    },
+    "distinct_history": {
+      "artifact_sha256": {
+        "final_metrics.json": "e7e760fac42bf838a25bb40729aaba8b12c43399c2ecfa26b44c5045edd75a24",
+        "rq14_lesion_diagnostics.json": "7426d5aa1005a07065076314c9e251a3a1fa49e812bbcf8d3d563152e566e6a6",
+        "sweep.log": "7f3390045d85e113a5d35e548e44b9aec7d885c9d335927f74cce1f61a34551f",
+        "training_metadata.json": "43e411f11425a1a22226562bdc089cca584d99b9f06f631286d64f1ec2d8bb55"
+      },
+      "best_model_state_sha256": "4be3d40a5f0eb305312a648d1a865353789e170a26f4cfe3d382c93593e02ad2",
+      "lesions": {
+        "drop_cls_0": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.0001640852661025094,
+            "lesion_minus_normal_recall@100": -0.0003168028237194864,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3727320678457266,
+            "ndcg@10": 0.034231988192858775,
+            "ndcg@100": 0.06585635832261708,
+            "recall@10": 0.041452574649199846,
+            "recall@100": 0.15870215582145925
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.38179758191108704,
+            "mean_cosine_distance": 0.00010270410712109879,
+            "mean_l2_change": 0.02170846238732338,
+            "mean_relative_l2_change": 0.012899818830192089,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_1": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -9.82911216785981e-05,
+            "lesion_minus_normal_recall@100": -0.0003230639063477314,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3722935744834993,
+            "ndcg@10": 0.03434848247544671,
+            "ndcg@100": 0.06592215246704099,
+            "recall@10": 0.04158587162446857,
+            "recall@100": 0.158695894738831
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.31722554564476013,
+            "mean_cosine_distance": 0.00010267876496072859,
+            "mean_l2_change": 0.022181978449225426,
+            "mean_relative_l2_change": 0.013203649781644344,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_2": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.0002507321314271366,
+            "lesion_minus_normal_recall@100": -0.000506878950486872,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3729544920149723,
+            "ndcg@10": 0.03419047855133358,
+            "ndcg@100": 0.06576971145729245,
+            "recall@10": 0.041336573432312416,
+            "recall@100": 0.15851207969469186
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.20763151347637177,
+            "mean_cosine_distance": 0.00015330006135627627,
+            "mean_l2_change": 0.027077216655015945,
+            "mean_relative_l2_change": 0.016111398115754128,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_3": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.00023528943625590604,
+            "lesion_minus_normal_recall@100": -0.0005724100403951549,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3733548555196146,
+            "ndcg@10": 0.03421957071381568,
+            "ndcg@100": 0.06578515415246368,
+            "recall@10": 0.041353523930760694,
+            "recall@100": 0.15844654860478358
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.35125836730003357,
+            "mean_cosine_distance": 0.0002128361229551956,
+            "mean_l2_change": 0.03111603483557701,
+            "mean_relative_l2_change": 0.01854627951979637,
+            "num_users": 75434
+          }
+        },
+        "remove_history": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.0005446461556219695,
+            "lesion_minus_normal_recall@100": -0.0019597874065417076,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.34453503816163245,
+            "ndcg@10": 0.03459956401166829,
+            "ndcg@100": 0.06547579743309762,
+            "recall@10": 0.04225336173871664,
+            "recall@100": 0.15705917123863702
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 1.4141902923583984,
+            "mean_cosine_distance": 0.009904973208904266,
+            "mean_l2_change": 0.20891731977462769,
+            "mean_relative_l2_change": 0.1241159737110138,
+            "num_users": 75434
+          }
+        }
+      },
+      "normal_metrics": {
+        "coverage@100": 0.3704887612244768,
+        "ndcg@10": 0.034485486215579245,
+        "ndcg@100": 0.06602044358871959,
+        "recall@10": 0.0418664338227019,
+        "recall@100": 0.15901895864517873
+      },
+      "run_name": "g1_rq14_pretrained_distinct_history_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m",
+      "selected_rerun_compatibility": {
+        "diagnostic_minus_source_ndcg@100": 0.0,
+        "diagnostic_minus_source_recall@100": 0.0
+      },
+      "source_selected_run_name": "g1_rq14_pretrained_distinct_history_e0p00025_d0p00075_b1280_seed42_h20_r1_500m",
+      "treatment": "distinct_history"
+    },
+    "shared_cls_only": {
+      "artifact_sha256": {
+        "final_metrics.json": "68c8f9b1c5ddba0e37da0010844565189a184a5354fd0b74fa50917f5e79bf07",
+        "rq14_lesion_diagnostics.json": "8acd4a3bcf75e07c374909e9eec28325b5eed0cfc43b5e2db0ff79afd177abab",
+        "sweep.log": "1089241d8f31b7b69c02987a2160d646cb0379036b62505e19eda24e54716367",
+        "training_metadata.json": "76bcc2efc4c7a41b456a9203b15e33ad53ed6f057e9ad48eb5d1edb8da338fa6"
+      },
+      "best_model_state_sha256": "d99bf7a0c04b57023287ad1baf567e883fa9e38b71d30de22c2b5127c983a02e",
+      "lesions": {
+        "drop_cls_0": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.00010036207577469869,
+            "lesion_minus_normal_recall@100": 0.0002655544525526077,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3714483626403655,
+            "ndcg@10": 0.03342955398354447,
+            "ndcg@100": 0.06499530998615047,
+            "recall@10": 0.0409558366146265,
+            "recall@100": 0.15802948727158778
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.48839110136032104,
+            "mean_cosine_distance": 0.00011169938079547137,
+            "mean_l2_change": 0.02234089933335781,
+            "mean_relative_l2_change": 0.013328641653060913,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_1": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.00012951082513761036,
+            "lesion_minus_normal_recall@100": 0.00034659627527502956,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3717724664298379,
+            "ndcg@10": 0.03338532507167777,
+            "ndcg@100": 0.06502445873551338,
+            "recall@10": 0.04086692838631238,
+            "recall@100": 0.1581105290943102
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.19012397527694702,
+            "mean_cosine_distance": 6.635997124249116e-05,
+            "mean_l2_change": 0.016616933047771454,
+            "mean_relative_l2_change": 0.00983757246285677,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_2": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.0005197021206033853,
+            "lesion_minus_normal_recall@100": -0.0009006203878669239,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.37802576307377495,
+            "ndcg@10": 0.03314059316765143,
+            "ndcg@100": 0.06437524578977238,
+            "recall@10": 0.04073730418242322,
+            "recall@100": 0.15686331243116824
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.35272273421287537,
+            "mean_cosine_distance": 0.0003394005470909178,
+            "mean_l2_change": 0.02987111359834671,
+            "mean_relative_l2_change": 0.017590021714568138,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_3": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": 0.00018726310436818772,
+            "lesion_minus_normal_recall@100": 0.00038475441492977214,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.37291000718112316,
+            "ndcg@10": 0.0334388322882405,
+            "ndcg@100": 0.06508221101474396,
+            "recall@10": 0.04089619231053678,
+            "recall@100": 0.15814868723396494
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.23373278975486755,
+            "mean_cosine_distance": 0.00012063207395840436,
+            "mean_l2_change": 0.023017937317490578,
+            "mean_relative_l2_change": 0.013682237826287746,
+            "num_users": 75434
+          }
+        }
+      },
+      "normal_metrics": {
+        "coverage@100": 0.37330401570950134,
+        "ndcg@10": 0.03347100638855999,
+        "ndcg@100": 0.06489494791037577,
+        "recall@10": 0.04104207601934818,
+        "recall@100": 0.15776393281903517
+      },
+      "run_name": "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m",
+      "selected_rerun_compatibility": {
+        "diagnostic_minus_source_ndcg@100": 0.0,
+        "diagnostic_minus_source_recall@100": 0.0
+      },
+      "source_selected_run_name": "g1_rq14_pretrained_shared_cls_only_e0p00025_d0p00075_b1280_seed42_h20_r1_500m",
+      "treatment": "shared_cls_only"
+    },
+    "shared_history": {
+      "artifact_sha256": {
+        "final_metrics.json": "32c72f606419287d8e5d2bd1d0837004525601c38bcecbd057c5150d4caf07b8",
+        "rq14_lesion_diagnostics.json": "aac31e79c37e14f97561876ecc30232b703e06d0000f280c3b68af095dccd788",
+        "sweep.log": "3c2d2041494e63f571b0556ffc3c3cddcfd3a80cf950b24eb2304ddb9018e114",
+        "training_metadata.json": "547cb8770e2bbadaebc8a9c603257e0e499cf118fee4bbdd4d089b31088e8ee6"
+      },
+      "best_model_state_sha256": "96cdb4cfff602e707622c3cae1c4f8eb852cbb62e33d1f779f9877961b1764f7",
+      "lesions": {
+        "drop_cls_0": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.0001403008451457688,
+            "lesion_minus_normal_recall@100": -0.0002854132001531007,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.380980827036611,
+            "ndcg@10": 0.03418350053031434,
+            "ndcg@100": 0.0657348130751252,
+            "recall@10": 0.04119541663939235,
+            "recall@100": 0.15792306573961193
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.3266984820365906,
+            "mean_cosine_distance": 8.72134551173076e-05,
+            "mean_l2_change": 0.020454026758670807,
+            "mean_relative_l2_change": 0.012144334614276886,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_1": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.00017715133839706076,
+            "lesion_minus_normal_recall@100": -0.0003788261136665194,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3809172772739694,
+            "ndcg@10": 0.034120275300205914,
+            "ndcg@100": 0.06569796258187391,
+            "recall@10": 0.041139892776722434,
+            "recall@100": 0.1578296528260985
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.30098778009414673,
+            "mean_cosine_distance": 0.00010142367682419717,
+            "mean_l2_change": 0.02219778671860695,
+            "mean_relative_l2_change": 0.013188708573579788,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_2": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.00020089264144960983,
+            "lesion_minus_normal_recall@100": -0.000348936455971921,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3815082900665366,
+            "ndcg@10": 0.03411007775778444,
+            "ndcg@100": 0.06567422127882136,
+            "recall@10": 0.041152408845620235,
+            "recall@100": 0.1578595424837931
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.20443393290042877,
+            "mean_cosine_distance": 0.000135602691443637,
+            "mean_l2_change": 0.025668909773230553,
+            "mean_relative_l2_change": 0.015262966975569725,
+            "num_users": 75434
+          }
+        },
+        "drop_cls_3": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.00024169846571199527,
+            "lesion_minus_normal_recall@100": -0.00048055609480263106,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.38201033319140554,
+            "ndcg@10": 0.03413480309810509,
+            "ndcg@100": 0.06563341545455897,
+            "recall@10": 0.041254756416093136,
+            "recall@100": 0.1577279228449624
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 0.2617420256137848,
+            "mean_cosine_distance": 0.00019389369117561728,
+            "mean_l2_change": 0.030032360926270485,
+            "mean_relative_l2_change": 0.017881374806165695,
+            "num_users": 75434
+          }
+        },
+        "remove_history": {
+          "effect": {
+            "lesion_minus_normal_ndcg@100": -0.00035872919418997173,
+            "lesion_minus_normal_recall@100": -0.0017096763481386779,
+            "recommendation_effect": "within_noise_or_redundant",
+            "state_use": "states_used"
+          },
+          "metrics": {
+            "coverage@100": 0.3505087158499463,
+            "ndcg@10": 0.03459720890047024,
+            "ndcg@100": 0.065516384726081,
+            "recall@10": 0.04165774519629623,
+            "recall@100": 0.15649880259162635
+          },
+          "query_change": {
+            "changed_user_fraction": 1.0,
+            "max_l2_change": 1.4702177047729492,
+            "mean_cosine_distance": 0.01098581962287426,
+            "mean_l2_change": 0.22141286730766296,
+            "mean_relative_l2_change": 0.13132688403129578,
+            "num_users": 75434
+          }
+        }
+      },
+      "normal_metrics": {
+        "coverage@100": 0.37916965880132436,
+        "ndcg@10": 0.03425381192168281,
+        "ndcg@100": 0.06587511392027097,
+        "recall@10": 0.04124923843723948,
+        "recall@100": 0.15820847893976503
+      },
+      "run_name": "g1_rq14_pretrained_shared_history_e0p00025_d0p00075_b1280_seed42_h20_lesions_r1_500m",
+      "selected_rerun_compatibility": {
+        "diagnostic_minus_source_ndcg@100": 0.0,
+        "diagnostic_minus_source_recall@100": 0.0
+      },
+      "source_selected_run_name": "g1_rq14_pretrained_shared_history_e0p00025_d0p00075_b1280_seed42_h20_r1_500m",
+      "treatment": "shared_history"
+    }
+  },
+  "schema_version": 1,
+  "source_checkpoint_sha256": "3a8cfb68acc0116bee2020189934b578f01b6021a9823642f581a591c9de54f0",
+  "source_rq14_results_sha256": "b862be54dd0231e0cc77637c9807fd04bed166d9e19dcc97ba5b9d81ce6aa455",
+  "source_unexpected_effects": {
+    "distinct_vs_shared_cls_only": 0.0007864855145926775,
+    "distinct_vs_shared_history": 0.0008104797054137025,
+    "history_vs_cls_only_distinct": 0.0004685403115508857,
+    "history_vs_cls_only_shared": 0.00044454612072986066
+  },
+  "status": "passed"
+}

@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 from experiments.g1_sasrec_item_ids_likes.analysis import collect, rq4_activation_depth
+from utils import report_file_facts as report_file_facts_module
 
 
 def _write_artifact(
@@ -100,6 +101,36 @@ def test_loader_pins_exact_compatible_surface_and_ignores_historical_glob(
     assert all("e0p128" not in run.name for run in runs)
     reused = [run.name for run in runs if run.reused]
     assert reused == list(rq4_activation_depth.PINNED_GELU_DEPTH2)
+
+
+def test_loader_reuses_artifact_parsing_between_processes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _complete_surface(tmp_path)
+    database = tmp_path / "report-file-facts.sqlite3"
+    monkeypatch.setenv("DCN_REPORT_FILE_FACTS", str(database))
+    source_reads = 0
+    original_read_text = Path.read_text
+
+    def counted_read_text(path: Path, *args: object, **kwargs: object) -> str:
+        nonlocal source_reads
+        if path.parent.parent == tmp_path / "logs":
+            source_reads += 1
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", counted_read_text)
+
+    first = rq4_activation_depth.load_runs(
+        tmp_path, report_file_facts_module.report_file_facts(tmp_path)
+    )
+    report_file_facts_module.report_file_facts(tmp_path).close()
+    report_file_facts_module._report_file_facts.cache_clear()
+    second = rq4_activation_depth.load_runs(
+        tmp_path, report_file_facts_module.report_file_facts(tmp_path)
+    )
+
+    assert second == first
+    assert source_reads == 3 * len(rq4_activation_depth.expected_specs())
 
 
 def test_reader_tables_compare_gating_pairs_and_depth_without_rates(
@@ -214,7 +245,13 @@ def test_partial_surface_is_rejected(tmp_path: Path) -> None:
 def test_compact_rq4_uses_only_corrected_activation_depth_tables(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(collect.rq4_activation_depth, "load_runs", lambda _: [object()])
+    facts = object()
+    monkeypatch.setattr(collect, "report_file_facts", lambda _: facts)
+    monkeypatch.setattr(
+        collect.rq4_activation_depth,
+        "load_runs",
+        lambda _generated, shared: [object()] if shared is facts else [],
+    )
     monkeypatch.setattr(
         collect.rq4_activation_depth, "reader_tables", lambda _: "new reader tables"
     )

@@ -1,11 +1,13 @@
 """The architectures this project trains, assembled from :mod:`dcn.nn` blocks."""
 
 from .criterions import CriterionSpec, MultiCriterion, TargetExtractionWrapper
+from .cross_attention_retrieval import CrossAttentionRetrievalModel
 from .history_tokens import (
     ActionTokenizer,
     EventTokenizer,
     BosTokenizer,
     ItemTokenizer,
+    SemanticHistoryTokenizer,
     SemanticIdTokenizer,
     TimestampDeltaTokenizer,
     TokenizedHistory,
@@ -33,6 +35,7 @@ __all__ = [
     "ActionTokenizer",
     "CausalTokenDecoder",
     "ClsTokenMode",
+    "CrossAttentionRetrievalModel",
     "CriterionSpec",
     "EventTokenizer",
     "BosTokenizer",
@@ -43,6 +46,7 @@ __all__ = [
     "NextItemTargets",
     "Seq2SeqTokenDecoder",
     "SemanticIdConstraint",
+    "SemanticHistoryTokenizer",
     "SemanticIdTokenizer",
     "SequenceRetrievalModel",
     "SequenceTargets",

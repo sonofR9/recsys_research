@@ -1,0 +1,9 @@
+version: 1
+id: g4-rq1-future-24h
+title: G4 RQ1 future-24h supervision
+description: >-
+  Implement, tune, evaluate, and report the approved uniform next-24-hour
+  positive objective on native Yambda-500M.
+blocked_by: []
+ideas_tags:
+  - g4-rq1-future-24h

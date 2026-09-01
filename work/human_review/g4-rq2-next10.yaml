@@ -1,0 +1,9 @@
+version: 1
+id: g4-rq2-next10
+title: G4 RQ2 next-10 supervision
+description: >-
+  Implement, tune, evaluate, and report the approved uniform next-ten-liked
+  positive objective on native Yambda-500M.
+blocked_by: []
+ideas_tags:
+  - g4-rq2-next10

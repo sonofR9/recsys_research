@@ -1,3 +1,4 @@
 /week[0-9]*/
 /week[0-9]*.ipynb
 /old/week[0-9]*.ipynb
+/.agents/worktrees/

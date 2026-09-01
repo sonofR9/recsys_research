@@ -1,0 +1,40 @@
+{
+  "batch_id": "a02f5ffba08d4fb9bcb9260ac149bb40",
+  "failure": {
+    "jobs": [
+      {
+        "exit_code": 143,
+        "failed_record": "generated/training-queue-service/failed/f6f4110819ac4a7a894ff6cf0f99b7a9.json",
+        "failure_phase": "before_job_contract_data_preparation_or_training",
+        "queue_job_id": "f6f4110819ac4a7a894ff6cf0f99b7a9",
+        "run_name": "g4_control_trial_01_retry1_native500m",
+        "signal": "SIGTERM"
+      },
+      {
+        "exit_code": 143,
+        "failed_record": "generated/training-queue-service/failed/fab982f9f0a24707be4a116dc61bdd0d.json",
+        "failure_phase": "before_job_contract_data_preparation_or_training",
+        "queue_job_id": "fab982f9f0a24707be4a116dc61bdd0d",
+        "run_name": "g4_control_trial_02_retry1_native500m",
+        "signal": "SIGTERM"
+      },
+      {
+        "exit_code": 1,
+        "failed_record": "generated/training-queue-service/failed/749345f41c92489f8a1bb34ff3b4eeb9.json",
+        "failure_phase": "first_training_batch_dataloader_workers_exited",
+        "queue_job_id": "749345f41c92489f8a1bb34ff3b4eeb9",
+        "run_name": "g4_control_trial_03_retry1_native500m"
+      }
+    ]
+  },
+  "kind": "g4_native500m_control_operational_retry",
+  "postmortem": {
+    "diagnosis": "external_process_startup_instability_during_concurrent_dispatch",
+    "retry_strategy": "submit_one_frozen_row_at_a_time_after_prepared_batch",
+    "scientific_result": false
+  },
+  "preservation_policy": "retain_all_failed_queue_records_logs_contracts_and_locks",
+  "retry_revision": 2,
+  "stage": "control_tuning",
+  "version": 1
+}

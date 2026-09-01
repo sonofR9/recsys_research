@@ -4,6 +4,7 @@ import numpy as np
 import polars as pl
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 from dcn.data.features import FeatureValues
 
@@ -22,7 +23,7 @@ class PrecomputedEmbeddingLookup(ModuleWithDim):
         super().__init__()
         assert embeddings.dim() == 2, "embeddings must be 2D (N, D)"
         num_known, dimension = embeddings.shape
-        self.embedding = nn.Embedding.from_pretrained(embeddings, freeze=True)
+        self.embedding = _ImmutableEmbedding(embeddings)
         self._embedding_dim = dimension
         self._num_known_ids = num_known
         self._strict = strict
@@ -46,7 +47,8 @@ class PrecomputedEmbeddingLookup(ModuleWithDim):
     def num_known_ids(self) -> int:
         return self._num_known_ids
 
-    def _per_id_embeddings(self, ids: torch.Tensor) -> torch.Tensor:
+    def lookup(self, ids: torch.Tensor) -> torch.Tensor:
+        """Return one pretrained vector per compact ID, preserving ID shape."""
         valid = (ids >= 1) & (ids <= self._num_known_ids)
         if self._strict:
             assert bool(valid.all()), (
@@ -57,8 +59,16 @@ class PrecomputedEmbeddingLookup(ModuleWithDim):
         known = self.embedding(safe_indices)
         return torch.where(valid.unsqueeze(-1), known, self.default.expand_as(known))
 
+    def dense_table(self) -> torch.Tensor:
+        ids = torch.arange(
+            self._num_known_ids + 1,
+            device=self.embedding.weight.device,
+            dtype=torch.long,
+        )
+        return self.lookup(ids).detach().clone()
+
     def forward(self, item_ids: FeatureValues) -> torch.Tensor:
-        return segment_sum(self._per_id_embeddings(item_ids.values), item_ids.offsets)
+        return segment_sum(self.lookup(item_ids.values), item_ids.offsets)
 
     @classmethod
     def from_parquet(
@@ -73,9 +83,9 @@ class PrecomputedEmbeddingLookup(ModuleWithDim):
         if compact_id_column in frame.columns:
             frame = frame.sort(compact_id_column)
             expected = pl.arange(1, frame.height + 1, eager=True)
-            assert (frame[compact_id_column] == expected).all(), (
-                f"{parquet_path} compact_id column must be contiguous 1..N"
-            )
+            assert (
+                frame[compact_id_column] == expected
+            ).all(), f"{parquet_path} compact_id column must be contiguous 1..N"
         # Flattening the list column and reshaping stays in numpy; the obvious
         # torch.tensor(series) walks it a row at a time and costs seconds here.
         flat = frame[embedding_column].explode().to_numpy()
@@ -85,6 +95,23 @@ class PrecomputedEmbeddingLookup(ModuleWithDim):
         return cls(
             embeddings=embeddings, learnable_default=learnable_default, strict=strict
         )
+
+
+class _ImmutableEmbedding(nn.Module):
+    def __init__(self, embeddings: torch.Tensor) -> None:
+        super().__init__()
+        self.register_buffer("weight", embeddings.detach().clone())
+
+    @property
+    def embedding_dim(self) -> int:
+        return self.weight.shape[1]
+
+    @property
+    def num_embeddings(self) -> int:
+        return self.weight.shape[0]
+
+    def forward(self, indices: torch.Tensor) -> torch.Tensor:
+        return F.embedding(indices, self.weight)
 
 
 def segment_sum(values: torch.Tensor, offsets: torch.Tensor) -> torch.Tensor:

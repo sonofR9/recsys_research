@@ -1,0 +1,35 @@
+{
+  "batch_id": "fa9ae431997d4b968ea3596bb4c0aa6f",
+  "failure": {
+    "exit_code": 143,
+    "failure_phase": "before_job_contract_data_preparation_or_training",
+    "jobs": [
+      {
+        "failed_record": "generated/training-queue-service/failed/1b0d1feb18c1429f8c73f4f584c38a1d.json",
+        "queue_job_id": "1b0d1feb18c1429f8c73f4f584c38a1d",
+        "run_name": "g4_control_trial_01_native500m"
+      },
+      {
+        "failed_record": "generated/training-queue-service/failed/a6a5fc1edc7b4956ab23be0b83cb162f.json",
+        "queue_job_id": "a6a5fc1edc7b4956ab23be0b83cb162f",
+        "run_name": "g4_control_trial_02_native500m"
+      },
+      {
+        "failed_record": "generated/training-queue-service/failed/bf9527d338d6435487c6e95d989ee896.json",
+        "queue_job_id": "bf9527d338d6435487c6e95d989ee896",
+        "run_name": "g4_control_trial_03_native500m"
+      }
+    ],
+    "signal": "SIGTERM"
+  },
+  "kind": "g4_native500m_control_operational_retry",
+  "postmortem": {
+    "manual_import_job_contract": "generated/logs/g4_control_trial_01_native500m/g4_job.json",
+    "manual_import_only_diagnosis": "succeeded_after_batch_failure",
+    "scientific_result": false
+  },
+  "preservation_policy": "retain_all_failed_queue_records_logs_and_locks",
+  "retry_revision": 1,
+  "stage": "control_tuning",
+  "version": 1
+}

@@ -1,0 +1,11 @@
+version: 1
+id: g1-rq12-decoder-query-tokens
+title: Compare decoder-only query-token layouts
+description: >-
+  Compare no CLS, one end-only CLS, and the autoregressive
+  [item1, CLS, item2, CLS, ...] layout with one shared CLS on native
+  Yambda-500M, reusing compatible existing evidence and reporting quality
+  separately from training efficiency.
+blocked_by: []
+ideas_tags:
+  - g1-rq12

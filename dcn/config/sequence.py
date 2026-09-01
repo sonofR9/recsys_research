@@ -22,6 +22,7 @@ from dcn.data import BucketShuffleSampler, SequenceDataset, collate_sequence_bat
 from dcn.nn.ple import PiecewiseLinearEncoder
 from dcn.training import EpochTrainer, register_stable_optimizer_groups
 from utils.global_config import config as global_config
+from utils.report_file_facts import current_report_file_facts
 from neuralrec.run.callbacks import (
     CheckpointCallback,
     ValidationCallback,
@@ -41,8 +42,10 @@ class SequenceExperiment(Experiment):
     lr_schedule_horizon_epochs: int | None = None
     max_seq_len: int = 100
     min_seq_len: int = 2
-    window: Literal["whole", "sliding", "next_item"] = "sliding"
+    window: Literal["whole", "sliding", "next_item", "bounded_prefix"] = "sliding"
     stride: float = 1.0
+    prefix_length_rule: Literal["truncated", "required"] = "truncated"
+    prefix_cap: int | None = None
     validation_days: int = 1
     validation_interval_seconds: int | None = None
     _prepared_train_iterator: Iterator | None = field(
@@ -123,15 +126,42 @@ class SequenceExperiment(Experiment):
         if self.row_filter is not None:
             columns.extend(self.row_filter.meta.root_names())
         columns = list(dict.fromkeys(columns))
-        bounds = {}
-        for day, path in self.dataset_manager.day_to_path.items():
-            frame = pl.read_parquet(path, columns=columns)
-            if self.row_filter is not None:
-                frame = frame.filter(self.row_filter)
-            if frame.height:
-                timestamp = frame[self.artifacts.timestamp_column]
-                bounds[day] = (int(timestamp.min()), int(timestamp.max()))
-        return bounds
+        day_paths = tuple(sorted(self.dataset_manager.day_to_path.items()))
+
+        def compute() -> dict[str, list[int]]:
+            bounds = {}
+            for day, path in day_paths:
+                frame = pl.read_parquet(path, columns=columns)
+                if self.row_filter is not None:
+                    frame = frame.filter(self.row_filter)
+                if frame.height:
+                    timestamp = frame[self.artifacts.timestamp_column]
+                    bounds[str(day)] = [int(timestamp.min()), int(timestamp.max())]
+            return bounds
+
+        facts = current_report_file_facts()
+        filter_identity = (
+            None
+            if self.row_filter is None
+            else hashlib.sha256(self.row_filter.meta.serialize()).hexdigest()
+        )
+        stored = (
+            compute()
+            if facts is None
+            else facts.load_or_compute(
+                "day_timestamp_bounds:"
+                + repr(
+                    (
+                        tuple(day for day, _ in day_paths),
+                        tuple(columns),
+                        filter_identity,
+                    )
+                ),
+                (path for _, path in day_paths),
+                compute,
+            )
+        )
+        return {int(day): tuple(values) for day, values in stored.items()}
 
     @cached_property
     def validation_cutoff_timestamp(self) -> int:
@@ -174,6 +204,11 @@ class SequenceExperiment(Experiment):
                 str(row_filter),
                 str(self.emit_user_column),
                 f"{window}:{self.max_seq_len}:{self.min_seq_len}:{self.stride}",
+                *(
+                    [f"{self.prefix_length_rule}:{self.prefix_cap}"]
+                    if window == "bounded_prefix"
+                    else []
+                ),
                 ",".join(map(str, days)),
             ]
         )
@@ -187,7 +222,9 @@ class SequenceExperiment(Experiment):
         split: str,
         batch_size: int,
         shuffle: bool,
-        window: Literal["whole", "sliding", "next_item"] | None = None,
+        window: Literal[
+            "whole", "sliding", "next_item", "bounded_prefix"
+        ] | None = None,
         num_workers: int | None = None,
         pin_memory: bool | None = None,
     ) -> DataLoader:
@@ -203,6 +240,8 @@ class SequenceExperiment(Experiment):
             min_seq_len=self.min_seq_len,
             window=window,
             stride=self.stride,
+            prefix_length_rule=self.prefix_length_rule,
+            prefix_cap=self.prefix_cap,
             emit_user_column=self.emit_user_column,
             row_filter=row_filter,
             invalidate_cache=self.invalidate_cache,

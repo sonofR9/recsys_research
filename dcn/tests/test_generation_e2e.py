@@ -13,8 +13,10 @@ import mup
 from dcn.config import (
     ActionGenerationExperiment,
     CombinedSemanticGenerationExperiment,
+    CrossAttentionGenerationExperiment,
     GenerationExperiment,
     RqVaeGenerationExperiment,
+    SemanticHistoryExperiment,
     SemanticGenerationExperiment,
     TigerExperiment,
     TimeWindowGenerationExperiment,
@@ -57,6 +59,16 @@ def _sampled_softmax() -> dict:
     return {"num_in_batch_negatives": 4}
 
 
+def _small_retrieval_decoder():
+    return replace(
+        _small_transformer(),
+        num_layers=1,
+        ffn="swiglu",
+        ffn_intermediate_dim=32,
+        learned_positions="forward",
+    )
+
+
 _VARIANTS = [
     (GenerationExperiment, {**_sampled_softmax(), "bos": True}),
     (
@@ -94,6 +106,101 @@ def test_generation_variant_trains(
     monkeypatch.setenv("WANDB_MODE", "disabled")
 
     run_experiment(_configured(experiment_class, base_path, **overrides))
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        {},
+        {
+            "window": "bounded_prefix",
+            "prefix_length_rule": "truncated",
+            "prefix_cap": 8,
+        },
+        {
+            "window": "bounded_prefix",
+            "prefix_length_rule": "truncated",
+            "prefix_cap": 16,
+        },
+        {"window": "bounded_prefix", "prefix_length_rule": "required", "prefix_cap": 8},
+        {
+            "window": "bounded_prefix",
+            "prefix_length_rule": "required",
+            "prefix_cap": 16,
+        },
+        {"query_architecture": "decoder_decoder", "query_slots_shared": True},
+        {
+            "query_architecture": "decoder_decoder",
+            "query_slots_shared": False,
+        },
+        {
+            "query_architecture": "decoder_decoder",
+            "query_slots_shared": True,
+            "include_history_memory": True,
+        },
+        {
+            "query_architecture": "decoder_decoder",
+            "query_slots_shared": False,
+            "include_history_memory": True,
+        },
+    ],
+    ids=[
+        "one_example",
+        "truncated_8",
+        "truncated_16",
+        "required_8",
+        "required_16",
+        "shared_cls_only",
+        "distinct_cls_only",
+        "shared_history",
+        "distinct_history",
+    ],
+)
+@pytest.mark.training_e2e
+def test_cross_attention_generation_modes_train(
+    overrides: dict, base_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("WANDB_MODE", "disabled")
+    experiment = _configured(
+        CrossAttentionGenerationExperiment,
+        base_path,
+        **_sampled_softmax(),
+        retrieval_decoder=_small_retrieval_decoder(),
+        **overrides,
+    )
+
+    run_experiment(experiment)
+
+    metadata = json.loads(
+        (base_path / "logs" / experiment.run_name / "training_metadata.json").read_text()
+    )
+    assert metadata["query_architecture"] == experiment.query_architecture
+    assert metadata["prefix_length_rule"] == experiment.prefix_length_rule
+    assert metadata["prefix_cap"] == experiment.prefix_cap
+    assert metadata["query_slots_shared"] is experiment.query_slots_shared
+    assert metadata["include_history_memory"] is experiment.include_history_memory
+    assert metadata["targets_per_epoch"] == len(
+        experiment.sequence_train_loader.dataset
+    )
+    assert metadata["tokens_per_epoch"] > metadata["targets_per_epoch"]
+    assert metadata["retrieval_decoder"]["ffn_intermediate_dim"] == 32
+    assert (
+        metadata["original_users_per_epoch"] <= metadata["expanded_examples_per_epoch"]
+    )
+    assert metadata["expanded_examples_per_epoch"] == len(
+        experiment.sequence_train_loader.dataset
+    )
+    assert metadata["candidate_targets_per_epoch"] == metadata["targets_per_epoch"]
+    assert metadata["ntp_targets_per_epoch"] == 0
+    assert metadata["input_tokens_per_epoch"] == metadata["tokens_per_epoch"]
+    for name in (
+        "original_users_per_epoch",
+        "expanded_examples_per_epoch",
+        "candidate_targets_per_epoch",
+        "ntp_targets_per_epoch",
+        "input_tokens_per_epoch",
+    ):
+        assert metadata["transfer_invariants"][name] == metadata[name]
 
 
 @pytest.mark.training_e2e
@@ -213,6 +320,78 @@ def test_mu_transfer_variant_trains_with_width_aware_parameters(
         hasattr(parameter, "infshape")
         for parameter in experiment.base_model.parameters()
     )
+
+
+@pytest.mark.parametrize(
+    "history_representation",
+    [
+        "learned_sid_event",
+        "item_frozen_sid_learned_residual_event",
+        "learned_sid_tokens",
+        "interleaved_item_sid_tokens",
+    ],
+)
+@pytest.mark.training_e2e
+def test_semantic_history_retrieval_trains_with_expanded_events(
+    base_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    history_representation: str,
+) -> None:
+    monkeypatch.setenv("WANDB_MODE", "disabled")
+    experiment = _configured(
+        SemanticHistoryExperiment,
+        base_path,
+        **_sampled_softmax(),
+        **semantic_overrides(),
+        history_representation=history_representation,
+        representation_width=4,
+        frozen_event_width=8,
+        learned_residual_max_scale=(
+            0.025
+            if history_representation == "item_frozen_sid_learned_residual_event"
+            else None
+        ),
+        transformer=replace(_small_transformer(dim=8), nhead=4, num_kv_heads=2),
+        mup_base_dim=4,
+        mup_delta_dim=8,
+        bos=True,
+        cls_token_mode="end_only",
+        timestamp_delta="bins",
+        window="next_item",
+    )
+
+    run_experiment(experiment)
+
+    metrics = json.loads(
+        (base_path / "logs" / experiment.run_name / "final_metrics.json").read_text()
+    )
+    metadata = json.loads(
+        (
+            base_path / "logs" / experiment.run_name / "training_metadata.json"
+        ).read_text()
+    )
+    diagnostics = json.loads(
+        (
+            base_path
+            / "logs"
+            / experiment.run_name
+            / "semantic_id_diagnostics.json"
+        ).read_text()
+    )
+    assert 0.0 <= metrics["sid_exact_recall@100"] <= 1.0
+    assert 0.0 <= metrics["sid_prefix_recall@100_l1"] <= 1.0
+    assert metadata["tokens_per_epoch"] > metadata["targets_per_epoch"]
+    assert diagnostics["num_levels"] == 2
+    assert diagnostics["shared_num_codes"] == 3
+    assert diagnostics["collision_policy"] == "suffix"
+    assert diagnostics["collision_suffix_symbols"] == 2
+    assert 0.0 <= diagnostics["identifier_collision_rate"] <= 1.0
+    if history_representation == "item_frozen_sid_learned_residual_event":
+        assert metadata["history_representation"] == history_representation
+        assert metadata["representation_width"] == 4
+        assert metadata["frozen_event_width"] == 8
+        assert metadata["learned_residual_max_scale"] == 0.025
+        assert abs(diagnostics["learned_residual_effective_scale"]) <= 0.025
 
 
 def test_mu_transfer_widths_must_fit_the_attention_heads() -> None:
@@ -627,6 +806,49 @@ def test_interleaved_cls_model_accepts_the_configured_event_horizon(
     batch = packed_batch([1, 2, 3, 4, 1], [5])
 
     assert model(batch)["query_repr"].shape[0] == 10
+
+
+def test_generation_model_can_use_a_separate_catalog_item_encoder(
+    base_path: Path,
+    cpu_attention: None,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    experiment = _configured(
+        GenerationExperiment,
+        base_path,
+        **_sampled_softmax(),
+    )
+    experiment.setup()
+    global_config.set_cpu_attention(True)
+    history_encoder = torch.nn.Sequential(
+        torch.nn.Embedding(experiment.catalog_size, 7),
+        torch.nn.Linear(7, 6, bias=False),
+    )
+    history_encoder.out_dim = 6
+    catalog_embedding = torch.nn.Embedding(experiment.catalog_size, 5)
+    experiment.__dict__["item_embedding"] = history_encoder
+    experiment.__dict__["catalog_item_encoder"] = catalog_embedding
+    model = experiment._create_model().eval()
+    batch = packed_batch([1, 2, 3], [3])
+
+    output = model(batch)
+
+    assert output["query_repr"].shape == (3, 5)
+    assert torch.equal(output["item_repr"], catalog_embedding.weight[[1, 2, 3]])
+    assert model.tokenizer.item_embedding is history_encoder
+
+    experiment.__dict__["base_model"] = model
+    optimizer = experiment.create_optimizers()
+    groups = {
+        group["schedule_group"]: group["params"] for group in optimizer.param_groups
+    }
+
+    assert any(
+        parameter is history_encoder[0].weight for parameter in groups["embedding"]
+    )
+    assert any(parameter is catalog_embedding.weight for parameter in groups["embedding"])
+    assert any(parameter is history_encoder[1].weight for parameter in groups["deep"])
 
 
 def test_legacy_cls_flag_cannot_conflict_with_interleaved_mode() -> None:

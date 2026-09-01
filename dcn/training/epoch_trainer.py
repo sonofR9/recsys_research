@@ -100,6 +100,10 @@ class EpochTrainer(TrainRunner):
                 for callback in self.callbacks
             ):
                 break
+            for module in self.model.modules():
+                set_epoch = getattr(module, "set_epoch", None)
+                if set_epoch is not None:
+                    set_epoch(epoch)
             loader = (
                 self._prepared_train_iterator
                 if self._prepared_train_iterator is not None

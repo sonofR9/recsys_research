@@ -1,0 +1,10 @@
+{
+  "approved": true,
+  "schema": "g6-convergent-surface-approval/v1",
+  "search_cells": 40,
+  "training_horizons": [
+    10,
+    15,
+    20
+  ]
+}

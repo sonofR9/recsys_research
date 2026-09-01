@@ -1,0 +1,449 @@
+{
+  "best_epochs": [
+    26,
+    26,
+    25,
+    26,
+    19,
+    26,
+    26,
+    26,
+    26,
+    21
+  ],
+  "dataset_size": "native-50m",
+  "manifest_sha256": "2645e664af9c84124a57af9b2b0ac7471ac0a7a74bba892d5b0247b20726e269",
+  "metrics": {
+    "capped_recall@10": {
+      "mean": 0.01648732808882194,
+      "sample_standard_deviation": 0.0018213195965886718,
+      "sample_standard_deviation_over_mean": 0.11046784456381918
+    },
+    "capped_recall@100": {
+      "mean": 0.08365849377211952,
+      "sample_standard_deviation": 0.0069395678186637885,
+      "sample_standard_deviation_over_mean": 0.08295114465683227
+    },
+    "capped_recall@50": {
+      "mean": 0.0508942565334443,
+      "sample_standard_deviation": 0.005112190581428619,
+      "sample_standard_deviation_over_mean": 0.10044729856834099
+    },
+    "coverage@10": {
+      "mean": 0.1367050802461687,
+      "sample_standard_deviation": 0.050719012390571534,
+      "sample_standard_deviation_over_mean": 0.371010443059178
+    },
+    "coverage@100": {
+      "mean": 0.48859961385302275,
+      "sample_standard_deviation": 0.146400487768927,
+      "sample_standard_deviation_over_mean": 0.29963283559402526
+    },
+    "coverage@50": {
+      "mean": 0.3515415711355135,
+      "sample_standard_deviation": 0.11536710821496343,
+      "sample_standard_deviation_over_mean": 0.3281748666091366
+    },
+    "mrr@10": {
+      "mean": 0.020126916710835864,
+      "sample_standard_deviation": 0.0028281200805818124,
+      "sample_standard_deviation_over_mean": 0.14051432324252716
+    },
+    "mrr@100": {
+      "mean": 0.026064090657331333,
+      "sample_standard_deviation": 0.003261247031490546,
+      "sample_standard_deviation_over_mean": 0.1251241439560148
+    },
+    "mrr@50": {
+      "mean": 0.02492417428865521,
+      "sample_standard_deviation": 0.0032030526867798726,
+      "sample_standard_deviation_over_mean": 0.12851188768318847
+    },
+    "ndcg@10": {
+      "mean": 0.011794731899414459,
+      "sample_standard_deviation": 0.0015978150206190703,
+      "sample_standard_deviation_over_mean": 0.13546853241305068
+    },
+    "ndcg@100": {
+      "mean": 0.02985711304007919,
+      "sample_standard_deviation": 0.0028726926059902897,
+      "sample_standard_deviation_over_mean": 0.09621468097515266
+    },
+    "ndcg@50": {
+      "mean": 0.022083582135623475,
+      "sample_standard_deviation": 0.0024434203715618854,
+      "sample_standard_deviation_over_mean": 0.11064420421270127
+    },
+    "recall@10": {
+      "mean": 0.015080379715329339,
+      "sample_standard_deviation": 0.0016284949761330907,
+      "sample_standard_deviation_over_mean": 0.10798766389666642
+    },
+    "recall@100": {
+      "mean": 0.08360218364208988,
+      "sample_standard_deviation": 0.006938265606907987,
+      "sample_standard_deviation_over_mean": 0.0829914399917048
+    },
+    "recall@50": {
+      "mean": 0.05070820755173736,
+      "sample_standard_deviation": 0.0050940022822362555,
+      "sample_standard_deviation_over_mean": 0.1004571553241922
+    }
+  },
+  "runs": [
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "6fbafdb72a3d2e143be5de69ec90f983e78b7253dc26a3bf7c1881846d1e1406",
+        "fixed26_calibration_job.json": "b9f62c330e8e5904b5a30e338654f0dc52d7eadf29f42598a25cb7482fe48688",
+        "sweep.log": "ce678281567714bbc2522568b8a2d218678488916dda28650887a00a568701c8",
+        "training_metadata.json": "ce018d7f60e6c46b643ee953db14f586416f6a7e643c9548db08cdd987434659"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_42",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_42_native50m",
+        "seed": 42
+      },
+      "metrics": {
+        "capped_recall@10": 0.019136073683525354,
+        "capped_recall@100": 0.09353352135329406,
+        "capped_recall@50": 0.058897315506688815,
+        "coverage@10": 0.16347894292264994,
+        "coverage@100": 0.5706528297333172,
+        "coverage@50": 0.41547001327380234,
+        "mrr@10": 0.025073809058870567,
+        "mrr@100": 0.03181570070531122,
+        "mrr@50": 0.030657460922035806,
+        "ndcg@10": 0.014434109117986444,
+        "ndcg@100": 0.03459287026261175,
+        "ndcg@50": 0.026269805998890623,
+        "recall@10": 0.017450205689091475,
+        "recall@100": 0.09347279993888183,
+        "recall@50": 0.058662961889813674
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "6ddb9129c1e4877984b11ed3ae3717fb16676ee8028913e5437c3ae70b083f4d",
+        "fixed26_calibration_job.json": "04c21a938db55e566d9167bbe85a9c87cf4a32163fc3c229cef7f0ab0d4fd41b",
+        "sweep.log": "fad1868644a78cbf1e43fc69004c256f41891bd0e9327d98c005abc97ee8a9b9",
+        "training_metadata.json": "6cd243bb9898c66ae4f9a52403a61d0d4866dc83537a13c75f2084b1de05d4a2"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_43",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_43_native50m",
+        "seed": 43
+      },
+      "metrics": {
+        "capped_recall@10": 0.016664109502422333,
+        "capped_recall@100": 0.0888440692748257,
+        "capped_recall@50": 0.05467759675685467,
+        "coverage@10": 0.17403764933027632,
+        "coverage@100": 0.5830819355617232,
+        "coverage@50": 0.42720526125256425,
+        "mrr@10": 0.019975056025143902,
+        "mrr@100": 0.02601199279645059,
+        "mrr@50": 0.024755354645209136,
+        "ndcg@10": 0.011702731460575044,
+        "ndcg@100": 0.03091638536098596,
+        "ndcg@50": 0.022715507918105355,
+        "recall@10": 0.015119825529074184,
+        "recall@100": 0.08878595371020631,
+        "recall@50": 0.05447260473328294
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "4ca25a6aded2adf660d79e329e24a0102721ce54c165af0dbad7d2ab8c3908b0",
+        "fixed26_calibration_job.json": "450fae3daf5892fb1e97c5d822ea247359f3c957ebce0a722b81f0bce3987609",
+        "sweep.log": "9e9573b49be5e04edab179708368a3f6a1ea256e6f7f4f72e08dd3700662bcf5",
+        "training_metadata.json": "b556eaa8c3022110015b24cb14430a9297a20a798e1e3231b03e31430336c685"
+      },
+      "best_epoch": 25,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_44",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_44_native50m",
+        "seed": 44
+      },
+      "metrics": {
+        "capped_recall@10": 0.014302917026994358,
+        "capped_recall@100": 0.07455806410904461,
+        "capped_recall@50": 0.04391984155219697,
+        "coverage@10": 0.11997707252322916,
+        "coverage@100": 0.45191263424641004,
+        "coverage@50": 0.31733437914806323,
+        "mrr@10": 0.018376479668219564,
+        "mrr@100": 0.023651222919880394,
+        "mrr@50": 0.02258345094036165,
+        "ndcg@10": 0.010459607628281395,
+        "ndcg@100": 0.026709550421628928,
+        "ndcg@50": 0.019427226406648346,
+        "recall@10": 0.013409375646139796,
+        "recall@100": 0.07450802412837879,
+        "recall@50": 0.04376982343790557
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "850fc0870dbd588ef7c06f5986520c99a82040bdacd4bb1a9340b98aba3e9ba3",
+        "fixed26_calibration_job.json": "e7226c2ba3f5341cefe3acd756f4ecdac9ced034693734cf1ba4bb5461142b4e",
+        "sweep.log": "667c3686eff6e54daffa94564b99336b2d09b8b62e4f30b5df491a937e430b38",
+        "training_metadata.json": "130492adf0bbf77e550428bdd710a17abbeddd7e5d45811c057c8046d9e30edb"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_45",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_45_native50m",
+        "seed": 45
+      },
+      "metrics": {
+        "capped_recall@10": 0.01831010963260524,
+        "capped_recall@100": 0.09208088404199624,
+        "capped_recall@50": 0.0557392930807466,
+        "coverage@10": 0.15038614697719319,
+        "coverage@100": 0.5399722456860142,
+        "coverage@50": 0.38792687341619403,
+        "mrr@10": 0.023257525036962642,
+        "mrr@100": 0.029633478861946796,
+        "mrr@50": 0.028416590815708312,
+        "ndcg@10": 0.013772140232562504,
+        "ndcg@100": 0.0333002946258017,
+        "ndcg@50": 0.024834759746712873,
+        "recall@10": 0.016632672755706478,
+        "recall@100": 0.0920326498815257,
+        "recall@50": 0.055579058845482754
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "b8a7aa720eb88d61bd6ff99220bc8793b6dd8436dd0276915a0c81e92310c77c",
+        "fixed26_calibration_job.json": "03ead1ad62343ab7f830ccf862b947e87129c7d9c692b7eebfd427a3ce63680d",
+        "sweep.log": "e4ca96a1b180c7da1f8c7d68a9cbf6cf59187ae2965f5589f290f78c5774253f",
+        "training_metadata.json": "f8a3254e4c9786401470d64b8e2f6cb2a6b0e9c2d0eacd100db6c39147563a55"
+      },
+      "best_epoch": 19,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_46",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_46_native50m",
+        "seed": 46
+      },
+      "metrics": {
+        "capped_recall@10": 0.0163779395765336,
+        "capped_recall@100": 0.07733346966976791,
+        "capped_recall@50": 0.04847482789274459,
+        "coverage@10": 0.04606612766984433,
+        "coverage@100": 0.21461324966815495,
+        "coverage@50": 0.13940509231326173,
+        "mrr@10": 0.01849782873508708,
+        "mrr@100": 0.023941468716171234,
+        "mrr@50": 0.02288825094368569,
+        "ndcg@10": 0.011119265572053488,
+        "ndcg@100": 0.027641005215555424,
+        "ndcg@50": 0.020721327146240674,
+        "recall@10": 0.014956807276730306,
+        "recall@100": 0.07727554081790124,
+        "recall@50": 0.04828283382400784
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "939fa3c7344761e663cf20dbf3bded97e96262f43fc872622887c4223d281f64",
+        "fixed26_calibration_job.json": "a8773fe4be93eb6f5b7feba18d6ad56e362c41acf62f4d8a27958ae964d12ed6",
+        "sweep.log": "d0e114ee7a8d99a83eec4666582f91609f01eab79c55d53c1a9a4c7589f740b8",
+        "training_metadata.json": "169e8a2c89dfe66028680eb8fd7098bc49a49b2199dcf20a22ab8bc4ed27f47a"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_47",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_47_native50m",
+        "seed": 47
+      },
+      "metrics": {
+        "capped_recall@10": 0.015335430208013687,
+        "capped_recall@100": 0.08434875721029428,
+        "capped_recall@50": 0.04910529228724012,
+        "coverage@10": 0.1665560516471582,
+        "coverage@100": 0.5814227102690962,
+        "coverage@50": 0.42485217811029324,
+        "mrr@10": 0.018943356487293218,
+        "mrr@100": 0.025125459842825895,
+        "mrr@50": 0.023839763462386178,
+        "ndcg@10": 0.010882104985852521,
+        "ndcg@100": 0.029564535573239174,
+        "ndcg@50": 0.021264226104845907,
+        "recall@10": 0.01385152491978519,
+        "recall@100": 0.08429561700587387,
+        "recall@50": 0.048917831021692615
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "b56834152419db4da14e22e82e4c01a34cd01f6fe9b734c09400e0cc6960b00d",
+        "fixed26_calibration_job.json": "8f2672ee4ec584206bc9c97229665d1e3987cc838053449ebdbb8dfb40b46797",
+        "sweep.log": "2ddc20b7e3017729f8cec4327f3d02c534365bfc00a217dd0bf374e0837f4a89",
+        "training_metadata.json": "de2a42595b4af0919d154920f9baa45a59624e6c33c929e2150fb4553a90fef9"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_48",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_48_native50m",
+        "seed": 48
+      },
+      "metrics": {
+        "capped_recall@10": 0.016468021498777206,
+        "capped_recall@100": 0.0785238698237821,
+        "capped_recall@50": 0.04748246263284772,
+        "coverage@10": 0.18655725835646192,
+        "coverage@100": 0.6189513696150597,
+        "coverage@50": 0.4592735609991553,
+        "mrr@10": 0.018909997117378487,
+        "mrr@100": 0.024850836595545794,
+        "mrr@50": 0.023751661817958552,
+        "ndcg@10": 0.011521724976403533,
+        "ndcg@100": 0.028571521620243137,
+        "ndcg@50": 0.021183268204849157,
+        "recall@10": 0.015369816651241769,
+        "recall@100": 0.07846971761737896,
+        "recall@50": 0.04731191218363444
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "68d992af612b46ce94a33ceffee10f7eb58641453f48de07f1081540dbe267d1",
+        "fixed26_calibration_job.json": "b87a28f86d7b5043d0a37a2adeb5bb5588b0482c45fe5f968619571716c3ba20",
+        "sweep.log": "33ffd3cd4cb5652f77dbf5bfa4a0e518f2fda6eece4671cc79fcfd43bba35e2d",
+        "training_metadata.json": "28a901b4c9849807cd59f707d8c3ff822954a7ce1146e310637ae2fcd4d959a7"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_49",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_49_native50m",
+        "seed": 49
+      },
+      "metrics": {
+        "capped_recall@10": 0.018690080992365705,
+        "capped_recall@100": 0.08868622367983695,
+        "capped_recall@50": 0.055878965833572304,
+        "coverage@10": 0.17801979003258114,
+        "coverage@100": 0.5986183178472306,
+        "coverage@50": 0.442651140340292,
+        "mrr@10": 0.023486856175784117,
+        "mrr@100": 0.029810514640817434,
+        "mrr@50": 0.02860249541908627,
+        "ndcg@10": 0.013522493509567246,
+        "ndcg@100": 0.032432975074616524,
+        "ndcg@50": 0.02456853569126589,
+        "recall@10": 0.0171277017128394,
+        "recall@100": 0.08862011885293453,
+        "recall@50": 0.05567767660171158
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "51d6144193b2362a4e59c0c08c5263883fa819c2e2e997c8498de30526c05503",
+        "fixed26_calibration_job.json": "1d27431420391fee655ec68ba74462055e66867c2c255ceaf91e954f9ffc6ac1",
+        "sweep.log": "ac50925744b96f4e489315242e896fc3c8c93f0db57dd6d2c02dc40b189a5df7",
+        "training_metadata.json": "dd974b2c9a2767c1f57c754ae807abd4f276eb06450bca7f8e2512e9379dc9c3"
+      },
+      "best_epoch": 26,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_50",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_50_native50m",
+        "seed": 50
+      },
+      "metrics": {
+        "capped_recall@10": 0.01597530244278926,
+        "capped_recall@100": 0.08292970281980862,
+        "capped_recall@50": 0.05007961599280126,
+        "coverage@10": 0.13032460480270303,
+        "coverage@100": 0.48404126945818754,
+        "coverage@50": 0.34240376493302765,
+        "mrr@10": 0.018523981551222327,
+        "mrr@100": 0.024157034666846364,
+        "mrr@50": 0.02308169231505262,
+        "ndcg@10": 0.011069767578993691,
+        "ndcg@100": 0.02880035898976123,
+        "ndcg@50": 0.021011204631237044,
+        "recall@10": 0.014413847468605072,
+        "recall@100": 0.0828723136288588,
+        "recall@50": 0.049881642581463166
+      }
+    },
+    {
+      "artifact_sha256": {
+        "final_metrics.json": "52d463350cca076a3194a4a2b6b83053262faca8a3273e09ecd3719bd8f50cce",
+        "fixed26_calibration_job.json": "3560e2b2daf6c894362adfb48a5f49d94b9dde3dea1e6da00b285efa4ca32508",
+        "sweep.log": "6eb856ab22a48a295d9148f372b93c20522941db749dfa36ed859d719b2b28ad",
+        "training_metadata.json": "dd27521ec5428c4c5ddb4e9ee79a9289051e8541a91b5660b9b3b5470e9c9ce3"
+      },
+      "best_epoch": 21,
+      "epochs_trained": 26,
+      "job": {
+        "id": "native50m_shared_fixed26_calibration:seed_51",
+        "run_name": "g1_shared_calibration_fixed26_mup_control_seed_51_native50m",
+        "seed": 51
+      },
+      "metrics": {
+        "capped_recall@10": 0.013613296324192635,
+        "capped_recall@100": 0.07574637573854479,
+        "capped_recall@50": 0.04468735379874997,
+        "coverage@10": 0.05164715819958972,
+        "coverage@100": 0.2427295764450344,
+        "coverage@50": 0.15889344756848076,
+        "mrr@10": 0.01622427725239676,
+        "mrr@100": 0.021643196827517624,
+        "mrr@50": 0.020665021605067894,
+        "ndcg@10": 0.009463373931868715,
+        "ndcg@100": 0.026041633256348097,
+        "ndcg@50": 0.01883995950743887,
+        "recall@10": 0.01247201950407974,
+        "recall@100": 0.07568910083895873,
+        "recall@50": 0.044525730398379024
+      }
+    }
+  ],
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51
+  ],
+  "source_control": {
+    "artifact_sha256": {
+      "final_metrics.json": "6fbafdb72a3d2e143be5de69ec90f983e78b7253dc26a3bf7c1881846d1e1406",
+      "sweep.log": "10ea037da81b9463bcc2618ed6b7d81009a8c3f49bf0f741a5cde0f6b1b8fdd2",
+      "training_metadata.json": "fe330a0e00141787de45faa60b9bfa8afb14fcf796279ba8283634d5ba9b39fd"
+    },
+    "run_name": "g1_aggregate_dataset_size_baseline_none_l2_b512_s42_e0p003261002414691765_d0p025343654763668278_hnone_batch_lr_calibration_ts2_r1_50m"
+  },
+  "status": "candidate_pending_user_validation",
+  "trained_epochs": [
+    26,
+    26,
+    26,
+    26,
+    26,
+    26,
+    26,
+    26,
+    26,
+    26
+  ],
+  "version": 1
+}

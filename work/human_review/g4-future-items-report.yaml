@@ -1,0 +1,11 @@
+version: 1
+id: g4-future-items-report
+title: G4 future-item supervision report
+description: >-
+  Verify all approved G4 evidence, produce the reader-facing report, and record
+  the mutually exclusive aggregate decision.
+blocked_by:
+  - g4-rq1-future-24h
+  - g4-rq2-next10
+  - g4-rq3-similar-periods
+ideas_tags: []

@@ -1,0 +1,31 @@
+{
+  "jobs": [
+    {
+      "id": "original_control_tuning:original_g1_control_trial_02",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.00877893475120433,
+        "embedding_learning_rate": 0.0003037629776128202,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_original_g1_control_trial_02_native50m"
+    },
+    {
+      "id": "treatment_tuning:learned_sid_event_trial_02",
+      "parameters": {
+        "batch_size": 256,
+        "deep_learning_rate": 0.00040099551132847345,
+        "embedding_learning_rate": 0.0001674648828600525,
+        "num_codes": 128,
+        "num_levels": 3,
+        "representation": "learned_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_learned_sid_event_trial_02_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

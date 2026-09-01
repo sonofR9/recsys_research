@@ -1,0 +1,179 @@
+{
+  "jobs": [
+    {
+      "id": "lr_boundary:boundary_item_frozen_sid_event_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.03463626154088337,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 512,
+        "num_levels": 3,
+        "representation": "item_frozen_sid_event",
+        "representation_width": 128,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:item_frozen_sid_event_trial_15",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.03463626154088337,
+          "embedding_learning_rate": 0.20422560647128077,
+          "num_codes": 512,
+          "num_levels": 3,
+          "representation": "item_frozen_sid_event",
+          "representation_width": 128,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_item_frozen_sid_event_embedding_learning_rate_0_native50m"
+    },
+    {
+      "id": "lr_boundary:boundary_item_learned_frozen_sid_event_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.011234096354949456,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 512,
+        "num_levels": 4,
+        "representation": "item_learned_frozen_sid_event",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:item_learned_frozen_sid_event_trial_10",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.011234096354949456,
+          "embedding_learning_rate": 0.19105100385081308,
+          "num_codes": 512,
+          "num_levels": 4,
+          "representation": "item_learned_frozen_sid_event",
+          "representation_width": 32,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_item_learned_frozen_sid_event_embedding_learning_rate_0_native50m"
+    },
+    {
+      "id": "lr_boundary:boundary_learned_sid_tokens_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.015913213238575516,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 64,
+        "num_levels": 3,
+        "representation": "learned_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:learned_sid_tokens_trial_01",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.015913213238575516,
+          "embedding_learning_rate": 0.12828070370290312,
+          "num_codes": 64,
+          "num_levels": 3,
+          "representation": "learned_sid_tokens",
+          "representation_width": 64,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_learned_sid_tokens_embedding_learning_rate_0_native50m"
+    },
+    {
+      "id": "lr_boundary:boundary_learned_frozen_sid_tokens_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.002762100348937363,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 256,
+        "num_levels": 2,
+        "representation": "learned_frozen_sid_tokens",
+        "representation_width": 32,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:learned_frozen_sid_tokens_trial_00",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.002762100348937363,
+          "embedding_learning_rate": 0.12459632774247778,
+          "num_codes": 256,
+          "num_levels": 2,
+          "representation": "learned_frozen_sid_tokens",
+          "representation_width": 32,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_learned_frozen_sid_tokens_embedding_learning_rate_0_native50m"
+    },
+    {
+      "id": "lr_boundary:boundary_frozen_sid_tokens_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.0008553316767583885,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 128,
+        "num_levels": 3,
+        "representation": "frozen_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:frozen_sid_tokens_trial_02",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.0008553316767583885,
+          "embedding_learning_rate": 0.21503918125899885,
+          "num_codes": 128,
+          "num_levels": 3,
+          "representation": "frozen_sid_tokens",
+          "representation_width": 64,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_frozen_sid_tokens_embedding_learning_rate_0_native50m"
+    },
+    {
+      "id": "lr_boundary:boundary_interleaved_item_sid_tokens_embedding_learning_rate_0",
+      "parameters": {
+        "batch_size": 256,
+        "boundary_side": "upper",
+        "builder": "treatment",
+        "deep_learning_rate": 0.02577296187990023,
+        "embedding_learning_rate": 0.3620386719675124,
+        "num_codes": 32,
+        "num_levels": 3,
+        "representation": "interleaved_item_sid_tokens",
+        "representation_width": 64,
+        "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+        "source_job_id": "treatment_tuning:interleaved_item_sid_tokens_trial_12",
+        "source_parameters": {
+          "batch_size": 256,
+          "deep_learning_rate": 0.02577296187990023,
+          "embedding_learning_rate": 0.22929733119095191,
+          "num_codes": 32,
+          "num_levels": 3,
+          "representation": "interleaved_item_sid_tokens",
+          "representation_width": 64,
+          "selected_primary_control_job_id": "primary_control_tuning:best_g1_control_trial_18",
+          "validation_batch_size": 8192
+        },
+        "validation_batch_size": 8192
+      },
+      "run_name": "g6_rq0_boundary_interleaved_item_sid_tokens_embedding_learning_rate_0_native50m"
+    }
+  ],
+  "manifest_sha256": "f8694eb0503e47a25fe6f278f66598ba6c3fdebc8800433339b8cc93ef8650b1"
+}

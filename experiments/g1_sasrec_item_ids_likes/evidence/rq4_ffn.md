@@ -3,9 +3,9 @@
 RQ4 tunes GELU and SwiGLU as separate model families. Each tested width receives
 its own native Yambda-50M learning-rate search; cap hits and learning-rate
 boundaries are continued until the selected point is early-stopping-resolved
-and surrounded. GELU widths 128, 171, 256, and 384 were tested. SwiGLU widths
-16, 32, 64, 96, 128, 171, and 224 were tested after extending the lower-width
-boundary. The selected widths, GELU-171 and SwiGLU-32, are interior to their
+and surrounded. GELU widths 128, 192, 256, and 384 were tested. SwiGLU widths
+16, 32, 64, 96, 128, 192, and 224 were tested after extending the lower-width
+boundary. The selected widths, GELU-192 and SwiGLU-32, are interior to their
 finite family searches.
 
 All proxy and final runs use physical and effective batch 1280 without gradient
@@ -20,7 +20,7 @@ outside the selection.
 
 | FFN family | intermediate width | embedding LR | deep LR | recall@100 | ndcg@100 | best/stopped epoch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| GELU | 171 | 0.128 | 0.012 | 0.07720477 | 0.02868057 | 19/22 |
+| GELU | 192 | 0.128 | 0.012 | 0.07720477 | 0.02868057 | 19/22 |
 | **SwiGLU** | **32** | **0.064** | **0.024** | **0.07890102** | **0.02858721** | **20/23** |
 
 These are family-specific optima, not a matched-width or matched-learning-rate
@@ -31,7 +31,7 @@ itself establish that SwiGLU is better than GELU.
 
 | FFN family | intermediate width | transferred embedding/deep LR | recall@10 | recall@100 | ndcg@100 | coverage@100 | best/stopped epoch |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| GELU | 171 | 0.128/0.012 | 0.02631191 | 0.13094588 | 0.04905266 | 0.71666338 | 15/20 |
+| GELU | 192 | 0.128/0.012 | 0.02631191 | 0.13094588 | 0.04905266 | 0.71666338 | 15/20 |
 | SwiGLU | 32 | 0.064/0.024 | 0.02646215 | 0.13058894 | 0.04979294 | 0.62897107 | 13/20 |
 | SwiGLU width probe | 128 | 0.128/0.012 | 0.02750231 | 0.13221816 | 0.05037345 | 0.67427569 | 13/20 |
 

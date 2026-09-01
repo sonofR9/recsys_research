@@ -1,0 +1,13 @@
+version: 1
+id: g1-rq15-decoder-training
+title: Compare decoder-decoder training methods
+description: >-
+  On the four-distinct-CLS architecture with the RQ14-selected CLS-only or
+  CLS-plus-history memory, compare downstream-only joint training, first-decoder
+  NTP pretraining followed by downstream-only joint fine-tuning, and joint
+  training with an auxiliary first-decoder NTP loss. Include pretraining in
+  total training cost.
+blocked_by:
+  - g1-rq14-decoder-query-memory
+ideas_tags:
+  - g1-rq15
